@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import styled from 'styled-components';
-import Slider from 'react-slick'; // Import the react-slick carousel
-import flakeDiagram from './images/epoxydiagram1.webp'; // Import the flake diagram
-import lifetimeWarrantySeal from './images/lifetimewarranty.png'; // Import the warranty seal
+import Slider from 'react-slick';
+import flakeDiagram from './images/epoxydiagram1.webp';
 
-// Example epoxy images (replace with your actual images)
 import epoxy1 from './images/epoxyexample1.webp';
+import epoxy2 from './images/onyx_cropped.webp';
 import epoxy3 from './images/epoxyexample3.webp';
 
-// Styled Components for Epoxy Info Section
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 const InfoSection = styled.section`
   background-color: white;
   color: #333;
@@ -24,8 +25,8 @@ const MainContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 20px; /* Add a gap between flex items for spacing */
-  
+  gap: 20px;
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
@@ -37,18 +38,17 @@ const InfoContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 20px; /* Remove negative margin to avoid overlap */
-  
+  gap: 10px;
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
-    margin-bottom: 40px; /* Add extra margin between stacked items */
+    margin-bottom: 10px;
   }
 `;
 
 const InfoImage = styled.img`
-  width: 48%;
+  width: 50%;
   height: 400px;
   object-fit: contain;
   border-radius: 8px;
@@ -56,56 +56,95 @@ const InfoImage = styled.img`
   @media (max-width: 768px) {
     width: 100%;
     height: auto;
-    margin-bottom: 20px; /* Add space between image and slider on mobile */
   }
 `;
 
 const SliderWrapper = styled.div`
-  width: 48%;
-  height: 450px;
+  position: relative;
+  width: 40%;
+  height: 300px;
   border-radius: 8px;
   overflow: hidden;
+  margin-top: 60px;
+  margin-right: 30px;
 
-  .slick-slide {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+  .slick-slider,
+  .slick-list,
+  .slick-track,
+  .slick-slide,
+  .slick-slide > div {
+    height: 100% !important;
   }
 
-  img {
+  .slick-dots {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+  }
+
+  .slick-dots li button:before {
+    color: #0f4c81;
+    font-size: 7px;
+  }
+
+  .image-box {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-box img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
+    display: block;
   }
 
   @media (max-width: 768px) {
-    width: 100%;
-    height: auto;
+    width: 85vw;
+    height: 300px;
+    margin-top: 0px;
+      margin-right: 0px;
+          margin-bottom: 20px;
   }
 `;
+
+
 
 const InfoText = styled.p`
   font-size: 1.2rem;
   max-width: 80vw;
   line-height: 1.6;
   text-align: left;
-  margin-bottom: 20px; /* Add spacing between text blocks */
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    margin-top: -10px;
+  }
 `;
 
 const InfoHeading = styled.h2`
   font-size: 2.5rem;
-  margin-bottom: 40px;
+  margin-bottom: 0px;
   margin-top: 40px;
   color: #0f4c81;
   text-align: center;
   width: 80vw;
+
+  @media (max-width: 768px) {
+    margin-bottom: -10px;
+  }
 `;
 
-// Slider settings
 const settings = {
   dots: true,
+  appendDots: dots => <ul style={{ margin: "0px" }}>{dots}</ul>,
   infinite: true,
   speed: 500,
   slidesToShow: 1,
@@ -117,25 +156,43 @@ const settings = {
 };
 
 const EpoxyInfo = () => {
+  const sliderRef = useRef(null);
+
+  const handleSliderClick = (e) => {
+    if (e.target.closest('.slick-dots')) return;
+    const sliderRect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - sliderRect.left;
+    const halfWidth = sliderRect.width / 2;
+    if (clickX < halfWidth) {
+      sliderRef.current.slickPrev();
+    } else {
+      sliderRef.current.slickNext();
+    }
+  };
+
   return (
     <InfoSection>
       <InfoHeading>Our Floors Last A Lifetime. Guaranteed.</InfoHeading>
 
       <MainContainer>
         <InfoContainer>
-          {/* Flake Diagram Image */}
           <InfoImage src={flakeDiagram} alt="Flake Diagram Showing Epoxy System" />
 
-          {/* Epoxy Example Slideshow */}
-          <SliderWrapper>
-            <Slider {...settings}>
-              <div><img src={epoxy1} alt="Epoxy Example 1" /></div>
-              <div><img src={epoxy3} alt="Epoxy Example 2" /></div>
+          <SliderWrapper onClick={handleSliderClick}>
+            <Slider ref={sliderRef} {...settings}>
+              <div className="image-box">
+                <img src={epoxy1} alt="Epoxy Example 1" />
+              </div>
+              <div className="image-box">
+                <img src={epoxy2} alt="Epoxy Example 2" />
+              </div>
+              <div className="image-box">
+                <img src={epoxy3} alt="Epoxy Example 3" />
+              </div>
             </Slider>
           </SliderWrapper>
         </InfoContainer>
 
-        {/* Detailed Description of the Epoxy Process */}
         <InfoText>
           At Next Level Epoxy Flooring, we use an advanced epoxy system that ensures durability, longevity, and beauty. Our process includes the following key elements:
         </InfoText>
