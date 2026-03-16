@@ -1,223 +1,342 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
-import Slider from 'react-slick';
-import flakeDiagram from './images/epoxydiagram1.webp';
+import useScrollReveal from './useScrollReveal';
+import epoxyDiagram from './images/epoxydiagram.jpg';
 
-import epoxy1 from './images/epoxyexample1.webp';
-import epoxy2 from './images/onyx_cropped.webp';
-import epoxy3 from './images/epoxyexample3.webp';
+/* ── Floor count: starts at 566 on March 13 2026, +1 every 2 days ── */
+const BASE_COUNT = 566;
+const BASE_DATE = new Date('2026-03-13T00:00:00');
 
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+function getFloorCount() {
+  const now = new Date();
+  const msElapsed = now - BASE_DATE;
+  const daysElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24)));
+  return BASE_COUNT + Math.floor(daysElapsed / 2);
+}
 
-const InfoSection = styled.section`
-  background-color: white;
-  color: #333;
+/* ── Styled Components ────────────────────────────────────────────── */
+const Section = styled.section`
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-`;
+  justify-content: center;
+  padding: 100px 24px 32px;
+  background: var(--bg);
 
-const MainContainer = styled.div`
-  width: 80vw;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 20px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: center;
+  @media (max-width: 900px) {
+    min-height: auto;
+    padding: 80px 24px 48px;
   }
 `;
 
-const InfoContainer = styled.div`
+const Inner = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+`;
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 10px;
+const Header = styled.div`
+  text-align: center;
+  margin-bottom: 20px;
+`;
+
+const SectionLabel = styled.p`
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 6px;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 6px;
+
+  span {
+    color: var(--primary);
   }
 `;
 
-const InfoImage = styled.img`
-  width: 50%;
-  height: 400px;
-  object-fit: contain;
-  border-radius: 8px;
+const SectionSubtitle = styled.p`
+  font-size: 0.88rem;
+  color: var(--text-mid);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.5;
+`;
 
-  @media (max-width: 768px) {
-    width: 100%;
-    height: auto;
+/* ── Two-column layout ────────────────────────────────────────────── */
+const ContentLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 20px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 28px;
   }
 `;
 
-const SliderWrapper = styled.div`
-  position: relative;
-  width: 40%;
-  height: 300px;
-  border-radius: 8px;
+const DiagramSide = styled.div`
+  border-radius: var(--radius-md);
   overflow: hidden;
-  margin-top: 60px;
-  margin-right: 30px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 
-  .slick-slider,
-  .slick-list,
-  .slick-track,
-  .slick-slide,
-  .slick-slide > div {
-    height: 100% !important;
-  }
-
-  .slick-dots {
-    position: absolute;
-    bottom: -24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-  }
-
-  .slick-dots li button:before {
-    color: #0f4c81;
-    font-size: 7px;
-  }
-
-  .image-box {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .image-box img {
+  img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 8px;
     display: block;
   }
 
-  @media (max-width: 768px) {
-    width: 85vw;
-    height: 300px;
-    margin-top: 0px;
-      margin-right: 0px;
-          margin-bottom: 20px;
+  @media (max-width: 900px) {
+    max-width: 480px;
+    margin: 0 auto;
+    img { height: auto; }
   }
 `;
 
+const StepsSide = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
 
-
-const InfoText = styled.p`
-  font-size: 1.2rem;
-  max-width: 80vw;
-  line-height: 1.6;
-  text-align: left;
-  margin-bottom: 20px;
-
-  @media (max-width: 768px) {
-    margin-top: -10px;
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 `;
 
-const InfoHeading = styled.h2`
-  font-size: 2.5rem;
-  margin-bottom: 0px;
-  margin-top: 40px;
-  color: #0f4c81;
+const StepCard = styled.div`
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow var(--transition);
+  transition-delay: ${({ $delay }) => $delay || '0s'};
+
+  ${({ $visible }) => $visible && `
+    opacity: 1;
+    transform: translateY(0);
+  `}
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover::before {
+    transform: scaleX(1);
+  }
+`;
+
+const StepNumber = styled.div`
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, rgba(15, 76, 129, 0.12), rgba(15, 76, 129, 0.06));
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 6px;
+  transition: background var(--transition), transform var(--transition);
+
+  ${StepCard}:hover & {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05);
+  }
+`;
+
+const StepTitle = styled.h3`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.2;
+`;
+
+const StepText = styled.p`
+  font-size: 0.75rem;
+  color: var(--text-mid);
+  line-height: 1.55;
+`;
+
+/* ── Stats row ────────────────────────────────────────────────────── */
+const StatsRow = styled.div`
+  background: var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 16px 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
   text-align: center;
-  width: 80vw;
 
-  @media (max-width: 768px) {
-    margin-bottom: -10px;
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+    padding: 20px 24px;
+    gap: 12px;
   }
 `;
 
-const settings = {
-  dots: true,
-  appendDots: dots => <ul style={{ margin: "0px" }}>{dots}</ul>,
-  infinite: true,
-  speed: 500,
-  slidesToShow: 1,
-  slidesToScroll: 1,
-  autoplay: true,
-  autoplaySpeed: 5000,
-  arrows: true,
-  fade: false,
+const Stat = styled.div``;
+
+const StatNumber = styled.div`
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  margin-bottom: 2px;
+`;
+
+const StatLabel = styled.div`
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.03em;
+`;
+
+/* ── Animated Counter ─────────────────────────────────────────────── */
+const AnimatedNumber = ({ target, isVisible }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const duration = 2000;
+    const startTime = Date.now();
+
+    const step = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+      else setCount(target);
+    };
+
+    requestAnimationFrame(step);
+  }, [isVisible, target]);
+
+  return <>{count.toLocaleString()}</>;
 };
 
-const EpoxyInfo = () => {
-  const sliderRef = useRef(null);
+/* ── Data ─────────────────────────────────────────────────────────── */
+const steps = [
+  {
+    num: '01',
+    title: 'Diamond Grinding',
+    text: 'We use 20-grit diamond bits on industrial grinders with built-in dust extractors — no dust, no mess. This opens the concrete pores and creates a rough profile so the epoxy mechanically locks in, not just sits on top.',
+  },
+  {
+    num: '02',
+    title: '100% Solids Epoxy',
+    text: 'We apply 100% solids cycloaliphatic epoxy — zero solvents, zero fillers, maximum mil thickness. It chemically bonds to concrete and cures slower on purpose, giving it time to penetrate and anchor. Fast-cure "one day" resins skip this step entirely.',
+  },
+  {
+    num: '03',
+    title: 'Full Flake Broadcast',
+    text: 'While the epoxy is still wet, we broadcast decorative vinyl flakes wall-to-wall until the surface is fully covered. This adds color, hides imperfections, and creates a natural texture that improves traction — even when wet.',
+  },
+  {
+    num: '04',
+    title: 'Polyaspartic Topcoat',
+    text: 'A commercial-grade polyaspartic clear coat is applied to seal and protect. It\'s UV-stable so it won\'t yellow in sunlight, resists hot tire pickup, and gives the floor a high-gloss showroom finish that lasts decades.',
+  },
+];
 
-  const handleSliderClick = (e) => {
-    if (e.target.closest('.slick-dots')) return;
-    const sliderRect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - sliderRect.left;
-    const halfWidth = sliderRect.width / 2;
-    if (clickX < halfWidth) {
-      sliderRef.current.slickPrev();
-    } else {
-      sliderRef.current.slickNext();
-    }
-  };
+/* ── Component ────────────────────────────────────────────────────── */
+const EpoxyInfo = () => {
+  const floorCount = useMemo(() => getFloorCount(), []);
+  const [headerRef, headerVisible] = useScrollReveal();
+  const [contentRef, contentVisible] = useScrollReveal({ threshold: 0.1 });
+  const [statsRef, statsVisible] = useScrollReveal({ threshold: 0.3 });
 
   return (
-    <InfoSection>
-      <InfoHeading>Our Floors Last A Lifetime. Guaranteed.</InfoHeading>
+    <Section>
+      <Inner>
+        <Header ref={headerRef} className={`reveal ${headerVisible ? 'visible' : ''}`}>
+          <SectionLabel>Our Process</SectionLabel>
+          <SectionTitle>
+            Good Floors Take Two Days. <span>Great Ones Are Worth It.</span>
+          </SectionTitle>
+          <SectionSubtitle>
+            "One day" coatings use fast-cure resins that look good on day one and fail on year one.
+            We take the extra day because quality epoxy needs time to chemically
+            bond to your concrete — and that bond is what makes a floor last forever.
+          </SectionSubtitle>
+        </Header>
 
-      <MainContainer>
-        <InfoContainer>
-          <InfoImage src={flakeDiagram} alt="Flake Diagram Showing Epoxy System" />
+        <ContentLayout ref={contentRef}>
+          <DiagramSide className={`reveal-left ${contentVisible ? 'visible' : ''}`}>
+            <img
+              src={epoxyDiagram}
+              alt="Epoxy flooring system layers — concrete, 100% solids cycloaliphatic epoxy base, flake broadcast, and polyaspartic topcoat"
+            />
+          </DiagramSide>
 
-          <SliderWrapper onClick={handleSliderClick}>
-            <Slider ref={sliderRef} {...settings}>
-              <div className="image-box">
-                <img src={epoxy1} alt="Epoxy Example 1" />
-              </div>
-              <div className="image-box">
-                <img src={epoxy2} alt="Epoxy Example 2" />
-              </div>
-              <div className="image-box">
-                <img src={epoxy3} alt="Epoxy Example 3" />
-              </div>
-            </Slider>
-          </SliderWrapper>
-        </InfoContainer>
+          <StepsSide>
+            {steps.map((s, i) => (
+              <StepCard key={s.num} $visible={contentVisible} $delay={`${i * 0.1}s`}>
+                <StepNumber>{s.num}</StepNumber>
+                <StepTitle>{s.title}</StepTitle>
+                <StepText>{s.text}</StepText>
+              </StepCard>
+            ))}
+          </StepsSide>
+        </ContentLayout>
 
-        <InfoText>
-          At Next Level Epoxy Flooring, we use an advanced epoxy system that ensures durability, longevity, and beauty. Our process includes the following key elements:
-        </InfoText>
-
-        <InfoText>
-          <strong>1. Surface Preparation:</strong> We begin by thoroughly preparing the concrete surface, which is critical for ensuring the epoxy adheres properly. This includes grinding the concrete to remove any surface imperfections, opening the pores of the concrete, and creating the ideal texture for epoxy application.
-        </InfoText>
-
-        <InfoText>
-          <strong>2. Epoxy Base Layer:</strong> A thick layer of high-quality, 100% solid epoxy is applied to the prepared surface. This forms the foundation of our system, providing excellent adhesion and durability. Our epoxy resists chemicals, impacts, and abrasion, making it ideal for heavy traffic areas.
-        </InfoText>
-
-        <InfoText>
-          <strong>3. Full Broadcast Vinyl Flake System:</strong> While the epoxy is still wet, we broadcast decorative vinyl flakes across the entire surface to create a beautiful and textured finish. These flakes add color, texture, and durability, ensuring a slip-resistant surface that looks amazing in any setting.
-        </InfoText>
-
-        <InfoText>
-          <strong>4. Polyaspartic Clear Topcoat:</strong> To protect and seal the system, we apply a clear polyaspartic layer on top of the vinyl flakes. Polyaspartic is a high-performance, UV-resistant coating that prevents yellowing and provides exceptional durability. This topcoat not only protects the underlying layers but also adds a glossy, professional finish.
-        </InfoText>
-
-        <InfoText>
-          This combination of high-quality materials and precise application techniques results in an epoxy flooring system that is built to last, resistant to chemicals, UV damage, and wear, making it perfect for both residential and commercial applications. Our commitment to quality ensures that your epoxy floor will maintain its beauty and functionality for years to come.
-        </InfoText>
-      </MainContainer>
-    </InfoSection>
+        <div ref={statsRef} className={`reveal ${statsVisible ? 'visible' : ''}`}>
+          <StatsRow>
+            <Stat>
+              <StatNumber>
+                <AnimatedNumber target={floorCount} isVisible={statsVisible} />
+              </StatNumber>
+              <StatLabel>Floors Installed &amp; Counting</StatLabel>
+            </Stat>
+            <Stat>
+              <StatNumber>Lifetime</StatNumber>
+              <StatLabel>Warranty on Every Job</StatLabel>
+            </Stat>
+            <Stat>
+              <StatNumber>100%</StatNumber>
+              <StatLabel>Solids — Zero Solvents</StatLabel>
+            </Stat>
+          </StatsRow>
+        </div>
+      </Inner>
+    </Section>
   );
 };
 

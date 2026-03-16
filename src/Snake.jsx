@@ -179,6 +179,7 @@ const Snake = () => {
       moveSnake();
     }, 200);
     return () => clearInterval(gameLoop.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snake, direction]);
 
   const moveSnake = () => {

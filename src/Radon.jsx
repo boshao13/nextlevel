@@ -2,10 +2,10 @@ import React from 'react';
 import styled from 'styled-components';
 
 
-// Import images
-import radon1 from './images/radon1.webp';
-import radon2 from './images/radon2.webp';
-import radon3 from './images/radon3.webp';
+// Images loaded from public folder when available
+const radon1 = null;
+const radon2 = null;
+const radon3 = null;
 
 
 // Styled Components
@@ -101,11 +101,13 @@ const Radon = () => {
         </p>
       </RadonContent>
 
-      <ImageWrapper>
-        <img src={radon1} alt="Epoxy Sealing Process" />
-        <img src={radon2} alt="Foundation Sealing Example" />
-        <img src={radon3} alt="Completed Epoxy Flooring" />
-      </ImageWrapper>
+      {(radon1 || radon2 || radon3) && (
+        <ImageWrapper>
+          {radon1 && <img src={radon1} alt="Epoxy Sealing Process" />}
+          {radon2 && <img src={radon2} alt="Foundation Sealing Example" />}
+          {radon3 && <img src={radon3} alt="Completed Epoxy Flooring" />}
+        </ImageWrapper>
+      )}
 
       {/* Call to Action */}
       <CallToActionSection>

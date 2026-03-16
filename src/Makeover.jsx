@@ -3,11 +3,8 @@ import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
 import { useForm, ValidationError } from '@formspree/react';
 
-// Import images and videos
-import makeover1 from './images/makeover1.webp';
-import makeover2 from './images/makeover2.webp';
-import makeover3 from './images/makeover3.webp';
-import makeoverVideo from './videos/makeover.mp4';
+// Media: set to null until assets are added back
+const makeover1 = null, makeover2 = null, makeover3 = null, makeoverVideo = null;
 
 // SEO Metadata
 const SEO = () => (

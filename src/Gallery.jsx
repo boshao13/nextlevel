@@ -1,234 +1,223 @@
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import Slider from 'react-slick';
+import useScrollReveal from './useScrollReveal';
 
-// Import new optimized videos (WebM & MP4)
-import video4WebM from './videos/galleryvideo4-optimized.webm';
-import video4MP4 from './videos/galleryvideo4-final.mp4';
+// ─── Assets ─────────────────────────────────────────────────────────────────
+const videoPairs    = [
+  { webm: '/videos/gallery1.webm', mp4: '/videos/gallery1.mp4', label: 'Gravel' },
+  { webm: '/videos/gallery2.webm', mp4: '/videos/gallery2.mp4', label: 'Onyx' },
+  { webm: '/videos/gallery3.webm', mp4: '/videos/gallery3.mp4', label: 'Outback' },
+];
 
-import video5WebM from './videos/galleryvideo5-optimized.webm';
-import video5MP4 from './videos/galleryvideo5-final.mp4';
-
-import video6WebM from './videos/galleryvideo6-optimized.webm';
-import video6MP4 from './videos/galleryvideo6-final.mp4';
-
-// Import optimized images
-import galleryImage1 from './images/gallery1-opt.webp';
-import galleryImage2 from './images/gallery2-opt.webp';
-import galleryImage3 from './images/gallery3-opt.webp';
-import galleryImage4 from './images/arkose.webp';
-import galleryImage5 from './images/gallery5-opt.webp';
-import galleryImage6 from './images/gallery6-opt.webp';
-import galleryImage7 from './images/gallery7-opt.webp';
-import galleryImage0 from './images/onyxwide_optimized.webp';
-
-// Styled Components
-const GallerySection = styled.section`
-  padding: 20px 20px;
-  background-color: white;
-  text-align: center;
-  color: #0f4c81;
+// ─── Styled Components ────────────────────────────────────────────────────────
+const Section = styled.section`
+  padding: 60px 24px;
+  background: var(--bg);
+  overflow: hidden;
 `;
 
-const GalleryHeading = styled.h2`
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  color: #0f4c81;
-`;
-
-const GallerySubheading = styled.p`
-  font-size: 1.3rem;
-  margin-bottom: 40px;
-  color: #0f4c81;
-`;
-
-const VideoWrapper = styled.div`
-  width: 90vw;
+const Inner = styled.div`
+  max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 20px;
+`;
 
-  video {
-    width: calc(33.333% - 13.333px);
-    object-fit: cover;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    loading: lazy;
-  }
+const SectionLabel = styled.p`
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 8px;
+`;
 
-  @media (max-width: 1200px) {
-    gap: 10px;
-    video {
-      width: calc(33.333% - 6.666px);
-    }
-  }
+const SectionTitle = styled.h2`
+  text-align: center;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+`;
 
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    gap: 15px;
-    video {
-      width: 100%;
-      height: 70vh;
-    }
+const SectionSubtitle = styled.p`
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--text-mid);
+  max-width: 540px;
+  margin: 0 auto 24px;
+  line-height: 1.7;
+`;
+
+const VideoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 60px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 
   @media (max-width: 600px) {
-    video {
-      height: 80vh;
-    }
+    grid-template-columns: 1fr;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 20px;
   }
 `;
 
-const CarouselWrapper = styled.div`
-  width: 90vw;
-  margin: 0 auto;
-  margin-top: 20px;
-  margin-bottom: 50px;
+const VideoCard = styled.div`
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: #111;
+  position: relative;
+  transition: transform var(--transition), box-shadow var(--transition);
 
-  .slick-slide img {
-    margin: auto;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  video {
     width: 100%;
-    height: auto;
+    aspect-ratio: 9 / 16;
     object-fit: cover;
-    border-radius: 10px;
-    max-height: 600px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .slick-dots {
-    margin-top: 40px;
-  }
-
-  .slick-dots li button:before {
-    color: #0f4c81;
-  }
-
-  /* Hide arrows on mobile */
-  @media (max-width: 768px) {
-    .slick-prev, .slick-next {
-      display: none !important;
-    }
+    display: block;
   }
 `;
 
-const SwipeText = styled.p`
-  font-size: 0.9rem;
-  color: #666;
-  text-align: center;
-  margin-top: 20px;
-  display: none;
+const VideoLabel = styled.span`
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+`;
 
-  @media (max-width: 768px) {
-    display: block; /* Show only on mobile */
+const InstagramBanner = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 28px 32px;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: #fff;
+  text-decoration: none;
+  transition: transform var(--transition), box-shadow var(--transition);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 24px 20px;
   }
 `;
 
-// **Updated Carousel Settings - Tappable on Mobile**
-const carouselSettings = {
-  dots: true,
-  infinite: true,
-  speed: 500,
-  slidesToShow: 3,
-  slidesToScroll: 1,
-  autoplay: false,
-  swipeToSlide: true, // Enables swiping/tapping
-  touchMove: true, // Allows touch gestures
+const InstagramIcon = styled.svg`
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+`;
 
-  responsive: [
-    {
-      breakpoint: 1024,
-      settings: {
-        slidesToShow: 2,
-        slidesToScroll: 1,
-      },
-    },
-    {
-      breakpoint: 768,
-      settings: {
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        arrows: false, // Hide arrows on mobile
-      },
-    },
-  ],
-};
+const InstagramText = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 
-// **Memoized Video Component with Intersection Observer**
-const MemoizedVideo = React.memo(({ webmSrc, mp4Src }) => {
-  const videoRef = useRef(null);
+  span {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+`;
+
+// ─── Intersection-observer video ──────────────────────────────────────────────
+const LazyVideo = React.memo(({ webm, mp4 }) => {
+  const ref = useRef(null);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            videoRef.current.play();
-          } else {
-            videoRef.current.pause();
-          }
-        });
+      ([entry]) => {
+        if (entry.isIntersecting) el.play().catch(() => {});
+        else el.pause();
       },
-      { threshold: 0.5 } // Triggers when at least 50% of the video is visible
+      { threshold: 0.4 }
     );
-
-    if (videoRef.current) {
-      observer.observe(videoRef.current);
-    }
-
-    return () => {
-      if (videoRef.current) {
-        observer.unobserve(videoRef.current);
-      }
-    };
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
-    <video ref={videoRef} loop muted playsInline preload="metadata">
-      <source src={webmSrc} type="video/webm" />
-      <source src={mp4Src} type="video/mp4" />
-      Your browser does not support the video tag.
+    <video ref={ref} loop muted playsInline preload="metadata">
+      {webm && <source src={webm} type="video/webm" />}
+      {mp4  && <source src={mp4}  type="video/mp4" />}
     </video>
   );
 });
 
+// ─── Component ────────────────────────────────────────────────────────────────
 const Gallery = () => {
+  const [headerRef, headerVisible] = useScrollReveal();
+  const [contentRef, contentVisible] = useScrollReveal({ threshold: 0.05 });
+
   return (
-    <GallerySection>
-      <GalleryHeading>Watch The Magic</GalleryHeading>
-      <GallerySubheading>
-        A closer look at our professional epoxy flooring transformations.
-      </GallerySubheading>
+    <Section id="gallery">
+      <Inner>
+        <div ref={headerRef} className={`reveal ${headerVisible ? 'visible' : ''}`}>
+          <SectionLabel>Portfolio</SectionLabel>
+          <SectionTitle>Watch The Magic</SectionTitle>
+          <SectionSubtitle>
+            A closer look at our professional epoxy flooring transformations across New Mexico.
+          </SectionSubtitle>
+        </div>
 
-      <VideoWrapper>
-        <MemoizedVideo webmSrc={video6WebM} mp4Src={video6MP4} />
-        <MemoizedVideo webmSrc={video4WebM} mp4Src={video4MP4} />
-        <MemoizedVideo webmSrc={video5WebM} mp4Src={video5MP4} />
-      </VideoWrapper>
+        <div ref={contentRef} className={`reveal ${contentVisible ? 'visible' : ''}`}>
+          <VideoGrid>
+            {videoPairs.map((v, i) => (
+              <VideoCard key={i}>
+                <LazyVideo webm={v.webm} mp4={v.mp4} />
+                <VideoLabel>{v.label}</VideoLabel>
+              </VideoCard>
+            ))}
+          </VideoGrid>
 
-      {/* Carousel Section */}
-      <CarouselWrapper>
-        <Slider {...carouselSettings}>
-{[
-  galleryImage0,
-    galleryImage4,
-  galleryImage1,
-  galleryImage2,
-  galleryImage3,
-
-  galleryImage5,
-  galleryImage6,
-  galleryImage7,
-].map((img, index) => (
-  <div key={index}><img src={img} alt={`Gallery Image ${index + 1}`} /></div>
-))}
-
-        </Slider>
-        <SwipeText>Swipe or tap to view more</SwipeText>
-      </CarouselWrapper>
-    </GallerySection>
+          <InstagramBanner
+            href="https://www.instagram.com/nextlevelepoxynm/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <InstagramIcon viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+            </InstagramIcon>
+            <InstagramText>
+              Follow Us on Instagram
+              <span>@nextlevelepoxynm — See more transformations</span>
+            </InstagramText>
+          </InstagramBanner>
+        </div>
+      </Inner>
+    </Section>
   );
 };
 

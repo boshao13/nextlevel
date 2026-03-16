@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import styled from "styled-components";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -9,6 +9,7 @@ import FlakeCarousel from "./FlakeCarousel";
 import ContactForm from "./ContactForm";
 import Gallery from "./Gallery";
 import Warranty from "./Warranty";
+import Testimonials from "./Testimonials";
 import GlobalStyle from "./GlobalStyle";
 import Radon from "./Radon";
 import GarageMakeover from "./GarageMakeover";
@@ -18,6 +19,7 @@ import Commercial from "./Commercial";
 // import Classes from "./Classes";
 import Snake from "./Snake";
 import Careers from "./Careers";
+import AllColors from "./AllColors";
 // import Checkout from "./Checkout";
 // import Confirmation from "./Confirmation";
 // import Login from "./Login";
@@ -53,6 +55,7 @@ function App() {
                     <Warranty />
                     <FlakeCarousel />
                     <Gallery />
+                    <Testimonials />
                     <ContactForm />
                   </>
                 }
@@ -74,6 +77,7 @@ function App() {
               <Route path="/snake" element={<Snake />} />
               <Route path="/garagemakeover" element={<GarageMakeover />} />
               <Route path="/radon" element={<Radon />} />
+              <Route path="/colors" element={<AllColors />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="*" element={<h1>404 - Page Not Found</h1>} />

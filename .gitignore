@@ -21,9 +21,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.envnode_modules/
+.env
+node_modules/
 .next/
 dist/
 .env
 src/videos/
 src/images/
+
+# media assets (scp to server directly)
+public/videos/
+public/img/
+public/images/
