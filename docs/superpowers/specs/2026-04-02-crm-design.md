@@ -14,8 +14,30 @@ A custom, enterprise-level CRM for NextLevel Epoxy Flooring. Single-admin, contr
 
 ### Application Structure
 - **Public site**: unchanged, all existing routes and pages remain as-is
-- **Admin CRM**: behind `/admin/*` routes, requires JWT authentication
+- **Admin CRM**: behind `/admin/*` routes, requires JWT authentication. Uses a separate `AdminLayout` component (sidebar + header) instead of the public site's `Header`/`Footer`
 - **Footer**: small "Admin" link added, navigates to `/admin/login`
+
+### Server Structure
+The Express server is created from scratch in a `server/` directory at the project root (separate from `src/` which is CRA frontend code):
+```
+server/
+  index.js          — Express app setup, middleware (cors, body-parser, express-rate-limit)
+  middleware/
+    auth.js         — JWT verification middleware
+  routes/
+    auth.js         — login, me
+    leads.js        — CRUD
+    quotes.js       — CRUD
+    jobs.js         — CRUD
+    schedule.js     — CRUD
+    invoices.js     — CRUD + PDF
+    payments.js     — CRUD
+    finances.js     — summary, monthly
+  db/
+    pool.js         — MySQL connection pool
+    migrations/     — SQL migration files (001_create_tables.sql, etc.)
+```
+Migrations are raw SQL files run manually via a helper script (`node server/db/migrate.js`). CRA proxy config in `package.json` points to `localhost:4242` for local development.
 
 ### Authentication
 - Single hardcoded admin account
@@ -35,7 +57,8 @@ A custom, enterprise-level CRM for NextLevel Epoxy Flooring. Single-admin, contr
 | area_desired | TEXT | |
 | source | ENUM('contact_form', 'commercial_form', 'career_form') | Which form submitted |
 | status | ENUM('new', 'contacted', 'quoted', 'scheduled', 'completed', 'closed') | Default: 'new' |
-| notes | TEXT | Admin notes |
+| notes | TEXT | Admin notes. Commercial form extras (company_name, facility_type, square_footage) and career form extras (age, relevant_experience) are appended here. |
+| deleted_at | TIMESTAMP | Nullable. Soft-delete marker. All list queries filter WHERE deleted_at IS NULL. |
 | created_at | TIMESTAMP | Default: NOW() |
 | updated_at | TIMESTAMP | On update: NOW() |
 
@@ -64,6 +87,7 @@ A custom, enterprise-level CRM for NextLevel Epoxy Flooring. Single-admin, contr
 | description | TEXT | |
 | address | TEXT | Job site address |
 | status | ENUM('scheduled', 'in_progress', 'completed', 'cancelled') | Default: 'scheduled' |
+| deleted_at | TIMESTAMP | Nullable. Soft-delete marker. |
 | start_date | DATE | |
 | end_date | DATE | |
 | created_at | TIMESTAMP | |
@@ -78,6 +102,8 @@ A custom, enterprise-level CRM for NextLevel Epoxy Flooring. Single-admin, contr
 | start_time | TIME | |
 | end_time | TIME | |
 | notes | TEXT | |
+| created_at | TIMESTAMP | Default: NOW() |
+| updated_at | TIMESTAMP | On update: NOW() |
 
 ### invoices
 | Column | Type | Notes |
@@ -86,7 +112,7 @@ A custom, enterprise-level CRM for NextLevel Epoxy Flooring. Single-admin, contr
 | job_id | INT FK → jobs.id | |
 | quote_id | INT FK → quotes.id | |
 | lead_id | INT FK → leads.id | |
-| invoice_number | VARCHAR(20) | Auto-generated: INV-0001, INV-0002, etc. |
+| invoice_number | VARCHAR(20) | Application-level: format `INV-` + zero-padded id (e.g., INV-0001). Generated on insert from the auto-increment id. |
 | line_items | JSON | Array of {item, qty, unit_price} |
 | subtotal | DECIMAL(10,2) | |
 | tax_rate | DECIMAL(5,4) | |
@@ -108,6 +134,7 @@ A custom, enterprise-level CRM for NextLevel Epoxy Flooring. Single-admin, contr
 | notes | TEXT | |
 | payment_date | DATE | |
 | created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | On update: NOW() |
 
 ## CRM Pages
 
@@ -164,7 +191,7 @@ All under `/api`. JWT required unless noted.
 - `GET /api/me` — verify token, return admin info
 
 ### Leads
-- `POST /api/leads` — **public**. Called by frontend forms. Creates lead with source.
+- `POST /api/leads` — **public**, rate-limited (10 req/min per IP). Called by frontend forms. Creates lead with source. Field mapping: contact form `user_name`→`name`, `user_email`→`email`, `user_number`→`phone`; commercial form extras go into `notes`; career form extras go into `notes`.
 - `GET /api/leads` — list with query params: status, search, page, limit
 - `GET /api/leads/:id` — single lead with related quotes/jobs/invoices
 - `PUT /api/leads/:id` — update status, notes
@@ -175,13 +202,14 @@ All under `/api`. JWT required unless noted.
 - `GET /api/quotes` — list with filters
 - `GET /api/quotes/:id` — detail
 - `PUT /api/quotes/:id` — update line items, status
-- `DELETE /api/quotes/:id`
+- `DELETE /api/quotes/:id` — hard delete (only allowed if status is 'draft', no linked jobs)
 
 ### Jobs
 - `POST /api/jobs` — create from accepted quote
 - `GET /api/jobs` — list with filters
 - `GET /api/jobs/:id` — detail with schedule entries
 - `PUT /api/jobs/:id` — update status, details
+- `DELETE /api/jobs/:id` — soft delete
 
 ### Schedule
 - `GET /api/schedule` — entries by date range
@@ -195,6 +223,9 @@ All under `/api`. JWT required unless noted.
 - `GET /api/invoices/:id` — detail
 - `PUT /api/invoices/:id` — update status
 - `GET /api/invoices/:id/pdf` — generate and return PDF
+
+### Quote PDFs
+- `GET /api/quotes/:id/pdf` — generate and return quote PDF
 
 ### Payments
 - `POST /api/payments` — record payment against invoice
@@ -238,7 +269,8 @@ Server-side PDF generation using `pdfkit` (Node.js library).
 | Backend | Express.js, Node.js |
 | Database | MySQL |
 | Auth | JWT + bcrypt |
-| PDF | pdfkit |
+| PDF | pdfkit (new dependency) |
+| Rate Limiting | express-rate-limit (new dependency) |
 | Proxy | Nginx |
 | Hosting | EC2 (13.59.87.37) |
 | Forms | EmailJS + API dual-send |
