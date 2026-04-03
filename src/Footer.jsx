@@ -307,6 +307,7 @@ const Footer = () => {
             Engineered with caffeine & code by
             <img src={codelabsLogo} alt="CodeLabs" />
           </MadeBy>
+          <EasterEgg to="/admin/login" aria-label="Admin">Admin</EasterEgg>
           <EasterEgg to="/snake" aria-label="Easter egg">
             <FaGamepad size={13} />
             psst…
