@@ -111,6 +111,18 @@ const Careers = () => {
       });
 
       if (response.ok) {
+        // Send to CRM API
+        fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.applicant_name,
+            email: formData.applicant_email,
+            phone: formData.phone_number,
+            source: 'career_form',
+            notes: `Age: ${formData.age}\nExperience: ${formData.relevant_experience}`,
+          }),
+        }).catch(() => {});
         setIsSubmitted(true);
       } else {
         alert('Error submitting form. Please try again later.');

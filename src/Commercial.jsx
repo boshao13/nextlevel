@@ -853,7 +853,22 @@ const Commercial = () => {
 
     emailjs
       .send('service_mdak4yr', 'template_q5stpon', form, 'goz_UlnnNwQBQtTw4')
-      .then(() => setSubmitted(true))
+      .then(() => {
+        // Send to CRM API
+        fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: form.contact_name,
+            email: form.user_email,
+            phone: form.user_number,
+            area_desired: form.area_desired,
+            source: 'commercial_form',
+            notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
+          }),
+        }).catch(() => {});
+        setSubmitted(true);
+      })
       .catch(() => alert('Something went wrong. Please try again or call us directly.'))
       .finally(() => setSending(false));
   };

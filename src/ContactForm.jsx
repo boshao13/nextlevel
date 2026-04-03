@@ -359,6 +359,18 @@ const ContactForm = () => {
     emailjs
       .send('service_mdak4yr', 'template_q5stpon', form, 'goz_UlnnNwQBQtTw4')
       .then(() => {
+        // Send to CRM API
+        fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: form.user_name,
+            email: form.user_email,
+            phone: form.user_number,
+            area_desired: form.area_desired,
+            source: 'contact_form',
+          }),
+        }).catch(() => {}); // Silent fail — email already sent
         setSubmitted(true);
       })
       .catch(() => {
