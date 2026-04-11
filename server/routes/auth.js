@@ -11,21 +11,29 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ error: 'Username and password required' });
   }
 
-  if (username !== process.env.ADMIN_USERNAME) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+  // Check admin credentials
+  if (username === process.env.ADMIN_USERNAME) {
+    const match = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ username, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    return res.json({ token, role: 'admin' });
   }
 
-  const match = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH);
-  if (!match) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+  // Check manager credentials
+  if (username === process.env.MANAGER_USERNAME) {
+    const match = await bcrypt.compare(password, process.env.MANAGER_PASSWORD_HASH);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ username, role: 'manager' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    return res.json({ token, role: 'manager' });
   }
 
-  const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-  res.json({ token });
+  return res.status(401).json({ error: 'Invalid credentials' });
 });
 
 router.get('/me', authenticate, (req, res) => {
-  res.json({ username: req.user.username });
+  res.json({ username: req.user.username, role: req.user.role || 'admin' });
 });
 
 module.exports = router;

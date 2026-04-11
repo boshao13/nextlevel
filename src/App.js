@@ -34,6 +34,7 @@ import Schedule from "./admin/Schedule";
 import Invoices from "./admin/Invoices";
 import InvoiceDetail from "./admin/InvoiceDetail";
 import Finances from "./admin/Finances";
+import Timesheet from "./admin/Timesheet";
 
 // Styled layout container
 const LayoutContainer = styled.div`
@@ -104,6 +105,7 @@ function App() {
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/:id" element={<InvoiceDetail />} />
             <Route path="finances" element={<Finances />} />
+            <Route path="timesheet" element={<Timesheet />} />
           </Route>
         </Routes>
       </Suspense>

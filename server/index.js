@@ -14,6 +14,7 @@ const scheduleRoutes = require('./routes/schedule');
 const invoiceRoutes = require('./routes/invoices');
 const paymentRoutes = require('./routes/payments');
 const financeRoutes = require('./routes/finances');
+const timesheetRoutes = require('./routes/timesheet');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/schedule', authenticate, scheduleRoutes);
 app.use('/api/invoices', authenticate, invoiceRoutes);
 app.use('/api/payments', authenticate, paymentRoutes);
 app.use('/api/finances', authenticate, financeRoutes);
+app.use('/api/timesheet', authenticate, timesheetRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

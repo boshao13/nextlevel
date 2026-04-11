@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import api from './api';
 
+const AuthContext = createContext({ role: 'admin' });
+export const useAuth = () => useContext(AuthContext);
+
 const AdminRoute = ({ children }) => {
-  const [status, setStatus] = useState('loading'); // loading | ok | denied
+  const [status, setStatus] = useState('loading');
+  const [role, setRole] = useState('admin');
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -14,9 +18,14 @@ const AdminRoute = ({ children }) => {
 
     api
       .get('/me')
-      .then(() => setStatus('ok'))
+      .then((res) => {
+        setRole(res.data.role || 'admin');
+        localStorage.setItem('admin_role', res.data.role || 'admin');
+        setStatus('ok');
+      })
       .catch(() => {
         localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_role');
         setStatus('denied');
       });
   }, []);
@@ -42,7 +51,7 @@ const AdminRoute = ({ children }) => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  return children;
+  return <AuthContext.Provider value={{ role }}>{children}</AuthContext.Provider>;
 };
 
 export default AdminRoute;

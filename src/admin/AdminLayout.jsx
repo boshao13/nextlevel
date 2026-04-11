@@ -9,11 +9,13 @@ import {
   FiCalendar,
   FiFile,
   FiDollarSign,
+  FiClock,
   FiMenu,
   FiX,
   FiLogOut,
   FiArrowLeft,
 } from 'react-icons/fi';
+import { useAuth } from './AdminRoute';
 
 const LayoutWrapper = styled.div`
   min-height: 100vh;
@@ -169,7 +171,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const navItems = [
+const adminNavItems = [
   { to: '/admin/dashboard', icon: FiHome, label: 'Dashboard' },
   { to: '/admin/leads', icon: FiUsers, label: 'Leads' },
   { to: '/admin/quotes', icon: FiFileText, label: 'Quotes' },
@@ -177,14 +179,22 @@ const navItems = [
   { to: '/admin/schedule', icon: FiCalendar, label: 'Schedule' },
   { to: '/admin/invoices', icon: FiFile, label: 'Invoices' },
   { to: '/admin/finances', icon: FiDollarSign, label: 'Finances' },
+  { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
+];
+
+const managerNavItems = [
+  { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
 ];
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { role } = useAuth();
+  const navItems = role === 'manager' ? managerNavItems : adminNavItems;
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_role');
     navigate('/admin/login');
   };
 
