@@ -35,6 +35,7 @@ import Invoices from "./admin/Invoices";
 import InvoiceDetail from "./admin/InvoiceDetail";
 import Finances from "./admin/Finances";
 import Timesheet from "./admin/Timesheet";
+import ApproveTimesheets from "./admin/ApproveTimesheets";
 
 // Styled layout container
 const LayoutContainer = styled.div`
@@ -106,6 +107,7 @@ function App() {
             <Route path="invoices/:id" element={<InvoiceDetail />} />
             <Route path="finances" element={<Finances />} />
             <Route path="timesheet" element={<Timesheet />} />
+            <Route path="approve" element={<ApproveTimesheets />} />
           </Route>
         </Routes>
       </Suspense>

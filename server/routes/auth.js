@@ -29,6 +29,15 @@ router.post('/login', async (req, res) => {
     return res.json({ token, role: 'manager' });
   }
 
+  // Check payroll (approver) credentials
+  if (username === process.env.PAYROLL_USERNAME) {
+    const match = await bcrypt.compare(password, process.env.PAYROLL_PASSWORD_HASH);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const token = jwt.sign({ username, role: 'payroll' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    return res.json({ token, role: 'payroll' });
+  }
+
   return res.status(401).json({ error: 'Invalid credentials' });
 });
 

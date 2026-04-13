@@ -114,7 +114,11 @@ const Login = () => {
       const { data } = await api.post('/login', { username, password });
       localStorage.setItem('admin_token', data.token);
       localStorage.setItem('admin_role', data.role);
-      navigate(data.role === 'manager' ? '/admin/timesheet' : '/admin/dashboard');
+      const dest =
+        data.role === 'manager' ? '/admin/timesheet'
+        : data.role === 'payroll' ? '/admin/approve'
+        : '/admin/dashboard';
+      navigate(dest);
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid credentials. Is the server running?');
     } finally {

@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const authenticate = require('./middleware/auth');
+const requireRole = require('./middleware/requireRole');
 
 const authRoutes = require('./routes/auth');
 const leadRoutes = require('./routes/leads');
@@ -28,13 +29,20 @@ const leadLimiter = rateLimit({
 });
 
 app.use('/api', authRoutes);
+
+// Public lead creation stays open (leads router handles its own auth for GET/PUT/DELETE)
 app.use('/api/leads', leadRoutes(leadLimiter));
-app.use('/api/quotes', authenticate, quoteRoutes);
-app.use('/api/jobs', authenticate, jobRoutes);
-app.use('/api/schedule', authenticate, scheduleRoutes);
-app.use('/api/invoices', authenticate, invoiceRoutes);
-app.use('/api/payments', authenticate, paymentRoutes);
-app.use('/api/finances', authenticate, financeRoutes);
+
+// CRM endpoints — admin only (managers and payroll users should NOT see customer data)
+const adminOnly = [authenticate, requireRole('admin')];
+app.use('/api/quotes', adminOnly, quoteRoutes);
+app.use('/api/jobs', adminOnly, jobRoutes);
+app.use('/api/schedule', adminOnly, scheduleRoutes);
+app.use('/api/invoices', adminOnly, invoiceRoutes);
+app.use('/api/payments', adminOnly, paymentRoutes);
+app.use('/api/finances', adminOnly, financeRoutes);
+
+// Timesheet routes handle their own per-endpoint role checks internally.
 app.use('/api/timesheet', authenticate, timesheetRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));

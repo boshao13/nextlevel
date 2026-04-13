@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../db/pool');
 const authenticate = require('../middleware/auth');
+const requireRole = require('../middleware/requireRole');
 
 module.exports = function (leadLimiter) {
   const router = express.Router();
@@ -21,7 +22,7 @@ module.exports = function (leadLimiter) {
     }
   });
 
-  router.use(authenticate);
+  router.use(authenticate, requireRole('admin'));
 
   // GET /
   router.get('/', async (req, res) => {

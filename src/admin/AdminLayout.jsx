@@ -10,6 +10,7 @@ import {
   FiFile,
   FiDollarSign,
   FiClock,
+  FiCheckSquare,
   FiMenu,
   FiX,
   FiLogOut,
@@ -180,17 +181,25 @@ const adminNavItems = [
   { to: '/admin/invoices', icon: FiFile, label: 'Invoices' },
   { to: '/admin/finances', icon: FiDollarSign, label: 'Finances' },
   { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
+  { to: '/admin/approve', icon: FiCheckSquare, label: 'Approve Time' },
 ];
 
 const managerNavItems = [
   { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
 ];
 
+const payrollNavItems = [
+  { to: '/admin/approve', icon: FiCheckSquare, label: 'Approve Time' },
+];
+
 const AdminLayout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { role } = useAuth();
-  const navItems = role === 'manager' ? managerNavItems : adminNavItems;
+  const navItems =
+    role === 'manager' ? managerNavItems
+    : role === 'payroll' ? payrollNavItems
+    : adminNavItems;
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
