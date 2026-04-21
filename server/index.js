@@ -48,4 +48,6 @@ app.use('/api/timesheet', authenticate, timesheetRoutes);
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.PORT || 4242;
-app.listen(PORT, () => console.log(`CRM API running on port ${PORT}`));
+// Bind to loopback only — Nginx is the public face. Defense-in-depth:
+// even if the AWS security group ever opens this port, Express won't answer it.
+app.listen(PORT, '127.0.0.1', () => console.log(`CRM API running on 127.0.0.1:${PORT}`));
