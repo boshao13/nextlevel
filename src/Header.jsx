@@ -385,7 +385,7 @@ const TabAnchor = styled.a`
   -webkit-tap-highlight-color: transparent;
 `;
 
-const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/patios', '/radon', '/colors', '/thank-you'];
+const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/patios', '/radon', '/colors', '/polished-concrete', '/thank-you'];
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -454,6 +454,7 @@ const Header = () => {
           <NavLink to="/garagemakeover" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Garage Makeover</NavLink>
           <NavLink to="/patios" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Patios</NavLink>
           <NavLink to="/colors" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Colors</NavLink>
+          <NavLink to="/polished-concrete" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Polished Concrete</NavLink>
           <NavLink to="/careers" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Careers</NavLink>
           <NavAnchor href="#contact" onClick={handleContactClick} $scrolled={scrolled} $subpage={isSubpage}>Contact</NavAnchor>
           <PhoneButton href="tel:5053524674" $subpage={isSubpage} onClick={() => trackPhoneClick('header_desktop')}>
@@ -477,6 +478,7 @@ const Header = () => {
         <MobileNavLink to="/garagemakeover" onClick={handleNavClick}>Garage Makeover</MobileNavLink>
         <MobileNavLink to="/patios" onClick={handleNavClick}>Patios</MobileNavLink>
         <MobileNavLink to="/colors" onClick={handleNavClick}>Colors</MobileNavLink>
+        <MobileNavLink to="/polished-concrete" onClick={handleNavClick}>Polished Concrete</MobileNavLink>
         <MobileNavLink to="/careers" onClick={handleNavClick}>Careers</MobileNavLink>
         <MobileNavAnchor href="#contact" onClick={handleContactClick}>Contact Us</MobileNavAnchor>
         <MobileSectionLabel>Service Areas</MobileSectionLabel>

@@ -34,6 +34,7 @@ const ROUTES = [
   '/garagemakeover',
   '/patios',
   '/colors',
+  '/polished-concrete',
   '/careers',
   '/radon',
   '/thank-you',

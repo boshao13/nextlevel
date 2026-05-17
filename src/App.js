@@ -21,6 +21,7 @@ import Careers from "./Careers";
 import AllColors from "./AllColors";
 import StickyCallButton from "./StickyCallButton";
 import LocationPage from "./LocationPage";
+import PolishedConcreteDivision from "./PolishedConcreteDivision";
 import { ALBUQUERQUE, SANTA_FE, RIO_RANCHO } from "./locations";
 
 // Admin imports
@@ -93,6 +94,7 @@ function App() {
             <Route path="/patios" element={<Patios />} />
             <Route path="/radon" element={<Radon />} />
             <Route path="/colors" element={<AllColors />} />
+            <Route path="/polished-concrete" element={<PolishedConcreteDivision />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/epoxy-flooring-albuquerque" element={<LocationPage city={ALBUQUERQUE} />} />
