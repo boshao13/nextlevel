@@ -7,6 +7,7 @@ import api from './api';
 const WORKERS = {
   jesus_garcia: { name: 'Jesus Garcia', rate: 30, color: '#0f4c81' },
   jerry_francia: { name: 'Jerry Francia', rate: 25, color: '#0d7377' },
+  robert_pyle: { name: 'Robert Pyle', rate: 20, color: '#b45309' },
 };
 
 // ── Date helpers ────────────────────────────────────────────────────
@@ -850,7 +851,15 @@ export default function Timesheet() {
                     onChange={(e) => setEntry((p) => ({ ...p, lunch_minutes: parseInt(e.target.value) || 0 }))}
                   />
                   <LunchBtn onClick={() => adjustLunch(15)} type="button" aria-label="More lunch">+</LunchBtn>
-                  <LunchUnit>min</LunchUnit>
+                  <LunchUnit>
+                    {(() => {
+                      const n = Number(entry.lunch_minutes) || 0;
+                      if (n < 60) return 'min';
+                      const h = Math.floor(n / 60);
+                      const m = n % 60;
+                      return m === 0 ? `min · ${h}h` : `min · ${h}h ${m}m`;
+                    })()}
+                  </LunchUnit>
                 </LunchRow>
               </Field>
 

@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db/pool');
 const authenticate = require('../middleware/auth');
 const requireRole = require('../middleware/requireRole');
+const { sendLeadNotification, sendCustomerConfirmation } = require('../services/email');
 
 module.exports = function (leadLimiter) {
   const router = express.Router();
@@ -15,6 +16,22 @@ module.exports = function (leadLimiter) {
         'INSERT INTO leads (name, email, phone, area_desired, source, notes) VALUES (?, ?, ?, ?, ?, ?)',
         [name, email || null, phone || null, area_desired || null, source || 'contact_form', notes || null]
       );
+
+      // Fire notification + customer confirmation emails in parallel.
+      // Both fail soft — the lead is already saved in the DB.
+      const leadPayload = {
+        id: result.insertId,
+        name, email, phone, area_desired,
+        source: source || 'contact_form',
+        notes,
+      };
+      sendLeadNotification(leadPayload).catch((err) =>
+        console.error('[leads] notification error:', err)
+      );
+      sendCustomerConfirmation(leadPayload).catch((err) =>
+        console.error('[leads] customer confirmation error:', err)
+      );
+
       res.status(201).json({ id: result.insertId });
     } catch (err) {
       console.error('Error creating lead:', err);

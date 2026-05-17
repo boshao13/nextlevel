@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { Helmet } from 'react-helmet';
+import { trackFormSubmission } from './lib/analytics';
 
 // Styled components for the Careers Page
 const CareersContainer = styled.section`
@@ -102,44 +104,42 @@ const Careers = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://formspree.io/f/mldgzpgp', {
+      const res = await fetch('/api/leads', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.applicant_name,
+          email: formData.applicant_email,
+          phone: formData.phone_number,
+          source: 'career_form',
+          notes: `Age: ${formData.age}\nExperience: ${formData.relevant_experience}`,
+        }),
       });
-
-      if (response.ok) {
-        // Send to CRM API
-        fetch('/api/leads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.applicant_name,
-            email: formData.applicant_email,
-            phone: formData.phone_number,
-            source: 'career_form',
-            notes: `Age: ${formData.age}\nExperience: ${formData.relevant_experience}`,
-          }),
-        }).catch(() => {});
-        setIsSubmitted(true);
-      } else {
-        alert('Error submitting form. Please try again later.');
-      }
+      if (!res.ok) throw new Error('Lead post failed');
+      trackFormSubmission('career');
+      setIsSubmitted(true);
+      window.location.href = '/thank-you';
     } catch (error) {
       console.error('Error:', error);
-      alert('There was an issue submitting your application.');
+      alert('There was an issue submitting your inquiry. Please try again or call us directly.');
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
     <CareersContainer>
-      <CareersHeading>Join Our Team</CareersHeading>
+      <Helmet>
+        <title>Careers at Next Level Epoxy | Hiring Floor Installers in Albuquerque NM</title>
+        <meta name="description" content="Join the Next Level Epoxy team — we're hiring floor installers and crew in Albuquerque & Santa Fe, NM. Apply online for current openings." />
+        <link rel="canonical" href="https://www.nextlevelepoxynm.com/careers" />
+        <meta property="og:title" content="Careers at Next Level Epoxy | Hiring in Albuquerque NM" />
+        <meta property="og:description" content="Join the Next Level Epoxy team — floor installer and crew roles in Albuquerque & Santa Fe, NM." />
+        <meta property="og:url" content="https://www.nextlevelepoxynm.com/careers" />
+      </Helmet>
+      <CareersHeading>Work With Us</CareersHeading>
       <CareersSubheading>
-        We're always looking for dedicated individuals to join our team. Fill out the form below to apply for a position.
+        We hire installers and crew year-round across Albuquerque and Santa Fe. Send us a quick note about yourself and we'll keep your info on file — even when we're not actively hiring, we revisit every inquiry when openings come up.
       </CareersSubheading>
       {!isSubmitted ? (
         <Form onSubmit={handleSubmit}>
@@ -184,7 +184,7 @@ const Careers = () => {
             required
           />
           <SubmitButton type="submit" disabled={isLoading}>
-            {isLoading ? 'Submitting...' : 'Submit Application'}
+            {isLoading ? 'Sending...' : 'Send Inquiry'}
           </SubmitButton>
         </Form>
       ) : (

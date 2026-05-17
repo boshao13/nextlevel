@@ -1,18 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import useScrollReveal from './useScrollReveal';
 import epoxyDiagram from './images/epoxydiagram.jpg';
-
-/* ── Floor count: starts at 566 on March 13 2026, +1 every 2 days ── */
-const BASE_COUNT = 566;
-const BASE_DATE = new Date('2026-03-13T00:00:00');
-
-function getFloorCount() {
-  const now = new Date();
-  const msElapsed = now - BASE_DATE;
-  const daysElapsed = Math.max(0, Math.floor(msElapsed / (1000 * 60 * 60 * 24)));
-  return BASE_COUNT + Math.floor(daysElapsed / 2);
-}
 
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
@@ -194,64 +183,6 @@ const StepText = styled.p`
   line-height: 1.55;
 `;
 
-/* ── Stats row ────────────────────────────────────────────────────── */
-const StatsRow = styled.div`
-  background: var(--primary);
-  border-radius: var(--radius-sm);
-  padding: 16px 32px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-  text-align: center;
-
-  @media (max-width: 700px) {
-    grid-template-columns: 1fr;
-    padding: 20px 24px;
-    gap: 12px;
-  }
-`;
-
-const Stat = styled.div``;
-
-const StatNumber = styled.div`
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: white;
-  line-height: 1;
-  margin-bottom: 2px;
-`;
-
-const StatLabel = styled.div`
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
-  letter-spacing: 0.03em;
-`;
-
-/* ── Animated Counter ─────────────────────────────────────────────── */
-const AnimatedNumber = ({ target, isVisible }) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!isVisible) return;
-    const duration = 2000;
-    const startTime = Date.now();
-
-    const step = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(step);
-      else setCount(target);
-    };
-
-    requestAnimationFrame(step);
-  }, [isVisible, target]);
-
-  return <>{count.toLocaleString()}</>;
-};
-
 /* ── Data ─────────────────────────────────────────────────────────── */
 const steps = [
   {
@@ -267,7 +198,7 @@ const steps = [
   {
     num: '03',
     title: 'Full Flake Broadcast',
-    text: 'While the epoxy is still wet, we broadcast decorative vinyl flakes wall-to-wall until the surface is fully covered. This adds color, hides imperfections, and creates a natural texture that improves traction — even when wet.',
+    text: 'While the epoxy is still wet, we broadcast decorative vinyl flakes wall-to-wall until the surface is fully covered. This adds color, hides imperfections, and creates a natural decorative texture.',
   },
   {
     num: '04',
@@ -278,10 +209,8 @@ const steps = [
 
 /* ── Component ────────────────────────────────────────────────────── */
 const EpoxyInfo = () => {
-  const floorCount = useMemo(() => getFloorCount(), []);
   const [headerRef, headerVisible] = useScrollReveal();
   const [contentRef, contentVisible] = useScrollReveal({ threshold: 0.1 });
-  const [statsRef, statsVisible] = useScrollReveal({ threshold: 0.3 });
 
   return (
     <Section>
@@ -317,24 +246,6 @@ const EpoxyInfo = () => {
           </StepsSide>
         </ContentLayout>
 
-        <div ref={statsRef} className={`reveal ${statsVisible ? 'visible' : ''}`}>
-          <StatsRow>
-            <Stat>
-              <StatNumber>
-                <AnimatedNumber target={floorCount} isVisible={statsVisible} />
-              </StatNumber>
-              <StatLabel>Floors Installed &amp; Counting</StatLabel>
-            </Stat>
-            <Stat>
-              <StatNumber>Lifetime</StatNumber>
-              <StatLabel>Warranty on Every Job</StatLabel>
-            </Stat>
-            <Stat>
-              <StatNumber>100%</StatNumber>
-              <StatLabel>Solids — Zero Solvents</StatLabel>
-            </Stat>
-          </StatsRow>
-        </div>
       </Inner>
     </Section>
   );

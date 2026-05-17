@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 import api from './api';
 
 const Wrapper = styled.div`
@@ -128,6 +129,10 @@ const Login = () => {
 
   return (
     <Wrapper>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+        <title>Admin Login</title>
+      </Helmet>
       <Card>
         <Logo
           src={`${process.env.PUBLIC_URL}/nextlevellogo.png`}

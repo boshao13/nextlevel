@@ -5,7 +5,7 @@ import api from './api';
 import {
   PageContainer, PageTitle, Card, Table, Th, Td,
   StatusBadge, Button, ButtonSecondary, TextArea, Select,
-  ClickableRow, EmptyState, Modal, ModalContent, ModalTitle,
+  ClickableRow, Modal, ModalContent, ModalTitle,
 } from './styles';
 
 const HeaderRow = styled.div`

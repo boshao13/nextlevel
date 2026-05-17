@@ -5,7 +5,7 @@ import api from './api';
 import {
   PageContainer, PageTitle, Card, Table, Th, Td,
   StatusBadge, Input, Select, FilterBar, ClickableRow,
-  EmptyState, Button, ButtonSecondary,
+  EmptyState, ButtonSecondary,
 } from './styles';
 
 const PaginationBar = styled.div`

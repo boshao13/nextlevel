@@ -6,6 +6,7 @@ import api from './api';
 const WORKERS = {
   jesus_garcia: { name: 'Jesus Garcia', rate: 30, color: '#0f4c81' },
   jerry_francia: { name: 'Jerry Francia', rate: 25, color: '#0d7377' },
+  robert_pyle: { name: 'Robert Pyle', rate: 20, color: '#b45309' },
 };
 
 // Same logic as Timesheet.jsx
@@ -53,19 +54,52 @@ function getPayPeriod(date) {
   };
 }
 
-function getRecentPeriods(count = 6) {
+// Build a period object directly from (year, month, half) — no date-math drift.
+function periodFromYMH(year, month, half) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const lastDay = new Date(year, month, 0).getDate();
+  if (half === 1) {
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+    const prevLast = new Date(prevYear, prevMonth, 0).getDate();
+    const startDate = new Date(prevYear, prevMonth - 1, prevLast - 2);
+    const endDate = new Date(year, month - 1, 12);
+    return {
+      start: `${prevYear}-${pad(prevMonth)}-${pad(prevLast - 2)}`,
+      end: `${year}-${pad(month)}-12`,
+      label: `${fmt(startDate)} – ${fmt(endDate)}`,
+      key: `${year}-${pad(month)}-1`,
+    };
+  }
+  const startDate = new Date(year, month - 1, 13);
+  const endDate = new Date(year, month - 1, lastDay - 3);
+  return {
+    start: `${year}-${pad(month)}-13`,
+    end: `${year}-${pad(month)}-${pad(lastDay - 3)}`,
+    label: `${fmt(startDate)} – ${fmt(endDate)}`,
+    key: `${year}-${pad(month)}-2`,
+  };
+}
+
+// Returns current pay period + N past ones (24 = 12 months of history).
+function getRecentPeriods(count = 24) {
+  const today = new Date();
+  const current = getPayPeriod(today);
+  let [year, month] = current.key.slice(0, 7).split('-').map(Number);
+  let h = parseInt(current.key.slice(8), 10);
+
   const periods = [];
-  const seen = new Set();
-  let cursor = new Date();
   for (let i = 0; i < count; i++) {
-    const p = getPayPeriod(cursor);
-    if (!seen.has(p.key)) {
-      periods.push(p);
-      seen.add(p.key);
+    periods.push(periodFromYMH(year, month, h));
+    // step back one half-month
+    if (h === 1) {
+      h = 2;
+      month -= 1;
+      if (month === 0) { month = 12; year -= 1; }
+    } else {
+      h = 1;
     }
-    // Step back: go to a date clearly in the prior period
-    cursor = new Date(cursor);
-    cursor.setDate(cursor.getDate() - 16);
   }
   return periods;
 }
@@ -76,6 +110,26 @@ function normalizeDateKey(apiDate) {
 
 function normalizeTime(t) {
   return String(t || '').slice(0, 5);
+}
+
+function formatTime12h(t) {
+  const s = normalizeTime(t);
+  if (!s) return '';
+  const [hStr, m] = s.split(':');
+  let h = parseInt(hStr, 10);
+  if (Number.isNaN(h)) return s;
+  const suffix = h >= 12 ? 'pm' : 'am';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m}${suffix}`;
+}
+
+function formatLunch(mins) {
+  const n = Number(mins) || 0;
+  if (n < 60) return `${n}m`;
+  const h = Math.floor(n / 60);
+  const m = n % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
 const TRAILER_TRIPS = [
@@ -216,6 +270,45 @@ const ActionBtn = styled.button`
     opacity: 0.5;
     cursor: not-allowed;
   }
+`;
+
+const WorkerPicker = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+`;
+
+const WorkerPick = styled.button`
+  flex: 1 1 auto;
+  min-width: 140px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 2px solid ${({ $active, $color }) => ($active ? $color : '#e2e8f0')};
+  background: ${({ $active, $color }) => ($active ? $color : 'white')};
+  color: ${({ $active }) => ($active ? 'white' : 'var(--text)')};
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+
+  &:hover:not(:disabled) {
+    border-color: ${({ $color }) => $color};
+    transform: translateY(-1px);
+  }
+`;
+
+const SelectPrompt = styled.div`
+  background: white;
+  border-radius: 14px;
+  padding: 40px 24px;
+  text-align: center;
+  color: #888;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 `;
 
 const SummaryGrid = styled.div`
@@ -703,6 +796,7 @@ export default function ApproveTimesheets() {
   const [expandedHistory, setExpandedHistory] = useState({});
   const [historyData, setHistoryData] = useState({});
   const [historyLoading, setHistoryLoading] = useState({});
+  const [selectedWorker, setSelectedWorker] = useState(null);
 
   const period = periods.find((p) => p.key === periodKey) || periods[0];
 
@@ -759,25 +853,6 @@ export default function ApproveTimesheets() {
     }
   };
 
-  const approveAll = async () => {
-    if (!window.confirm(`Approve all entries in ${period.label}?`)) return;
-    setLoading(true);
-    try {
-      const res = await api.post('/timesheet/approve-all', { start: period.start, end: period.end });
-      showToast(`Approved ${res.data.approved} entries`);
-      await fetchSummary();
-    } catch {
-      showToast('Error');
-      setLoading(false);
-    }
-  };
-
-  const totalGrossPay = summary
-    ? Object.values(summary.workers).reduce((sum, w) => sum + w.grossPay, 0)
-    : 0;
-  const totalApprovedPay = summary
-    ? Object.values(summary.workers).reduce((sum, w) => sum + w.approvedPay, 0)
-    : 0;
 
   return (
     <Wrapper>
@@ -792,20 +867,34 @@ export default function ApproveTimesheets() {
               <option key={p.key} value={p.key}>Pay Period: {p.label}</option>
             ))}
           </PeriodSelect>
-          <ActionBtn $variant="primary" onClick={approveAll} disabled={loading}>
-            <FiCheck size={16} />
-            Approve All
-          </ActionBtn>
           <ActionBtn onClick={() => window.print()}>
             <FiPrinter size={16} />
             Print for Payroll
           </ActionBtn>
         </ControlBar>
 
-        {summary && (
+        <WorkerPicker className="no-print">
+          {Object.entries(WORKERS).map(([key, w]) => (
+            <WorkerPick
+              key={key}
+              $active={selectedWorker === key}
+              $color={w.color}
+              onClick={() => setSelectedWorker(key)}
+              type="button"
+            >
+              {w.name}
+            </WorkerPick>
+          ))}
+        </WorkerPicker>
+
+        {!selectedWorker && (
+          <SelectPrompt>Pick a worker above to review their time entries.</SelectPrompt>
+        )}
+
+        {summary && selectedWorker && (
           <>
             <SummaryGrid>
-              {Object.entries(summary.workers).map(([key, w]) => {
+              {Object.entries(summary.workers).filter(([key]) => key === selectedWorker).map(([key, w]) => {
                 const pct = w.daysWorked > 0 ? (w.daysApproved / w.daysWorked) * 100 : 0;
                 return (
                   <SummaryCard key={key}>
@@ -840,24 +929,7 @@ export default function ApproveTimesheets() {
               })}
             </SummaryGrid>
 
-            <SummaryCard style={{ marginBottom: 28 }}>
-              <SummaryHeader $color="#1a1a2e">
-                <SummaryName>Payroll Total</SummaryName>
-                <SummaryRate>This Period</SummaryRate>
-              </SummaryHeader>
-              <SummaryStats>
-                <SummaryStat>
-                  <SummaryStatValue>${totalGrossPay.toFixed(2)}</SummaryStatValue>
-                  <SummaryStatLabel>Total Gross</SummaryStatLabel>
-                </SummaryStat>
-                <SummaryStat>
-                  <SummaryStatValue $green>${totalApprovedPay.toFixed(2)}</SummaryStatValue>
-                  <SummaryStatLabel>Ready for Payroll</SummaryStatLabel>
-                </SummaryStat>
-              </SummaryStats>
-            </SummaryCard>
-
-            {Object.entries(summary.workers).map(([key, w]) => (
+            {Object.entries(summary.workers).filter(([key]) => key === selectedWorker).map(([key, w]) => (
               <WorkerSection key={key}>
                 <WorkerSectionTitle $color={WORKERS[key].color}>
                   <ColorDot $color={WORKERS[key].color} />
@@ -886,9 +958,9 @@ export default function ApproveTimesheets() {
                               {approved ? <><FiCheck size={11} /> Approved</> : 'Pending'}
                             </StatusPill>
                           </EntryDate>
-                          <EntryCell data-label="In">{normalizeTime(entry.clock_in)}</EntryCell>
-                          <EntryCell data-label="Out">{normalizeTime(entry.clock_out)}</EntryCell>
-                          <EntryCell data-label="Lunch">{entry.lunch_minutes}m</EntryCell>
+                          <EntryCell data-label="In">{formatTime12h(entry.clock_in)}</EntryCell>
+                          <EntryCell data-label="Out">{formatTime12h(entry.clock_out)}</EntryCell>
+                          <EntryCell data-label="Lunch">{formatLunch(entry.lunch_minutes)}</EntryCell>
                           <EntryCell data-label="Hours" style={{ fontWeight: 800 }}>
                             {Number(entry.total_hours).toFixed(2)}
                           </EntryCell>
@@ -936,9 +1008,9 @@ export default function ApproveTimesheets() {
                                       {formatTimestamp(h.edited_at)} by <strong>{h.edited_by || 'unknown'}</strong>
                                     </HistoryMeta>
                                     <HistoryValues>
-                                      <span><em>In</em>{normalizeTime(h.clock_in)}</span>
-                                      <span><em>Out</em>{normalizeTime(h.clock_out)}</span>
-                                      <span><em>Lunch</em>{h.lunch_minutes}m</span>
+                                      <span><em>In</em>{formatTime12h(h.clock_in)}</span>
+                                      <span><em>Out</em>{formatTime12h(h.clock_out)}</span>
+                                      <span><em>Lunch</em>{formatLunch(h.lunch_minutes)}</span>
                                       {trailerMinutes(h) > 0 && (
                                         <span><em>Trailer</em>+{trailerMinutes(h)}m</span>
                                       )}

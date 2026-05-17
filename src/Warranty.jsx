@@ -240,10 +240,44 @@ const QuoteAuthor = styled.p`
   letter-spacing: 0.08em;
 `;
 
+const Asterisk = styled.sup`
+  color: rgba(250, 204, 21, 0.9);
+  font-weight: 700;
+  margin-left: 1px;
+`;
+
+const FootnoteText = styled.p`
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.6);
+  padding-left: 14px;
+  border-left: 2px solid rgba(250, 204, 21, 0.4);
+
+  strong {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+  }
+`;
+
+const SlipDisclaimer = styled.p`
+  max-width: 820px;
+  margin: 56px auto 0;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  padding: 0 16px;
+
+  strong {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+  }
+`;
+
 /* ── Component ────────────────────────────────────────────────────── */
 const features = [
   'Covers material defects & installation errors',
-  'No deductibles, no fine print',
+  'Indoor concrete floors prepared by Next Level',
   'Fully transferable if you sell your home',
   'Backed by years of proven installations',
 ];
@@ -265,13 +299,13 @@ const Warranty = () => {
           <TextSide ref={textRef}>
             <div className={`reveal ${textVisible ? 'visible' : ''}`}>
               <WarrantyText>
-                We're so confident in the quality and durability of our epoxy flooring system that we offer a <strong style={{ color: 'white' }}>lifetime warranty</strong> on every floor we install. When you choose Next Level, you're not just getting a beautiful floor — you're getting complete peace of mind.
+                We're so confident in the quality and durability of our epoxy flooring system that we offer a <strong style={{ color: 'white' }}>lifetime warranty</strong> on every floor we install<Asterisk>*</Asterisk>. When you choose Next Level, you're not just getting a beautiful floor — you're getting complete peace of mind.
               </WarrantyText>
             </div>
             <div className={`reveal ${textVisible ? 'visible' : ''}`} style={{ transitionDelay: '0.15s' }}>
-              <WarrantyText>
-                Our floors are built to last, and we stand behind them 100%. If anything goes wrong due to material defects or installation errors, we've got you covered.
-              </WarrantyText>
+              <FootnoteText>
+                <Asterisk>*</Asterisk> The warranty applies only to <strong>indoor concrete floors</strong> that Next Level has prepared and installed. Material defects and installation errors on those surfaces are covered 100%. Application on wood, tile, experimental, or otherwise unapproved substrates is not covered, and Next Level is not responsible for coating failure on surfaces we did not prepare.
+              </FootnoteText>
             </div>
             <FeatureList>
               {features.map((f, i) => (
@@ -300,6 +334,10 @@ const Warranty = () => {
             </QuoteBox>
           </BadgeSide>
         </Layout>
+
+        <SlipDisclaimer className={`reveal ${textVisible ? 'visible' : ''}`}>
+          Our standard epoxy coatings are <strong>not</strong> slip-resistant or anti-slip. Epoxy surfaces can become slippery when wet. A slip-resistant additive is available as an optional upgrade and must be specifically purchased and documented on your quote. Unless you have purchased and received a product explicitly sold with a slip-resistant guarantee, no anti-slip claim is being made and Next Level is not liable for slip-related incidents.
+        </SlipDisclaimer>
       </Inner>
     </Section>
   );

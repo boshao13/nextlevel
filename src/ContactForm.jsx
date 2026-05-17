@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
-import emailjs from '@emailjs/browser';
 import useScrollReveal from './useScrollReveal';
+import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
 
 /* ── Keyframes ────────────────────────────────────────────────────── */
 const fadeIn = keyframes`
@@ -351,32 +351,34 @@ const ContactForm = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isValid) return;
     setSending(true);
 
-    emailjs
-      .send('service_mdak4yr', 'template_q5stpon', form, 'goz_UlnnNwQBQtTw4')
-      .then(() => {
-        // Send to CRM API
-        fetch('/api/leads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: form.user_name,
-            email: form.user_email,
-            phone: form.user_number,
-            area_desired: form.area_desired,
-            source: 'contact_form',
-          }),
-        }).catch(() => {}); // Silent fail — email already sent
-        setSubmitted(true);
-      })
-      .catch(() => {
-        alert('Something went wrong. Please try again or call us directly.');
-      })
-      .finally(() => setSending(false));
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.user_name,
+          email: form.user_email,
+          phone: form.user_number,
+          area_desired: form.area_desired,
+          source: 'contact_form',
+        }),
+      });
+      if (!res.ok) throw new Error('Lead post failed');
+      trackFormSubmission('residential');
+      setSubmitted(true);
+      // Hand off to /thank-you for the Ads URL-match conversion.
+      // Full reload so gtag('config', 'AW-...') re-fires cleanly.
+      window.location.href = '/thank-you';
+    } catch (err) {
+      alert('Something went wrong. Please try again or call us directly.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -385,7 +387,7 @@ const ContactForm = () => {
         <SectionLabel>Free Estimate</SectionLabel>
         <Heading>Get Your Free Quote Today</Heading>
         <Subheading>Or call us directly:</Subheading>
-        <PhoneLink href="tel:5053524674">505-352-4674</PhoneLink>
+        <PhoneLink href="tel:5053524674" onClick={() => trackPhoneClick('contact_section')}>505-352-4674</PhoneLink>
 
         <TrustBadges>
           <TrustBadge>

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
-import emailjs from '@emailjs/browser';
+import { Helmet } from 'react-helmet';
 import useScrollReveal from './useScrollReveal';
+import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
 
 const MOBILE_MQ = '(max-width: 768px)';
 const commercialMobileSrc  = { webm: '/videos/commercial-mobile.webm',  mp4: '/videos/commercial-mobile.mp4' };
@@ -743,7 +744,7 @@ const FLOORING_SYSTEMS = [
     icon: '◆',
     color: 'rgba(15, 76, 129, 0.08)',
     title: 'Quartz Sand Broadcast',
-    desc: 'Ultra-durable, slip-resistant surfaces ideal for high-traffic commercial areas. Withstands heavy machinery and chemical exposure.',
+    desc: 'Ultra-durable surfaces ideal for high-traffic commercial areas. Withstands heavy machinery and chemical exposure.',
   },
   {
     icon: '✦',
@@ -846,31 +847,33 @@ const Commercial = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isValid) return;
     setSending(true);
 
-    emailjs
-      .send('service_mdak4yr', 'template_q5stpon', form, 'goz_UlnnNwQBQtTw4')
-      .then(() => {
-        // Send to CRM API
-        fetch('/api/leads', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: form.contact_name,
-            email: form.user_email,
-            phone: form.user_number,
-            area_desired: form.area_desired,
-            source: 'commercial_form',
-            notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
-          }),
-        }).catch(() => {});
-        setSubmitted(true);
-      })
-      .catch(() => alert('Something went wrong. Please try again or call us directly.'))
-      .finally(() => setSending(false));
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.contact_name,
+          email: form.user_email,
+          phone: form.user_number,
+          area_desired: form.area_desired,
+          source: 'commercial_form',
+          notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
+        }),
+      });
+      if (!res.ok) throw new Error('Lead post failed');
+      trackFormSubmission('commercial');
+      setSubmitted(true);
+      window.location.href = '/thank-you';
+    } catch (err) {
+      alert('Something went wrong. Please try again or call us directly.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const scrollToCTA = () => {
@@ -880,9 +883,17 @@ const Commercial = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Commercial Epoxy Flooring Albuquerque & Santa Fe NM | Next Level</title>
+        <meta name="description" content="Heavy-duty commercial epoxy & polyaspartic floor coatings for warehouses, restaurants, auto shops, and industrial facilities in NM. Lifetime warranty. 505-352-4674." />
+        <link rel="canonical" href="https://www.nextlevelepoxynm.com/commercial" />
+        <meta property="og:title" content="Commercial Epoxy Flooring Albuquerque & Santa Fe NM | Next Level" />
+        <meta property="og:description" content="Heavy-duty commercial epoxy & polyaspartic floor coatings for warehouses, restaurants, auto shops, and industrial facilities in NM." />
+        <meta property="og:url" content="https://www.nextlevelepoxynm.com/commercial" />
+      </Helmet>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <HeroSection>
-        <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="auto">
+        <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="metadata">
           {(() => {
             const src = isMobile ? commercialMobileSrc : commercialDesktopSrc;
             return (
@@ -1037,7 +1048,7 @@ const Commercial = () => {
           <SectionLabel style={{ color: 'rgba(255,255,255,0.5)' }}>Free Commercial Estimate</SectionLabel>
           <CTAHeading>Let's Talk About Your Project</CTAHeading>
           <CTASub>Or call us directly:</CTASub>
-          <PhoneLink href="tel:5053524674">505-352-4674</PhoneLink>
+          <PhoneLink href="tel:5053524674" onClick={() => trackPhoneClick('commercial_contact_section')}>505-352-4674</PhoneLink>
 
           <TrustBadges>
             <TrustBadge>
@@ -1168,7 +1179,7 @@ const Commercial = () => {
                   <TextArea
                     id="area_desired"
                     name="area_desired"
-                    placeholder="Tell us about the space, any special requirements (chemical resistance, slip-resistance, etc.), and your preferred timeline..."
+                    placeholder="Tell us about the space, any special requirements (chemical resistance, durability, etc.), and your preferred timeline..."
                     value={form.area_desired}
                     onChange={handleChange}
                     required

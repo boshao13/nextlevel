@@ -1,11 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-
-
-// Images loaded from public folder when available
-const radon1 = null;
-const radon2 = null;
-const radon3 = null;
+import { Helmet } from 'react-helmet';
 
 
 // Styled Components
@@ -41,19 +36,6 @@ const RadonContent = styled.div`
   color: #333;
 `;
 
-const ImageWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 40px 0;
-
-  img {
-    width: 30%;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-`;
-
 const CallToActionSection = styled.section`
   background-color: #0f4c81;
   color: white;
@@ -82,6 +64,14 @@ const ContactInfo = styled.p`
 const Radon = () => {
   return (
     <RadonContainer>
+      <Helmet>
+        <title>Radon Mitigation & Epoxy Floor Sealing Albuquerque NM | Next Level</title>
+        <meta name="description" content="Protect your home from radon with Next Level's 4-layer epoxy floor sealing system. Serving Albuquerque, Santa Fe & Rio Rancho NM. Free quote: 505-352-4674." />
+        <link rel="canonical" href="https://www.nextlevelepoxynm.com/radon" />
+        <meta property="og:title" content="Radon Mitigation & Epoxy Floor Sealing Albuquerque NM | Next Level" />
+        <meta property="og:description" content="Seal foundation cracks against radon with our 4-layer epoxy system. Serving Albuquerque & Santa Fe NM." />
+        <meta property="og:url" content="https://www.nextlevelepoxynm.com/radon" />
+      </Helmet>
 
       <RadonHeading>Eliminate Radon with Our Advanced Epoxy Flooring</RadonHeading>
       <RadonSubheading>
@@ -100,14 +90,6 @@ const Radon = () => {
           Barbara B. from the East Mountains had a radon level of nearly **10 pCi/L**, far above the recommended safe limit. After installing our epoxy flooring, her radon levels dropped below **1 pCi/L**—ensuring a much safer living environment for her family. If you're facing similar concerns, we can help!
         </p>
       </RadonContent>
-
-      {(radon1 || radon2 || radon3) && (
-        <ImageWrapper>
-          {radon1 && <img src={radon1} alt="Epoxy Sealing Process" />}
-          {radon2 && <img src={radon2} alt="Foundation Sealing Example" />}
-          {radon3 && <img src={radon3} alt="Completed Epoxy Flooring" />}
-        </ImageWrapper>
-      )}
 
       {/* Call to Action */}
       <CallToActionSection>

@@ -15,9 +15,13 @@ import Radon from "./Radon";
 import GarageMakeover from "./GarageMakeover";
 import ThankYou from './ThankYou';
 import Commercial from "./Commercial";
+import Patios from "./Patios";
 import Snake from "./Snake";
 import Careers from "./Careers";
 import AllColors from "./AllColors";
+import StickyCallButton from "./StickyCallButton";
+import LocationPage from "./LocationPage";
+import { ALBUQUERQUE, SANTA_FE, RIO_RANCHO } from "./locations";
 
 // Admin imports
 import Login from "./admin/Login";
@@ -55,6 +59,7 @@ const PublicLayout = () => (
       <Outlet />
     </MainContent>
     <Footer />
+    <StickyCallButton />
   </LayoutContainer>
 );
 
@@ -83,10 +88,16 @@ function App() {
             <Route path="/commercial" element={<Commercial />} />
             <Route path="/snake" element={<Snake />} />
             <Route path="/garagemakeover" element={<GarageMakeover />} />
+            {/* Catch any old links pointing at the hyphenated URL */}
+            <Route path="/garage-makeover" element={<Navigate to="/garagemakeover" replace />} />
+            <Route path="/patios" element={<Patios />} />
             <Route path="/radon" element={<Radon />} />
             <Route path="/colors" element={<AllColors />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/thank-you" element={<ThankYou />} />
+            <Route path="/epoxy-flooring-albuquerque" element={<LocationPage city={ALBUQUERQUE} />} />
+            <Route path="/epoxy-flooring-santa-fe"   element={<LocationPage city={SANTA_FE} />} />
+            <Route path="/epoxy-flooring-rio-rancho" element={<LocationPage city={RIO_RANCHO} />} />
             <Route path="*" element={<h1>404 - Page Not Found</h1>} />
           </Route>
 

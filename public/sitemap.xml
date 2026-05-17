@@ -2,32 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.nextlevelepoxynm.com/</loc>
+    <lastmod>2026-05-13</lastmod>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://www.nextlevelepoxynm.com/epoxy-flooring-albuquerque</loc>
+    <lastmod>2026-05-13</lastmod>
+    <priority>0.95</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.nextlevelepoxynm.com/epoxy-flooring-santa-fe</loc>
+    <lastmod>2026-05-13</lastmod>
+    <priority>0.95</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.nextlevelepoxynm.com/epoxy-flooring-rio-rancho</loc>
+    <lastmod>2026-05-13</lastmod>
+    <priority>0.95</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
     <loc>https://www.nextlevelepoxynm.com/commercial</loc>
+    <lastmod>2026-05-13</lastmod>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://www.nextlevelepoxynm.com/garagemakeover</loc>
+    <lastmod>2026-05-14</lastmod>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://www.nextlevelepoxynm.com/patios</loc>
+    <lastmod>2026-05-14</lastmod>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://www.nextlevelepoxynm.com/colors</loc>
+    <lastmod>2026-05-13</lastmod>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://www.nextlevelepoxynm.com/careers</loc>
-    <priority>0.6</priority>
+    <loc>https://www.nextlevelepoxynm.com/radon</loc>
+    <lastmod>2026-05-13</lastmod>
+    <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://www.nextlevelepoxynm.com/radon</loc>
-    <priority>0.7</priority>
+    <loc>https://www.nextlevelepoxynm.com/careers</loc>
+    <lastmod>2026-05-13</lastmod>
+    <priority>0.6</priority>
     <changefreq>monthly</changefreq>
   </url>
 </urlset>

@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { Helmet } from 'react-helmet';
 
 /* ── Signature colors (in stock, ready to install) ───────────────── */
 const SIGNATURE_FILENAMES = new Set([
-  'coyote', 'creekbed', 'gravel', 'loon',
-  'nightfall', 'tidal-wave', 'thyme', 'wombat',
+  'coyote', 'bambi', 'gravel', 'loon',
+  'nightfall', 'citrine', 'tidal-wave', 'wombat',
 ]);
 
 /* ── Dynamically import all flake images ─────────────────────────── */
@@ -272,6 +273,14 @@ const AllColors = () => {
 
   return (
     <Page>
+      <Helmet>
+        <title>Epoxy &amp; Polyaspartic Floor Colors | Custom Flake Systems NM</title>
+        <meta name="description" content="Browse epoxy and polyaspartic floor color options for garages, basements, and commercial spaces in Albuquerque, Santa Fe, and Rio Rancho NM. Custom flake systems." />
+        <link rel="canonical" href="https://www.nextlevelepoxynm.com/colors" />
+        <meta property="og:title" content="Epoxy & Polyaspartic Floor Colors | Custom Flake Systems NM" />
+        <meta property="og:description" content="Browse epoxy and polyaspartic floor color options for garages, basements, and commercial spaces in NM." />
+        <meta property="og:url" content="https://www.nextlevelepoxynm.com/colors" />
+      </Helmet>
       <HeroBanner>
         <BackLink to="/">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>

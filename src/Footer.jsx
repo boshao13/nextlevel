@@ -3,7 +3,8 @@ import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FaInstagram, FaGamepad } from 'react-icons/fa';
 import codelabsLogo from './images/codelabslogo.png';
-import { FiPhone, FiMapPin, FiMail } from 'react-icons/fi';
+import { FiPhone, FiMapPin } from 'react-icons/fi';
+import { trackPhoneClick } from './lib/analytics';
 
 const FooterEl = styled.footer`
   background: linear-gradient(180deg, #0a1628 0%, #060e1a 100%);
@@ -18,7 +19,7 @@ const Inner = styled.div`
 
 const TopGrid = styled.div`
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr;
+  grid-template-columns: 1.6fr 1fr 1fr 1.1fr;
   gap: 48px;
   padding-bottom: 56px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -276,19 +277,30 @@ const Footer = () => {
               <NavItem><NavLink to="/">Residential</NavLink></NavItem>
               <NavItem><NavLink to="/commercial">Commercial</NavLink></NavItem>
               <NavItem><NavLink to="/garagemakeover">Garage Makeover</NavLink></NavItem>
+              <NavItem><NavLink to="/patios">Patio Coatings</NavLink></NavItem>
+              <NavItem><NavLink to="/radon">Radon Mitigation</NavLink></NavItem>
               <NavItem><NavLink to="/careers">Careers</NavLink></NavItem>
             </NavList>
           </Column>
 
           <Column>
+            <ColTitle>Service Areas</ColTitle>
+            <NavList>
+              <NavItem><NavLink to="/epoxy-flooring-albuquerque">Albuquerque Garage &amp; Concrete Coatings</NavLink></NavItem>
+              <NavItem><NavLink to="/epoxy-flooring-santa-fe">Santa Fe Epoxy Floor Installers</NavLink></NavItem>
+              <NavItem><NavLink to="/epoxy-flooring-rio-rancho">Rio Rancho Garage Floor Coatings</NavLink></NavItem>
+            </NavList>
+          </Column>
+
+          <Column>
             <ColTitle>Contact</ColTitle>
-            <ContactItem href="tel:5053524674">
+            <ContactItem href="tel:5053524674" onClick={() => trackPhoneClick('footer')}>
               <FiPhone size={14} />
               505-352-4674
             </ContactItem>
             <ContactItem as="div" style={{ cursor: 'default' }}>
               <FiMapPin size={14} />
-              Albuquerque &amp; Santa Fe, NM
+              Albuquerque, Santa Fe &amp; Rio Rancho, NM
             </ContactItem>
           </Column>
         </TopGrid>

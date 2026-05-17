@@ -3,17 +3,18 @@ set -e
 
 EC2="ubuntu@3.143.4.46"
 KEY="/Users/boshao/Downloads/nextlevel.pem"
-SSH="ssh -i $KEY -o StrictHostKeyChecking=no -o ServerAliveInterval=15"
-SCP="scp -i $KEY -o StrictHostKeyChecking=no -o ServerAliveInterval=15"
+SSH_OPTS="-o StrictHostKeyChecking=no -o ServerAliveInterval=15"
+SSH="ssh -i $KEY $SSH_OPTS"
+RSH="ssh -i $KEY $SSH_OPTS"
 
 echo "🔨 Building React app..."
 npm run build
 
-echo "📦 Deploying build (static + index.html)..."
-$SCP -r build/* $EC2:/home/ubuntu/nextlevel-crm/build/
+echo "📦 Syncing build → EC2 (delta-only, resumable)..."
+rsync -az --partial -e "$RSH" build/ $EC2:/home/ubuntu/nextlevel-crm/build/
 
-echo "📦 Deploying server code..."
-$SCP -r server $EC2:/home/ubuntu/nextlevel-crm/
+echo "📦 Syncing server → EC2..."
+rsync -az --partial -e "$RSH" server/ $EC2:/home/ubuntu/nextlevel-crm/server/
 
 echo "🔄 Copying to Nginx root & restarting API..."
 $SSH $EC2 "sudo rm -rf /var/www/html/my-react-app/build/static && sudo cp -r /home/ubuntu/nextlevel-crm/build/* /var/www/html/my-react-app/build/ && pm2 restart nextlevel-api && echo 'Done!'"

@@ -7,13 +7,13 @@ import ContactForm from './ContactForm';
 
 const SEO = () => (
   <Helmet>
-    <title>Garage Makeover Package | Epoxy & Polyaspartic Floor Coating | Albuquerque & Santa Fe NM | Next Level Epoxy Flooring</title>
-    <meta name="description" content="Complete garage makeover in Albuquerque & Santa Fe, NM. Professional epoxy flooring, polyaspartic garage floor coatings, custom lighting, wall painting & baseboards. One crew, one price - lifetime warranty. Get your free estimate today." />
+    <title>Garage Makeover Albuquerque & Santa Fe NM | Next Level Epoxy</title>
+    <meta name="description" content="Garage makeover in Albuquerque & Santa Fe, NM: epoxy flooring, polyaspartic coatings, lighting, wall paint, baseboards. Lifetime warranty. Free quote." />
     <meta name="keywords" content="garage makeover Albuquerque, epoxy garage floor Albuquerque, polyaspartic floor coating Santa Fe, garage floor coating near me, epoxy flooring near me, concrete floor coating New Mexico, garage renovation Albuquerque, metallic epoxy flooring, flake epoxy garage floor, one day garage floor coating, residential epoxy flooring, commercial epoxy flooring, garage transformation, epoxy flooring cost, best garage floor coating" />
-    <link rel="canonical" href="https://www.nextlevelepoxynm.com/garage-makeover" />
+    <link rel="canonical" href="https://www.nextlevelepoxynm.com/garagemakeover" />
     <meta property="og:title" content="Complete Garage Makeover | Epoxy & Polyaspartic Floor Coatings | Albuquerque & Santa Fe NM" />
     <meta property="og:description" content="Transform your garage with professional epoxy flooring, polyaspartic coatings, custom lighting & wall finishing. Lifetime warranty. Serving Albuquerque & Santa Fe, NM." />
-    <meta property="og:url" content="https://www.nextlevelepoxynm.com/garage-makeover" />
+    <meta property="og:url" content="https://www.nextlevelepoxynm.com/garagemakeover" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://www.nextlevelepoxynm.com/images/og-image.jpg" />
     <script type="application/ld+json">{`
@@ -26,7 +26,7 @@ const SEO = () => (
           "@type": "LocalBusiness",
           "name": "Next Level Epoxy Flooring",
           "url": "https://www.nextlevelepoxynm.com",
-          "telephone": "+15055551234",
+          "telephone": "+1-505-352-4674",
           "areaServed": [
             { "@type": "City", "name": "Albuquerque", "addressRegion": "NM" },
             { "@type": "City", "name": "Santa Fe", "addressRegion": "NM" },
@@ -109,9 +109,10 @@ const HeroOverlay = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0 24px;
+  padding: 120px 24px 0;
 
   @media (max-width: 768px) {
+    padding: 90px 24px 0;
     background: linear-gradient(
       to bottom,
       rgba(5, 15, 35, 0.35) 0%,
@@ -379,7 +380,7 @@ const BeforeAfterWrapper = styled.div`
   display: grid;
   grid-template-columns: auto auto auto;
   gap: 24px;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
 
   @media (max-width: 768px) {
@@ -394,20 +395,20 @@ const BeforeColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 70vh;
+  height: 100%;
+  min-height: 0;
 
   img {
     flex: 1;
     min-height: 0;
-    height: calc(50% - 6px);
     border-radius: 10px;
     object-fit: cover;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
   @media (max-width: 768px) {
-    height: auto;
     gap: 10px;
+    height: auto;
 
     img {
       height: auto;
@@ -458,10 +459,15 @@ const ArrowIndicator = styled.div`
 `;
 
 const AfterColumn = styled.div`
-  height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
 
   video {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     border-radius: 10px;
     object-fit: cover;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -506,7 +512,7 @@ const GarageMakeover = () => {
     <PageContainer>
       <SEO />
       <HeroSection aria-label="Garage makeover hero section">
-        <HeroVideo ref={videoRef} autoPlay muted loop playsInline preload="auto" aria-label="Professional epoxy garage floor coating transformation video">
+        <HeroVideo ref={videoRef} autoPlay muted loop playsInline preload="metadata" aria-label="Professional epoxy garage floor coating transformation video">
           {(() => {
             const src = isMobile ? mobileSrc : desktopSrc;
             return (
@@ -571,13 +577,13 @@ const GarageMakeover = () => {
         </VideoWrapper>
 
         <BeforeAfterHeading>
-          See the Difference &mdash; Before & After Epoxy Garage Floor Coating
+          From Bare Concrete to Showroom Floor &mdash; Built to Last a Lifetime
         </BeforeAfterHeading>
         <BeforeAfterWrapper>
           <BeforeColumn>
             <Label>Before</Label>
-            <img src="/img/garagebefore.jpg" alt="Cracked bare concrete garage floor before professional epoxy coating in Albuquerque NM" loading="lazy" />
-            <img src="/img/garagebefore1.jpg" alt="Unfinished garage with stained concrete floor before polyaspartic floor coating in Santa Fe NM" loading="lazy" />
+            <img src="/img/garagebefore.jpg" alt="Cracked bare concrete garage floor before professional epoxy coating in Albuquerque NM" loading="lazy" width="1200" height="900" />
+            <img src="/img/garagebefore1.jpg" alt="Unfinished garage with stained concrete floor before polyaspartic floor coating in Santa Fe NM" loading="lazy" width="1200" height="900" />
           </BeforeColumn>
           <ArrowIndicator aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

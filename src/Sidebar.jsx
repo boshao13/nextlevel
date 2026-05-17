@@ -96,11 +96,7 @@ const Sidebar = ({ cart, totalItems, totalPrice, isOpen, closeSidebar }) => {
     });
   };
 
-  const handleDebug = () => {
-    console.log("Stripe Secret Key:", process.env.REACT_APP_STRIPE_SECRET_KEY);
-    console.log("Backend URL:", process.env.REACT_APP_BACKEND_URL);
-    console.log("Return URL:", process.env.REACT_APP_STRIPE_RETURN_URL);
-  };
+  const handleDebug = () => {};
 
   return (
     <SidebarWrapper open={isOpen}>

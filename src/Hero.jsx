@@ -110,7 +110,7 @@ const Badge = styled.span`
   }
 `;
 
-const Headline = styled.h2`
+const Headline = styled.h1`
   font-size: clamp(2.6rem, 5.5vw, 4rem);
   font-weight: 800;
   line-height: 1.1;
@@ -282,7 +282,11 @@ const Hero = () => {
   }, []);
 
   useEffect(() => {
-    if (videoRef.current) videoRef.current.load();
+    if (videoRef.current) {
+      videoRef.current.load();
+      // Ensure autoplay works inside iframes
+      videoRef.current.play().catch(() => {});
+    }
   }, [isMobile]);
 
   const scrollToContact = useCallback(() => {
@@ -301,21 +305,21 @@ const Hero = () => {
 
   return (
     <HeroSection>
-      <video ref={videoRef} autoPlay loop muted playsInline preload="auto">
+      <video ref={videoRef} autoPlay loop muted playsInline preload="metadata">
         <source src={src.webm} type="video/webm" />
         <source src={src.mp4}  type="video/mp4" />
       </video>
       <Overlay />
 
       <HeroContent>
-        <Badge>Now Booking — Albuquerque &amp; Santa Fe</Badge>
+        <Badge>Now Booking — Albuquerque, Santa Fe &amp; Rio Rancho</Badge>
         <Headline>
           If Your Garage Could Talk,<br />
-          It'd Call Us.
+          It'd Call Us
         </Headline>
         <Subtitle>
-          We install the best epoxy floors in New Mexico — durable, beautiful,
-          and backed by a lifetime warranty.
+          New Mexico's #1 epoxy &amp; polyaspartic flooring crew — Albuquerque, Santa Fe &amp;
+          Rio Rancho's most trusted name in garage and concrete coatings.
         </Subtitle>
         <ButtonRow>
           <PrimaryBtn onClick={scrollToContact}>Get a Free Quote</PrimaryBtn>

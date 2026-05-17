@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import styled, { css } from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiPhone, FiHome, FiBriefcase, FiTool, FiMail, FiDroplet } from 'react-icons/fi';
+import { trackPhoneClick } from './lib/analytics';
 
 const HeaderContainer = styled.header`
   position: fixed;
@@ -268,6 +269,31 @@ const MobileNavLink = styled(Link)`
   }
 `;
 
+const MobileSectionLabel = styled.div`
+  margin-top: 18px;
+  padding-bottom: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(15, 76, 129, 0.55);
+`;
+
+const MobileSubLink = styled(Link)`
+  display: block;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  transition: color var(--transition), padding-left var(--transition);
+
+  &:hover {
+    color: var(--primary);
+    padding-left: 6px;
+  }
+`;
+
 const MobileNavAnchor = styled.a`
   display: block;
   padding: 14px 0;
@@ -359,7 +385,7 @@ const TabAnchor = styled.a`
   -webkit-tap-highlight-color: transparent;
 `;
 
-const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/radon', '/colors'];
+const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/patios', '/radon', '/colors', '/thank-you'];
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -426,10 +452,11 @@ const Header = () => {
           <NavLink to="/" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Home</NavLink>
           <NavLink to="/commercial" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Commercial</NavLink>
           <NavLink to="/garagemakeover" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Garage Makeover</NavLink>
+          <NavLink to="/patios" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Patios</NavLink>
           <NavLink to="/colors" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Colors</NavLink>
           <NavLink to="/careers" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Careers</NavLink>
           <NavAnchor href="#contact" onClick={handleContactClick} $scrolled={scrolled} $subpage={isSubpage}>Contact</NavAnchor>
-          <PhoneButton href="tel:5053524674" $subpage={isSubpage}>
+          <PhoneButton href="tel:5053524674" $subpage={isSubpage} onClick={() => trackPhoneClick('header_desktop')}>
             <FiPhone size={14} />
             505-352-4674
           </PhoneButton>
@@ -448,10 +475,15 @@ const Header = () => {
         <MobileNavLink to="/" onClick={handleNavClick}>Home</MobileNavLink>
         <MobileNavLink to="/commercial" onClick={handleNavClick}>Commercial</MobileNavLink>
         <MobileNavLink to="/garagemakeover" onClick={handleNavClick}>Garage Makeover</MobileNavLink>
+        <MobileNavLink to="/patios" onClick={handleNavClick}>Patios</MobileNavLink>
         <MobileNavLink to="/colors" onClick={handleNavClick}>Colors</MobileNavLink>
         <MobileNavLink to="/careers" onClick={handleNavClick}>Careers</MobileNavLink>
         <MobileNavAnchor href="#contact" onClick={handleContactClick}>Contact Us</MobileNavAnchor>
-        <MobilePhoneBtn href="tel:5053524674">
+        <MobileSectionLabel>Service Areas</MobileSectionLabel>
+        <MobileSubLink to="/epoxy-flooring-albuquerque" onClick={handleNavClick}>Albuquerque</MobileSubLink>
+        <MobileSubLink to="/epoxy-flooring-santa-fe" onClick={handleNavClick}>Santa Fe</MobileSubLink>
+        <MobileSubLink to="/epoxy-flooring-rio-rancho" onClick={handleNavClick}>Rio Rancho</MobileSubLink>
+        <MobilePhoneBtn href="tel:5053524674" onClick={() => trackPhoneClick('header_mobile')}>
           <FiPhone size={16} />
           505-352-4674
         </MobilePhoneBtn>
