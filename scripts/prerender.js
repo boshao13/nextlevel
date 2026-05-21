@@ -50,14 +50,23 @@ const ROUTES = [
   '/epoxy-flooring-rio-rancho',
 ];
 
-async function startServer() {
-  const server = http.createServer((req, res) =>
-    handler(req, res, {
-      public: BUILD_DIR,
-      // SPA fallback — any path that doesn't resolve to a file returns index.html
-      rewrites: [{ source: '**', destination: '/index.html' }],
-    })
-  );
+async function startServer(shellHtml) {
+  // `shellHtml` is the pristine CRA build/index.html captured BEFORE any
+  // route is prerendered. Every route request is served this in-memory
+  // shell — never a file from disk — so a route prerendered earlier in the
+  // run (which overwrites build/index.html and build/<route>/index.html)
+  // can never contaminate a route prerendered later. Only real static
+  // assets (js/css/images/etc.) are served from disk.
+  const server = http.createServer((req, res) => {
+    const urlPath = (req.url || '/').split('?')[0];
+    const isRoute = urlPath === '/' || !path.extname(urlPath);
+    if (isRoute) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.end(shellHtml);
+      return;
+    }
+    return handler(req, res, { public: BUILD_DIR });
+  });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address();
   return { server, baseUrl: `http://127.0.0.1:${port}` };
@@ -90,6 +99,34 @@ async function prerenderRoute(browser, baseUrl, route) {
     () => new Promise((r) => setTimeout(r, 250))
   );
 
+  // styled-components v6 injects CSS via the CSSOM insertRule API in
+  // production ("speedy mode") — the rules live in the live stylesheet
+  // object, NOT in the <style> tag's text content. page.content() would
+  // therefore serialize an empty <style data-styled> tag and the served
+  // page would render unstyled until the JS bundle downloads and executes
+  // (a multi-second flash of unstyled content). Snapshot every
+  // styled-components rule into a real <style> tag so the prerendered HTML
+  // is fully styled on first paint, no JS required.
+  await page.evaluate(() => {
+    let css = '';
+    for (const sheet of Array.from(document.styleSheets)) {
+      const node = sheet.ownerNode;
+      if (!node || node.tagName !== 'STYLE') continue;
+      if (!node.hasAttribute('data-styled')) continue;
+      try {
+        for (const rule of Array.from(sheet.cssRules)) css += rule.cssText;
+      } catch (e) {
+        /* cross-origin sheet — not ours, skip */
+      }
+    }
+    if (css) {
+      const tag = document.createElement('style');
+      tag.setAttribute('data-prerender-css', '');
+      tag.textContent = css;
+      document.head.appendChild(tag);
+    }
+  });
+
   const html = await page.content();
   await page.close();
 
@@ -110,7 +147,11 @@ async function main() {
 
   console.log(`Prerendering ${ROUTES.length} routes from ${BUILD_DIR}…`);
 
-  const { server, baseUrl } = await startServer();
+  // Capture the pristine CRA shell NOW, before any route overwrites
+  // build/index.html. Every route is prerendered from this clean shell.
+  const shellHtml = fs.readFileSync(path.join(BUILD_DIR, 'index.html'), 'utf8');
+
+  const { server, baseUrl } = await startServer(shellHtml);
   const browser = await puppeteer.launch({
     headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
