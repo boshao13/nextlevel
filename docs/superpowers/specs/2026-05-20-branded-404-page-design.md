@@ -86,12 +86,22 @@ Exactly one `<h1>` on the page (the headline).
    - `/snake` — currently a valid route with NO prerendered file. The nginx
      change below would otherwise wrongly return 404 for it. `/snake` is the
      easter-egg page; prerendering it is harmless.
+   - **Also update the stale comment** at the top of the `ROUTES` allow-list
+     (`scripts/prerender.js`, currently reads `/snake is an easter egg,
+     skip.`). Adding `/snake` to the list contradicts that comment — the
+     implementation must rewrite/remove it or a future reader hits a
+     contradiction.
 3. **nginx** (main `www.nextlevelepoxynm.com` server block, `location /`):
    - Change `try_files $uri $uri/index.html /index.html;`
      → `try_files $uri $uri/index.html =404;`
    - Add `error_page 404 /404/index.html;`
    - The `location ^~ /admin` block is untouched — it keeps its own
      `try_files ... /index.html` SPA fallback and stays HTTP 200.
+   - **nginx footgun:** `error_page 404 /404/index.html;` (no `=200` suffix)
+     correctly preserves the 404 status. Do NOT append `=200`, and do not
+     wrap the target in a location that rewrites the status. The Testing
+     step-4 `curl -I` check is the definitive confirmation — verify it, do
+     not "fix" a correct 404 into a 200.
 
 ### Resulting behavior
 
@@ -111,8 +121,20 @@ allow-list covers: `/`, `/commercial`, `/garagemakeover`, `/patios`,
 `/colors`, `/polished-concrete`, `/careers`, `/radon`, `/thank-you`,
 `/epoxy-flooring-{albuquerque,santa-fe,rio-rancho}`, `/404`, `/snake`.
 Adding a future public route REQUIRES adding it to the prerender list, or it
-will incorrectly return 404. This invariant is documented here and should be
-noted near the prerender allow-list.
+will incorrectly return 404. This invariant must be documented in a comment
+next to the prerender allow-list as part of the implementation.
+
+**Redirect-only routes — already handled, no action needed.** `App.js` has
+`path="/garage-makeover"` → `<Navigate to="/garagemakeover">`, a client-side
+redirect with no prerendered file. It is NOT broken by the `=404` change
+because nginx already has an exact-match block
+`location = /garage-makeover { return 301 .../garagemakeover; }` (added
+earlier in the 2026-05-20 GSC follow-up work). Exact-match locations are
+evaluated before the prefix `location /`, so a direct hit on
+`/garage-makeover` is 301-redirected and never reaches the `=404` `try_files`.
+If any future redirect-only route is added, it likewise needs either an
+nginx redirect or prerendering — do not rely on the SPA `<Navigate>` alone
+once `=404` is in effect.
 
 ## Files Changed
 
@@ -142,5 +164,7 @@ used in prior nginx work).
    returns `HTTP/.. 404`; a real route (e.g. `/commercial`) still returns
    `200`; `/snake` returns `200`.
 5. **SEO** — the 404 page emits `noindex,follow` and exactly one `<h1>`.
-6. **Regression** — `/admin/login` still loads (200); all sitemap URLs still
-   200 with one self-canonical.
+6. **Regression** — `/admin/login` still loads (200); `/garage-makeover`
+   still 301s; every URL in `public/sitemap.xml` still returns 200 with one
+   self-canonical (diff the sitemap against the prerender allow-list to
+   confirm none was missed).
