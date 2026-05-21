@@ -27,7 +27,12 @@ const puppeteer = require('puppeteer');
 const BUILD_DIR = path.resolve(__dirname, '..', 'build');
 
 // Explicit allow-list of routes to prerender. Do NOT include /admin/* —
-// auth-gated and noindex'd. /snake is an easter egg, skip.
+// auth-gated and noindex'd.
+//
+// INVARIANT: every valid public client route MUST be listed here. nginx
+// uses `try_files … =404`, so any public route without a prerendered
+// build/<route>/index.html will incorrectly return HTTP 404. When adding a
+// new public route to src/App.js, add it here too.
 const ROUTES = [
   '/',
   '/commercial',
@@ -38,6 +43,8 @@ const ROUTES = [
   '/careers',
   '/radon',
   '/thank-you',
+  '/snake',
+  '/404',
   '/epoxy-flooring-albuquerque',
   '/epoxy-flooring-santa-fe',
   '/epoxy-flooring-rio-rancho',
