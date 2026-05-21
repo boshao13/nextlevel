@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import styled from "styled-components";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -14,6 +15,7 @@ import GlobalStyle from "./GlobalStyle";
 import Radon from "./Radon";
 import GarageMakeover from "./GarageMakeover";
 import ThankYou from './ThankYou';
+import NotFound from './NotFound';
 import Commercial from "./Commercial";
 import Patios from "./Patios";
 import Snake from "./Snake";
@@ -76,6 +78,20 @@ function App() {
               path="/"
               element={
                 <>
+                  <Helmet>
+                    <title>Epoxy Flooring Albuquerque, Santa Fe & Rio Rancho NM | Next Level Epoxy</title>
+                    <meta name="description" content="Epoxy flooring in Albuquerque, Santa Fe & Rio Rancho NM. Lifetime garage floors & concrete coatings. 560+ installed. Free quote: 505-352-4674." />
+                    <link rel="canonical" href="https://www.nextlevelepoxynm.com/" />
+                    <meta property="og:title" content="Epoxy Flooring Albuquerque, Santa Fe & Rio Rancho NM | Next Level Epoxy" />
+                    <meta property="og:description" content="Lifetime-warranty epoxy garage floors & concrete coatings in Albuquerque, Santa Fe & Rio Rancho NM. 560+ floors installed. Free quote: 505-352-4674." />
+                    <meta property="og:image" content="https://www.nextlevelepoxynm.com/images/og-image.jpg" />
+                    <meta property="og:url" content="https://www.nextlevelepoxynm.com/" />
+                    <meta property="og:type" content="website" />
+                    <meta name="twitter:card" content="summary_large_image" />
+                    <meta name="twitter:title" content="Epoxy Flooring Albuquerque, Santa Fe & Rio Rancho NM | Next Level" />
+                    <meta name="twitter:description" content="Lifetime-warranty epoxy garage floors & concrete coatings across New Mexico. 560+ floors installed. Free quote: 505-352-4674." />
+                    <meta name="twitter:image" content="https://www.nextlevelepoxynm.com/images/twitter-image.jpg" />
+                  </Helmet>
                   <Hero />
                   <EpoxyInfo />
                   <Warranty />
@@ -100,7 +116,8 @@ function App() {
             <Route path="/epoxy-flooring-albuquerque" element={<LocationPage city={ALBUQUERQUE} />} />
             <Route path="/epoxy-flooring-santa-fe"   element={<LocationPage city={SANTA_FE} />} />
             <Route path="/epoxy-flooring-rio-rancho" element={<LocationPage city={RIO_RANCHO} />} />
-            <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* Admin routes - no public header/footer */}
