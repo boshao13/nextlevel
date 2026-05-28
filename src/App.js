@@ -43,6 +43,7 @@ import InvoiceDetail from "./admin/InvoiceDetail";
 import Finances from "./admin/Finances";
 import Timesheet from "./admin/Timesheet";
 import ApproveTimesheets from "./admin/ApproveTimesheets";
+import Inventory from "./admin/Inventory";
 
 // Styled layout container
 const LayoutContainer = styled.div`
@@ -137,6 +138,7 @@ function App() {
             <Route path="invoices/:id" element={<InvoiceDetail />} />
             <Route path="finances" element={<Finances />} />
             <Route path="timesheet" element={<Timesheet />} />
+            <Route path="inventory" element={<Inventory />} />
             <Route path="approve" element={<ApproveTimesheets />} />
           </Route>
         </Routes>

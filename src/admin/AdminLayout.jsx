@@ -15,6 +15,7 @@ import {
   FiX,
   FiLogOut,
   FiArrowLeft,
+  FiBox,
 } from 'react-icons/fi';
 import { useAuth } from './AdminRoute';
 
@@ -182,10 +183,12 @@ const adminNavItems = [
   { to: '/admin/finances', icon: FiDollarSign, label: 'Finances' },
   { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
   { to: '/admin/approve', icon: FiCheckSquare, label: 'Approve Time' },
+  { to: '/admin/inventory', icon: FiBox, label: 'Inventory' },
 ];
 
 const managerNavItems = [
   { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
+  { to: '/admin/inventory', icon: FiBox, label: 'Inventory' },
 ];
 
 const payrollNavItems = [
