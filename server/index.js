@@ -17,6 +17,7 @@ const paymentRoutes = require('./routes/payments');
 const financeRoutes = require('./routes/finances');
 const timesheetRoutes = require('./routes/timesheet');
 const inventoryRoutes = require('./routes/inventory');
+const payrollRoutes = require('./routes/payroll');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/finances', adminOnly, financeRoutes);
 // Timesheet routes handle their own per-endpoint role checks internally.
 app.use('/api/timesheet', authenticate, timesheetRoutes);
 app.use('/api/inventory', authenticate, inventoryRoutes);
+app.use('/api/payroll', authenticate, payrollRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
