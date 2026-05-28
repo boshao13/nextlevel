@@ -184,6 +184,7 @@ const adminNavItems = [
   { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
   { to: '/admin/approve', icon: FiCheckSquare, label: 'Approve Time' },
   { to: '/admin/inventory', icon: FiBox, label: 'Inventory' },
+  { to: '/admin/payroll', icon: FiDollarSign, label: 'Payroll' },
 ];
 
 const managerNavItems = [
@@ -193,6 +194,7 @@ const managerNavItems = [
 
 const payrollNavItems = [
   { to: '/admin/approve', icon: FiCheckSquare, label: 'Approve Time' },
+  { to: '/admin/payroll', icon: FiDollarSign, label: 'Payroll' },
 ];
 
 const AdminLayout = () => {
