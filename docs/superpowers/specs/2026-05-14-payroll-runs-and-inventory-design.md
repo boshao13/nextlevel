@@ -42,6 +42,8 @@ No changes to public site, lead pipeline, or other admin areas.
 
 ## Data model
 
+All migration statements ship in `006_payroll_inventory.sql` using the established `information_schema`-guarded pattern (see `005_add_trailer_trips.sql`). The SQL below shows the **logical schema**; the actual migration wraps each `CREATE TABLE` / `ALTER TABLE` in an `IF (SELECT COUNT(*) FROM information_schema.…) = 0` guard so the file is idempotent.
+
 ### `payroll_runs` (new)
 
 ```sql
@@ -55,12 +57,14 @@ CREATE TABLE IF NOT EXISTS payroll_runs (
   notes         TEXT NULL,                           -- optional notes from Aimee
   run_by        VARCHAR(64) NOT NULL,                -- username from JWT
   run_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  unlocked_at   TIMESTAMP NULL,                      -- non-null = admin reopened
+  unlocked_at   TIMESTAMP NULL,                      -- non-null = the run is no longer active
   unlocked_by   VARCHAR(64) NULL,
   INDEX (period_start, period_end),
   INDEX (run_at)
 );
 ```
+
+**Active runs:** queries that need "current state" filter `WHERE unlocked_at IS NULL`. When admin unlocks, we **keep the row** and stamp `unlocked_at`/`unlocked_by` — the snapshot stays for audit. (Earlier draft hard-deleted; revised on review.)
 
 `snapshot` shape:
 ```json
@@ -74,15 +78,20 @@ CREATE TABLE IF NOT EXISTS payroll_runs (
 }
 ```
 
-### `timesheet_entries` (new column)
+### `timesheet_entries` (new column + index)
 
 ```sql
 ALTER TABLE timesheet_entries
   ADD COLUMN paid_run_id INT NULL,
-  ADD FOREIGN KEY (paid_run_id) REFERENCES payroll_runs(id);
+  ADD FOREIGN KEY (paid_run_id) REFERENCES payroll_runs(id),
+  ADD INDEX (paid_run_id);
 ```
 
-`paid_run_id` non-null = row is locked. Edits from manager/payroll roles return `409 Conflict`. Admin bypasses the lock check (so Bo can fix a locked row directly if needed). Admin "unlock" on a run sets `paid_run_id = NULL` across the run's entry set, then deletes the run.
+(Migration wraps both via `information_schema.COLUMNS` and `information_schema.STATISTICS` checks.)
+
+A row is **considered locked** when `paid_run_id IS NOT NULL` AND the referenced run's `unlocked_at IS NULL`. (After admin unlock, the column may still point at the now-unlocked run, but the lock-check JOIN treats it as unlocked. Optionally, the unlock action sets `paid_run_id = NULL` to clean up — either works because the JOIN guards.)
+
+Edits from manager/payroll roles on a locked row return `409 Conflict`. Admin bypasses the check.
 
 ### `inventory_items` (new)
 
@@ -103,7 +112,7 @@ CREATE TABLE IF NOT EXISTS inventory_items (
 CREATE TABLE IF NOT EXISTS inventory_usage (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   item_id     INT NOT NULL,
-  worker      ENUM('jesus_garcia','jerry_francia','robert_pyle') NOT NULL,
+  worker      VARCHAR(50) NOT NULL,                 -- matches timesheet_audit.worker; loose to avoid migrating on roster changes
   date        DATE NOT NULL,
   units_used  DECIMAL(10,2) NOT NULL,
   created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -114,10 +123,42 @@ CREATE TABLE IF NOT EXISTS inventory_usage (
 );
 ```
 
-On insert: wrap in transaction → `INSERT INTO inventory_usage ...; UPDATE inventory_items SET amount = amount - ? WHERE id = ?`.
-On update: credit old back, debit new (or compute delta).
-On delete: credit units back.
+Worker column intentionally `VARCHAR(50)` (matching `timesheet_audit.worker`) rather than ENUM — keeps the table from needing a migration each time the roster changes, since the workers list is enforced in app code (`server/routes/timesheet.js` WORKERS map).
+
+On insert/update/delete: wrap in a single SQL transaction that does both the row mutation AND the matching `UPDATE inventory_items SET amount = amount ± delta WHERE id = ? AND deleted_at IS NULL`. The POST handler must verify the item exists and is not soft-deleted in the same transaction (use `SELECT ... FOR UPDATE` on the item row first; a deleted item makes the POST 410 Gone).
+
 Amount allowed to go negative; UI shows the value in red. (Reality > tracker sometimes — better to record honestly than block writes.)
+
+### Where worker rates come from
+
+Rates are not stored in the DB — they live in the existing `WORKERS` constant in `server/routes/timesheet.js`:
+
+```js
+const WORKERS = {
+  jesus_garcia:  { name: 'Jesus Garcia',  rate: 30 },
+  jerry_francia: { name: 'Jerry Francia', rate: 25 },
+  robert_pyle:   { name: 'Robert Pyle',   rate: 20 },
+};
+```
+
+The payroll route imports this same constant. The snapshot freezes `rate` at run-time, so changing a rate later affects only **future** runs — the historical pay record is preserved exactly as it was paid.
+
+### Approval flow is independent of payroll runs
+
+Aimee's existing `/admin/approve` flow (set `approved=1` on entries) is **not a prerequisite** for `POST /api/payroll/runs`. A payroll run will include any entry in the date range regardless of approval state. Rationale: small two-person operation; coupling adds friction without a clear benefit. If Bo later wants approval-as-prerequisite, the preview endpoint can add an `approved_only` flag.
+
+### Shared 0.5-step constant
+
+Both client validators (Inventory form, Materials Used row, payroll inputs that don't need it) and the server validators in `routes/inventory.js` import a single helper:
+
+```js
+// e.g. server/util/halfStep.js and src/admin/halfStep.js
+export const STEP = 0.5;
+export const isHalfStep = (n) =>
+  Number.isFinite(n) && n >= 0 && Math.abs(n * 2 - Math.round(n * 2)) < 1e-9;
+```
+
+Prevents client/server drift on the validation rule.
 
 ### YAGNI'd
 
@@ -133,10 +174,10 @@ Amount allowed to go negative; UI shows the value in red. (Reality > tracker som
 | Method | Path | Role | Behavior |
 |---|---|---|---|
 | GET | `/api/payroll/preview?start=YYYY-MM-DD&end=YYYY-MM-DD` | payroll, admin | Live aggregate. Returns `{ workers: [{ worker, name, rate, hours, gross }], total_hours, total_gross, entry_ids }`. Does NOT save anything. |
-| POST | `/api/payroll/runs` | payroll, admin | Body `{ start, end, notes? }`. Transactional: re-compute aggregate, INSERT into `payroll_runs`, then `UPDATE timesheet_entries SET paid_run_id = ? WHERE date BETWEEN ? AND ? AND paid_run_id IS NULL`. Rejects with 409 if any entry in the range is already locked to a different run. |
+| POST | `/api/payroll/runs` | payroll, admin | Body `{ start, end, notes? }`. Transaction (REPEATABLE READ): `SELECT ... FOR UPDATE` on every `timesheet_entries` row in the date range that has `paid_run_id IS NULL` OR `paid_run_id` referencing an unlocked run; if any active-locked row appears in the range → ROLLBACK with `409 { error: "Range overlaps an active payroll run." }`. Otherwise INSERT `payroll_runs`, then `UPDATE timesheet_entries SET paid_run_id = ? WHERE id IN (...)` using the IDs captured under the row lock, then COMMIT. The `FOR UPDATE` serializes concurrent POSTs covering overlapping ranges. |
 | GET | `/api/payroll/runs` | payroll, admin | List runs, `ORDER BY run_at DESC`. |
 | GET | `/api/payroll/runs/:id` | payroll, admin | Single run including `snapshot`. |
-| DELETE | `/api/payroll/runs/:id` | **admin only** | Transactional: `UPDATE timesheet_entries SET paid_run_id = NULL WHERE paid_run_id = ?` then DELETE the run. |
+| DELETE | `/api/payroll/runs/:id` | **admin only** | Transactional: stamp the run with `unlocked_at = NOW(), unlocked_by = <admin username>`. Entries' `paid_run_id` may stay set; the lock-check JOIN treats a run with `unlocked_at IS NOT NULL` as not locking its entries. (Snapshot preserved for audit; reversible by clearing the unlock columns if needed.) |
 
 ### Inventory items — `server/routes/inventory.js`
 
@@ -152,7 +193,7 @@ Amount allowed to go negative; UI shows the value in red. (Reality > tracker som
 | Method | Path | Role | Behavior |
 |---|---|---|---|
 | GET | `/api/inventory/usage?worker=...&date=...` | any authed | Usage rows for one day card; joined with item name. |
-| POST | `/api/inventory/usage` | manager, admin | Body `{ item_id, worker, date, units_used }`. Transactional insert + decrement. |
+| POST | `/api/inventory/usage` | manager, admin | Body `{ item_id, worker, date, units_used }`. Server validates `isHalfStep(units_used)`. Transaction: `SELECT ... FOR UPDATE` on the item row, abort with 410 if `deleted_at IS NOT NULL`, otherwise INSERT usage row + UPDATE item amount. |
 | PUT | `/api/inventory/usage/:id` | manager, admin | Transactional: credit old back, debit new. |
 | DELETE | `/api/inventory/usage/:id` | manager, admin | Transactional: credit back. |
 
@@ -208,12 +249,12 @@ Save semantics — when the day card's existing Save button is clicked:
    - **New rows** → POST `/api/inventory/usage`.
    - **Edited rows** → PUT `/api/inventory/usage/:id`.
    - **Removed rows** → DELETE `/api/inventory/usage/:id`.
-3. If any usage write fails, the day's timesheet save is **not rolled back** — surface a non-blocking error toast and leave the day saved. (Best-effort consistency; the operator can retry the materials section.)
+3. **On any usage write failure:** the timesheet save is **not rolled back**, but the UI immediately re-fetches usage rows for that `(worker, date)` from `GET /api/inventory/usage?worker=...&date=...` to resync the local "loaded baseline" with actual server state, then shows a non-blocking error toast naming the failed item. This prevents the next save from double-inserting or attempting deletes against missing ids.
 
 ### `/admin/timesheet` — lock indicator
 
-Day cards whose entry has `paid_run_id` set:
-- Render a subtle "Locked — paid May 13" badge in the card header.
+Day cards whose entry is locked (lock-check JOIN: `paid_run_id IS NOT NULL` AND the run's `unlocked_at IS NULL`):
+- Render a subtle badge in the card header: `Locked — payroll ran <run_at-as-MM/DD>`.
 - Disable all inputs, hide the Save button.
 - Admins additionally see a small "Unlock via Payroll page" hint linking to `/admin/payroll`.
 
@@ -232,11 +273,12 @@ Day cards whose entry has `paid_run_id` set:
 
 ## Edge cases & failure modes
 
-- **Overlapping runs.** POST `/api/payroll/runs` rejects with 409 if any entry in the date range already has `paid_run_id`. Aimee must unlock the conflicting run first (admin action) or pick a non-overlapping range.
+- **Overlapping / concurrent runs.** POST `/api/payroll/runs` uses `SELECT ... FOR UPDATE` on the candidate entries, so two concurrent POSTs covering the same range serialize: the second one sees the first one's `paid_run_id` and returns 409. Aimee must unlock the conflicting run (admin) or pick a non-overlapping range.
 - **Negative inventory.** Allowed; rendered red in UI. Manager can manually correct via the inventory page edit.
-- **Soft-deleted item still referenced.** The Materials Used dropdown filters out `deleted_at IS NOT NULL` items, but existing usage rows referencing them still resolve via the JOIN — so day cards display the original name even after the item is removed from the active list.
-- **Usage write fails after timesheet save.** Day stays saved. Usage row not created. Manager retries; no orphaned state.
-- **Admin unlocks a run.** Entries become editable again. The previous snapshot in `payroll_runs` is hard-deleted (not soft) — the unlock is intended as a "redo" mechanism, not a long audit trail. If snapshot history matters more than the simplicity benefit, revisit later.
+- **Soft-deleted item in dropdown.** The Materials Used dropdown filters by `deleted_at IS NULL` at fetch time. POST `/api/inventory/usage` re-checks `deleted_at IS NULL` under `SELECT ... FOR UPDATE`; if the item was soft-deleted between dropdown open and submit, the POST returns `410 Gone` and the UI re-fetches the inventory list.
+- **Existing usage rows referencing a soft-deleted item.** Still resolve via JOIN, so day cards continue to display the original name after the item is removed from the active list.
+- **Usage write fails after timesheet save.** Day stays saved. UI re-fetches usage rows for that `(worker, date)` to resync the loaded baseline, then surfaces a non-blocking toast naming the failed item.
+- **Admin unlocks a run.** `unlocked_at` / `unlocked_by` stamped on the run row; entries' `paid_run_id` may stay set but the lock-check JOIN treats them as unlocked. Snapshot preserved for audit. To "redo" the run, Aimee can submit a fresh POST covering the same range (now no longer locked).
 - **Auth.** New routes go through the existing `authenticate` + `requireRole(...)` middleware stack. No new auth mechanism.
 
 ## Testing
@@ -252,6 +294,16 @@ The repo currently has no test infrastructure (per the branded-404 memory — th
 
 Defer automated tests until a test harness exists project-wide.
 
+## Implementation strategy
+
+The three feature areas are loosely coupled and can ship as three sequential PRs behind a single migration:
+
+1. **Migration + Inventory CRUD** — `006_payroll_inventory.sql`, `inventory_items`/`inventory_usage` tables, `/api/inventory` (items only), `src/admin/Inventory.jsx`. Smoke-test independently.
+2. **Materials Used on daily timesheet** — adds `/api/inventory/usage`, modifies `src/admin/Timesheet.jsx` day cards. Smoke-test with manual usage logging.
+3. **Payroll runs** — `/api/payroll/*`, `src/admin/Payroll.jsx`, lock enforcement in `routes/timesheet.js`, lock indicator on day cards. Smoke-test conflict / unlock flows.
+
+Each step is reversible (drop migration block, revert PR). Locking lands last because it's the only piece that mutates behavior of an existing surface (the timesheet entry form).
+
 ## Out of scope
 
 - Per-job material attribution (usage is per-worker-per-day, not per-job).
@@ -266,8 +318,10 @@ Defer automated tests until a test harness exists project-wide.
 - `server/db/migrations/006_payroll_inventory.sql`
 - `server/routes/payroll.js`
 - `server/routes/inventory.js`
+- `server/util/halfStep.js` (shared 0.5-step validator)
 - `src/admin/Payroll.jsx`
 - `src/admin/Inventory.jsx`
+- `src/admin/halfStep.js` (mirror of the server validator)
 
 **Modified:**
 - `server/index.js` — mount the two new routers.
