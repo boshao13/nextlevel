@@ -69,11 +69,17 @@ function resolvePeriod(periodKey) {
 router.get('/', async (req, res) => {
   try {
     const { worker, start, end } = req.query;
-    let sql = 'SELECT * FROM timesheet_entries WHERE 1=1';
+    let sql = `
+      SELECT t.*,
+             (CASE WHEN t.paid_run_id IS NOT NULL AND r.unlocked_at IS NULL THEN 1 ELSE 0 END) AS is_locked,
+             r.run_at AS paid_run_at
+        FROM timesheet_entries t
+        LEFT JOIN payroll_runs r ON r.id = t.paid_run_id
+       WHERE 1=1`;
     const params = [];
-    if (worker) { sql += ' AND worker = ?'; params.push(worker); }
-    if (start && end) { sql += ' AND date BETWEEN ? AND ?'; params.push(start, end); }
-    sql += ' ORDER BY date ASC';
+    if (worker) { sql += ' AND t.worker = ?'; params.push(worker); }
+    if (start && end) { sql += ' AND t.date BETWEEN ? AND ?'; params.push(start, end); }
+    sql += ' ORDER BY t.date ASC';
     const [rows] = await pool.query(sql, params);
     res.json(rows);
   } catch (err) {

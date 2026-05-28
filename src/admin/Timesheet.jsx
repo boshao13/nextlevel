@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { FiChevronLeft, FiChevronRight, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import api from './api';
 import { isHalfStep } from './halfStep';
+import { useAuth } from './AdminRoute';
 
 // ── Workers config ──────────────────────────────────────────────────
 const WORKERS = {
@@ -644,6 +645,19 @@ const SwitchWorkerBtn = styled.button`
   }
 `;
 
+const LockBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+`;
+
 // ── Materials Used subcomponent ────────────────────────────────────
 const MaterialsHeader = styled.div`
   margin-top: 18px;
@@ -767,12 +781,15 @@ function MaterialsUsed({ rows, items, onChange, disabled }) {
 
 // ── Main Component ──────────────────────────────────────────────────
 export default function Timesheet() {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [entry, setEntry] = useState({
     clock_in: '', clock_out: '', lunch_minutes: 30,
     trailer_delivered_abq: false, trailer_returned_abq: false,
     trailer_delivered_sf: false, trailer_returned_sf: false,
+    is_locked: 0, paid_run_at: null,
   });
   const [periodEntries, setPeriodEntries] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -786,6 +803,7 @@ export default function Timesheet() {
   const isToday = formatDateKey(today) === dateKey;
   const period = getPayPeriod(currentDate);
   const worker = selectedWorker ? WORKERS[selectedWorker] : null;
+  const isLocked = entry?.is_locked === 1;
 
   // ── Fetch all entries for the pay period ──────────────────────────
   const fetchPeriod = useCallback(async (workerKey, periodObj) => {
@@ -819,12 +837,15 @@ export default function Timesheet() {
         trailer_returned_abq: !!match.trailer_returned_abq,
         trailer_delivered_sf: !!match.trailer_delivered_sf,
         trailer_returned_sf: !!match.trailer_returned_sf,
+        is_locked: match.is_locked ?? 0,
+        paid_run_at: match.paid_run_at ?? null,
       });
     } else {
       setEntry({
         clock_in: '', clock_out: '', lunch_minutes: 30,
         trailer_delivered_abq: false, trailer_returned_abq: false,
         trailer_delivered_sf: false, trailer_returned_sf: false,
+        is_locked: 0, paid_run_at: null,
       });
     }
   }, [dateKey, periodEntries, selectedWorker]);
@@ -1021,12 +1042,24 @@ export default function Timesheet() {
             </CardHeader>
 
             <CardBody>
+              {isLocked && (
+                <LockBadge>
+                  🔒 Locked — payroll ran {new Date(entry.paid_run_at).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
+                  {isAdmin && (
+                    <a href="/admin/payroll" style={{ marginLeft: 8, fontSize: '.72rem', color: '#0f4c81' }}>
+                      Unlock via Payroll page →
+                    </a>
+                  )}
+                </LockBadge>
+              )}
+
               <Field>
                 <FieldLabel>Time Started</FieldLabel>
                 <TimeInput
                   type="time"
                   value={entry.clock_in}
                   onChange={(e) => setEntry((p) => ({ ...p, clock_in: e.target.value }))}
+                  disabled={isLocked}
                 />
               </Field>
 
@@ -1036,21 +1069,23 @@ export default function Timesheet() {
                   type="time"
                   value={entry.clock_out}
                   onChange={(e) => setEntry((p) => ({ ...p, clock_out: e.target.value }))}
+                  disabled={isLocked}
                 />
               </Field>
 
               <Field>
                 <FieldLabel>Lunch Break (minutes)</FieldLabel>
                 <LunchRow>
-                  <LunchBtn onClick={() => adjustLunch(-15)} type="button" aria-label="Less lunch">−</LunchBtn>
+                  <LunchBtn onClick={() => adjustLunch(-15)} type="button" aria-label="Less lunch" disabled={isLocked}>−</LunchBtn>
                   <LunchInput
                     type="number"
                     min="0"
                     max="120"
                     value={entry.lunch_minutes}
                     onChange={(e) => setEntry((p) => ({ ...p, lunch_minutes: parseInt(e.target.value) || 0 }))}
+                    disabled={isLocked}
                   />
-                  <LunchBtn onClick={() => adjustLunch(15)} type="button" aria-label="More lunch">+</LunchBtn>
+                  <LunchBtn onClick={() => adjustLunch(15)} type="button" aria-label="More lunch" disabled={isLocked}>+</LunchBtn>
                   <LunchUnit>
                     {(() => {
                       const n = Number(entry.lunch_minutes) || 0;
@@ -1075,6 +1110,7 @@ export default function Timesheet() {
                         $active={active}
                         $color={worker.color}
                         onClick={() => setEntry((p) => ({ ...p, [t.key]: !p[t.key] }))}
+                        disabled={isLocked}
                       >
                         <TrailerBtnLabel>{t.label}</TrailerBtnLabel>
                         <TrailerBtnMinutes $active={active}>{t.short}</TrailerBtnMinutes>
@@ -1088,7 +1124,7 @@ export default function Timesheet() {
                 rows={materials}
                 items={inventoryItems}
                 onChange={setMaterials}
-                disabled={false /* Task 3.4 wires this to entry.is_locked === 1 */}
+                disabled={isLocked}
               />
 
               <HoursPreview>
@@ -1111,7 +1147,7 @@ export default function Timesheet() {
               <SaveButton
                 $color={worker.color}
                 $saved={justSaved}
-                disabled={saving || !entry.clock_in || !entry.clock_out}
+                disabled={saving || isLocked || !entry.clock_in || !entry.clock_out}
                 onClick={handleSave}
               >
                 {saving ? (
