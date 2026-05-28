@@ -7,11 +7,7 @@ const router = express.Router();
 const canEnter   = requireRole(['admin', 'manager']);     // create/update/delete time entries
 const canApprove = requireRole(['admin', 'payroll']);     // approve / unapprove
 
-const WORKERS = {
-  jesus_garcia: { name: 'Jesus Garcia', rate: 30 },
-  jerry_francia: { name: 'Jerry Francia', rate: 25 },
-  robert_pyle: { name: 'Robert Pyle', rate: 20 },
-};
+const { WORKERS } = require('../config/workers');
 
 function calcTrailerMinutes(flags) {
   return (flags.trailer_delivered_abq ? 30 : 0)
