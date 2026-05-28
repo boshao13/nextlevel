@@ -23,6 +23,22 @@ function calcHours(clockIn, clockOut, lunchMinutes, trailerMinutes = 0) {
   return Math.max(0, +(totalMinutes / 60).toFixed(2));
 }
 
+// Returns true if the targeted timesheet_entries row(s) are locked to an ACTIVE payroll_runs.
+// "Active" = paid_run_id is set AND the run's unlocked_at is NULL.
+async function isLocked({ worker, date, id }) {
+  const sql = `
+    SELECT t.id
+      FROM timesheet_entries t
+      JOIN payroll_runs r ON r.id = t.paid_run_id
+     WHERE t.paid_run_id IS NOT NULL
+       AND r.unlocked_at IS NULL
+       AND ${id ? 't.id = ?' : 't.worker = ? AND t.date = ?'}
+     LIMIT 1`;
+  const params = id ? [id] : [worker, date];
+  const [rows] = await pool.query(sql, params);
+  return rows.length > 0;
+}
+
 // Period key format: YYYY-MM-H
 //   H=1 → (prev month lastDay-2) through (current month 12). Run 13th, deposit 15th.
 //   H=2 → (current month 13) through (current month lastDay-3). Run lastDay-2, deposit lastDay.
@@ -81,6 +97,11 @@ router.post('/', canEnter, async (req, res) => {
     }
     if (!WORKERS[worker]) {
       return res.status(400).json({ error: 'Invalid worker' });
+    }
+
+    if (req.user?.role !== 'admin') {
+      const locked = await isLocked({ worker, date });
+      if (locked) return res.status(409).json({ error: 'Entry is locked to a paid payroll run. Ask an admin to unlock.' });
     }
 
     const flags = {
@@ -159,6 +180,10 @@ router.get('/:id/history', async (req, res) => {
 // DELETE /api/timesheet/:id — admin only (destructive)
 router.delete('/:id', requireRole('admin'), async (req, res) => {
   try {
+    if (req.user?.role !== 'admin') {
+      const locked = await isLocked({ id: req.params.id });
+      if (locked) return res.status(409).json({ error: 'Entry is locked to a paid payroll run.' });
+    }
     await pool.query('DELETE FROM timesheet_entries WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (err) {
