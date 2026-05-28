@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FiChevronLeft, FiChevronRight, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import api from './api';
+import { isHalfStep } from './halfStep';
 
 // ── Workers config ──────────────────────────────────────────────────
 const WORKERS = {
@@ -643,6 +644,127 @@ const SwitchWorkerBtn = styled.button`
   }
 `;
 
+// ── Materials Used subcomponent ────────────────────────────────────
+const MaterialsHeader = styled.div`
+  margin-top: 18px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4a5468;
+`;
+
+const MaterialsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+`;
+
+const MaterialsRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 110px 32px;
+  gap: 8px;
+  align-items: center;
+`;
+
+const AddMatBtn = styled.button`
+  margin-top: 6px;
+  align-self: flex-start;
+  background: none;
+  border: 1.5px dashed #c5d5e8;
+  color: #0f4c81;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover { background: #f0f4f9; }
+`;
+
+const RemoveMatBtn = styled.button`
+  background: none;
+  border: none;
+  color: #c62828;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+`;
+
+// State shape for one editor row:
+//   { tempId, id?: number, item_id: number|'', units_used: number|string, _removed?: boolean }
+// `id` present = persisted server row. `tempId` is a stable local key for React.
+let _matCounter = 0;
+const nextTempId = () => `tmp-${++_matCounter}`;
+
+function rowsFromServer(usage) {
+  return usage.map(u => ({
+    tempId: nextTempId(),
+    id: u.id,
+    item_id: u.item_id,
+    units_used: Number(u.units_used),
+  }));
+}
+
+function validateMaterials(rows) {
+  const errs = [];
+  for (const r of rows.filter(x => !x._removed)) {
+    if (!r.item_id) errs.push('Pick a material for every row, or remove blanks.');
+    const u = Number(r.units_used);
+    if (!isHalfStep(u) || u === 0) errs.push('Units used must be a positive multiple of 0.5.');
+  }
+  return [...new Set(errs)];
+}
+
+function MaterialsUsed({ rows, items, onChange, disabled }) {
+  const update = (tempId, patch) => {
+    onChange(rows.map(r => r.tempId === tempId ? { ...r, ...patch } : r));
+  };
+  const add = () => {
+    onChange([...rows, { tempId: nextTempId(), item_id: '', units_used: '' }]);
+  };
+  const remove = (tempId) => {
+    onChange(rows.map(r => r.tempId === tempId ? { ...r, _removed: true } : r));
+  };
+
+  const visible = rows.filter(r => !r._removed);
+
+  return (
+    <div>
+      <MaterialsHeader>Materials Used</MaterialsHeader>
+      <MaterialsList>
+        {visible.map(r => (
+          <MaterialsRow key={r.tempId}>
+            <select
+              value={r.item_id || ''}
+              onChange={(e) => update(r.tempId, { item_id: Number(e.target.value) || '' })}
+              disabled={disabled}
+            >
+              <option value="">— pick a material —</option>
+              {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+            </select>
+            <input
+              type="number"
+              step="0.5"
+              min="0.5"
+              placeholder="0"
+              value={r.units_used}
+              onChange={(e) => update(r.tempId, { units_used: e.target.value })}
+              disabled={disabled}
+            />
+            <RemoveMatBtn type="button" onClick={() => remove(r.tempId)} disabled={disabled} title="Remove">×</RemoveMatBtn>
+          </MaterialsRow>
+        ))}
+      </MaterialsList>
+      {!disabled && (
+        <AddMatBtn type="button" onClick={add}>+ Add material</AddMatBtn>
+      )}
+    </div>
+  );
+}
+
 // ── Main Component ──────────────────────────────────────────────────
 export default function Timesheet() {
   const [selectedWorker, setSelectedWorker] = useState(null);
@@ -655,6 +777,9 @@ export default function Timesheet() {
   const [periodEntries, setPeriodEntries] = useState([]);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState([]);  // active items for the dropdown
+  const [materials, setMaterials] = useState([]);            // editor rows for the CURRENT (worker, date)
+  const originalMaterialsRef = useRef([]);                   // baseline last loaded from server (for diff)
 
   const today = new Date();
   const dateKey = formatDateKey(currentDate);
@@ -704,6 +829,30 @@ export default function Timesheet() {
     }
   }, [dateKey, periodEntries, selectedWorker]);
 
+  // Load inventory items once on mount
+  useEffect(() => {
+    api.get('/inventory').then(({ data }) => setInventoryItems(data)).catch(() => {});
+  }, []);
+
+  // Reload materials whenever (worker, date) changes
+  useEffect(() => {
+    if (!selectedWorker) {
+      setMaterials([]);
+      originalMaterialsRef.current = [];
+      return;
+    }
+    api.get('/inventory/usage', { params: { worker: selectedWorker, date: dateKey } })
+      .then(({ data }) => {
+        const rows = rowsFromServer(data);
+        setMaterials(rows);
+        originalMaterialsRef.current = rows;
+      })
+      .catch(() => {
+        setMaterials([]);
+        originalMaterialsRef.current = [];
+      });
+  }, [selectedWorker, dateKey]);
+
   const trailerMinutes = calcTrailerMinutes(entry);
   const hours = calcHours(entry.clock_in, entry.clock_out, entry.lunch_minutes, trailerMinutes);
 
@@ -740,6 +889,57 @@ export default function Timesheet() {
         trailer_delivered_sf: entry.trailer_delivered_sf,
         trailer_returned_sf: entry.trailer_returned_sf,
       });
+
+      // ── Materials diff: POST new, PUT changed, DELETE removed ──
+      const errs = validateMaterials(materials);
+      if (errs.length) {
+        alert(errs.join('\n'));
+        return;
+      }
+
+      const original = originalMaterialsRef.current;
+      const ops = [];
+
+      // Removed: had a server id and _removed=true
+      materials.filter(r => r._removed && r.id).forEach(r => {
+        ops.push(api.delete(`/inventory/usage/${r.id}`));
+      });
+      // Edited: had a server id, units_used changed
+      materials.filter(r => r.id && !r._removed).forEach(r => {
+        const orig = original.find(o => o.id === r.id);
+        if (orig && Number(orig.units_used) !== Number(r.units_used)) {
+          ops.push(api.put(`/inventory/usage/${r.id}`, { units_used: Number(r.units_used) }));
+        }
+      });
+      // New: no id, not removed
+      materials.filter(r => !r.id && !r._removed).forEach(r => {
+        ops.push(api.post('/inventory/usage', {
+          item_id: r.item_id, worker: selectedWorker, date: dateKey,
+          units_used: Number(r.units_used),
+        }));
+      });
+
+      const results = await Promise.allSettled(ops);
+      const failures = results.filter(r => r.status === 'rejected');
+      const sawSoftDeleted = failures.some(r => r.reason?.response?.status === 410);
+
+      // Always re-fetch to capture new server ids (success path) or to resync (failure path).
+      const { data: freshUsage } = await api.get('/inventory/usage', {
+        params: { worker: selectedWorker, date: dateKey },
+      });
+      const freshRows = rowsFromServer(freshUsage);
+      setMaterials(freshRows);
+      originalMaterialsRef.current = freshRows;
+
+      if (sawSoftDeleted) {
+        const { data: items } = await api.get('/inventory');
+        setInventoryItems(items);
+      }
+
+      if (failures.length) {
+        alert('Some material entries failed to save. The list has been refreshed; try again.');
+      }
+
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2500);
       fetchPeriod(selectedWorker, period);
@@ -883,6 +1083,13 @@ export default function Timesheet() {
                   })}
                 </TrailerGrid>
               </Field>
+
+              <MaterialsUsed
+                rows={materials}
+                items={inventoryItems}
+                onChange={setMaterials}
+                disabled={false /* Task 3.4 wires this to entry.is_locked === 1 */}
+              />
 
               <HoursPreview>
                 <PreviewStat>
