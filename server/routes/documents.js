@@ -293,7 +293,22 @@ router.post('/:id/void', adminOnly, async (req, res) => {
   }
 });
 
-// === Stubs to fill in PR 3 ===
-router.get('/:id/signed-file', adminOnly, (req, res) => res.status(501).json({ error: 'Not implemented (PR 3)' }));
+// GET /api/documents/:id/signed-file — streams signed PDF (admin)
+router.get('/:id/signed-file', adminOnly, async (req, res) => {
+  try {
+    const [[doc]] = await pool.query(
+      'SELECT signed_file_path, status FROM documents WHERE id = ?',
+      [req.params.id]
+    );
+    if (!doc || doc.status !== 'signed' || !doc.signed_file_path) {
+      return res.status(404).json({ error: 'Not signed yet' });
+    }
+    res.setHeader('Content-Type', 'application/pdf');
+    fs.createReadStream(doc.signed_file_path).pipe(res);
+  } catch (err) {
+    console.error('documents signed-file:', err);
+    res.status(500).end();
+  }
+});
 
 module.exports = router;

@@ -19,6 +19,7 @@ const timesheetRoutes = require('./routes/timesheet');
 const inventoryRoutes = require('./routes/inventory');
 const payrollRoutes = require('./routes/payroll');
 const documentRoutes = require('./routes/documents');
+const signRoutes = require('./routes/sign');
 const { ensureStorageDir } = require('./util/documentStorage');
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/timesheet', authenticate, timesheetRoutes);
 app.use('/api/inventory', authenticate, inventoryRoutes);
 app.use('/api/payroll', authenticate, payrollRoutes);
 app.use('/api/documents', authenticate, documentRoutes);
+app.use('/api/sign', signRoutes); // PUBLIC: no auth, rate-limited inside the router
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

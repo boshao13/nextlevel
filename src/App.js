@@ -47,6 +47,8 @@ import Inventory from "./admin/Inventory";
 import Payroll from "./admin/Payroll";
 import Documents from "./admin/Documents";
 import DocumentEditor from "./admin/DocumentEditor";
+import SignDocument from "./public/SignDocument";
+import Signed from "./public/Signed";
 
 // Styled layout container
 const LayoutContainer = styled.div`
@@ -123,6 +125,10 @@ function App() {
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Route>
+
+          {/* Public signer flow — no admin or public site layout */}
+          <Route path="/sign/:token" element={<SignDocument />} />
+          <Route path="/signed/:token" element={<Signed />} />
 
           {/* Admin routes - no public header/footer */}
           <Route path="/admin/login" element={<Login />} />
