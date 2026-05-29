@@ -34,7 +34,11 @@ async function stampSignedPdf({ sourcePath, outputPath, fields, certificate }) {
       const b64 = dataUrl.startsWith('data:') ? dataUrl.split(',', 2)[1] : dataUrl;
       let png;
       try {
-        png = await pdfDoc.embedPng(Buffer.from(b64, 'base64'));
+        // pdf-lib's embedPng can hang on corrupt PNG buffers (no built-in timeout);
+        // race with a 3s deadline and fall back to typed-text rendering on either timeout or throw.
+        const embedP = pdfDoc.embedPng(Buffer.from(b64, 'base64'));
+        const timeoutP = new Promise((_, rej) => setTimeout(() => rej(new Error('embedPng timeout')), 3000));
+        png = await Promise.race([embedP, timeoutP]);
       } catch (e) {
         console.error('embedPng failed; falling back to text:', e.message);
         const txt = (f.value.value_text || '').slice(0, 80);
