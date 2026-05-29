@@ -18,6 +18,8 @@ const financeRoutes = require('./routes/finances');
 const timesheetRoutes = require('./routes/timesheet');
 const inventoryRoutes = require('./routes/inventory');
 const payrollRoutes = require('./routes/payroll');
+const documentRoutes = require('./routes/documents');
+const { ensureStorageDir } = require('./util/documentStorage');
 
 const app = express();
 
@@ -48,10 +50,12 @@ app.use('/api/finances', adminOnly, financeRoutes);
 app.use('/api/timesheet', authenticate, timesheetRoutes);
 app.use('/api/inventory', authenticate, inventoryRoutes);
 app.use('/api/payroll', authenticate, payrollRoutes);
+app.use('/api/documents', authenticate, documentRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.PORT || 4242;
 // Bind to loopback only — Nginx is the public face. Defense-in-depth:
 // even if the AWS security group ever opens this port, Express won't answer it.
+ensureStorageDir(); // Fail fast on boot if /var/lib/nextlevel is missing.
 app.listen(PORT, '127.0.0.1', () => console.log(`CRM API running on 127.0.0.1:${PORT}`));
