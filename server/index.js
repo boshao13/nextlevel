@@ -24,6 +24,11 @@ const { ensureStorageDir } = require('./util/documentStorage');
 
 const app = express();
 
+// Nginx is the single trusted hop in front; trust the first X-Forwarded-For
+// entry so req.ip is the real client IP and express-rate-limit v8+ doesn't
+// throw ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(bodyParser.json());
 
