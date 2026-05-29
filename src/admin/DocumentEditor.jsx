@@ -92,7 +92,7 @@ const DocumentEditor = () => {
   useEffect(() => {
     let revokeUrl = null;
     (async () => {
-      const { data } = await api.get(`/api/documents/${id}`);
+      const { data } = await api.get(`/documents/${id}`);
       setDoc(data);
       setTitle(data.title);
       setRecipientName(data.recipient_name || '');
@@ -105,7 +105,7 @@ const DocumentEditor = () => {
       // Mark initial-load complete on next tick so the field-save useEffect skips first run.
       setTimeout(() => { initialFieldsLoaded.current = true; }, 0);
 
-      const fileResp = await api.get(`/api/documents/${id}/file`, { responseType: 'blob' });
+      const fileResp = await api.get(`/documents/${id}/file`, { responseType: 'blob' });
       revokeUrl = URL.createObjectURL(fileResp.data);
       setPdfBlob(revokeUrl);
     })();
@@ -113,12 +113,12 @@ const DocumentEditor = () => {
   }, [id]);
 
   const persist = useCallback(debounce(async (patch) => {
-    try { await api.put(`/api/documents/${id}`, patch); }
+    try { await api.put(`/documents/${id}`, patch); }
     catch (e) { console.error('autosave', e); }
   }, 600), [id]);
 
   const persistFields = useCallback(debounce(async (next) => {
-    try { await api.put(`/api/documents/${id}/fields`, { fields: next }); }
+    try { await api.put(`/documents/${id}/fields`, { fields: next }); }
     catch (e) { console.error('field save', e); }
   }, 500), [id]);
 
@@ -129,15 +129,15 @@ const DocumentEditor = () => {
 
   const handleDelete = async () => {
     if (!window.confirm('Delete this draft? File is removed permanently.')) return;
-    await api.delete(`/api/documents/${id}`);
+    await api.delete(`/documents/${id}`);
     navigate('/admin/documents');
   };
 
   const handleSend = async () => {
     if (!window.confirm(`Send to ${recipientEmail}? They will receive an email with a link to sign.`)) return;
     try {
-      await api.post(`/api/documents/${id}/send`);
-      const { data } = await api.get(`/api/documents/${id}`);
+      await api.post(`/documents/${id}/send`);
+      const { data } = await api.get(`/documents/${id}`);
       setDoc(data);
     } catch (e) {
       alert(e?.response?.data?.error || 'Send failed');
@@ -146,8 +146,8 @@ const DocumentEditor = () => {
 
   const handleResend = async () => {
     try {
-      await api.post(`/api/documents/${id}/resend`);
-      const { data } = await api.get(`/api/documents/${id}`);
+      await api.post(`/documents/${id}/resend`);
+      const { data } = await api.get(`/documents/${id}`);
       setDoc(data);
     } catch (e) { alert(e?.response?.data?.error || 'Resend failed'); }
   };
@@ -155,14 +155,14 @@ const DocumentEditor = () => {
   const handleVoid = async () => {
     if (!window.confirm('Void this document? The signer can no longer sign it.')) return;
     try {
-      await api.post(`/api/documents/${id}/void`);
-      const { data } = await api.get(`/api/documents/${id}`);
+      await api.post(`/documents/${id}/void`);
+      const { data } = await api.get(`/documents/${id}`);
       setDoc(data);
     } catch (e) { alert(e?.response?.data?.error || 'Void failed'); }
   };
 
   const downloadSigned = async () => {
-    const resp = await api.get(`/api/documents/${id}/signed-file`, { responseType: 'blob' });
+    const resp = await api.get(`/documents/${id}/signed-file`, { responseType: 'blob' });
     const url = URL.createObjectURL(resp.data);
     const a = document.createElement('a');
     a.href = url;

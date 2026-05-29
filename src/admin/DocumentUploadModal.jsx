@@ -58,7 +58,7 @@ const DocumentUploadModal = ({ onClose, onCreated }) => {
       fd.append('file', file);
       fd.append('recipient_email', recipientEmail || '');
       fd.append('recipient_name', recipientName || '');
-      const { data } = await api.post('/api/documents', fd, {
+      const { data } = await api.post('/documents', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       onCreated(data);

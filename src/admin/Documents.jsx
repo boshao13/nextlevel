@@ -34,7 +34,7 @@ const Documents = () => {
   const [showModal, setShowModal] = useState(false);
 
   const load = async () => {
-    const { data } = await api.get('/api/documents', { params: { status, q, limit: 100 } });
+    const { data } = await api.get('/documents', { params: { status, q, limit: 100 } });
     setItems(data.documents);
   };
 
