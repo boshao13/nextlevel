@@ -156,6 +156,7 @@ Two routers because the signer flow needs different middleware than admin.
 
 | Method | Path | Behavior |
 |---|---|---|
+| GET | `/api/sign/agreement` | Public, unauthenticated, no token required. Returns `{ version, text }` — the current canonical agreement text the signer page must display before consent. |
 | GET | `/api/sign/:token` | Token format validated at the edge: `/^[a-f0-9]{64}$/`, else 404. Resolves token → doc. Returns `title`, `recipient_name`, `status`, `fields[]` (no admin fields). On first call per token, if `status='sent'`, set `status='viewed'`, `viewed_at=NOW()`, log `viewed` event. **Returns 404 for both not-found-token AND voided docs** (uniform response prevents enumeration of which tokens existed). Signed docs return 200 with `status='signed'` so the signer can re-download. |
 | GET | `/api/sign/:token/file` | Streams original PDF. |
 | POST | `/api/sign/:token/consent` | Body: `{}` (no client-supplied payload). Server logs a `consent_given` event with `detail = { agreement_version: AGREEMENT_VERSION, ip, user_agent }`. The canonical agreement text is a server-side constant (`server/services/agreementText.js`) keyed by version; only the version identifier (e.g., `"v1-2026-05-14"`) is recorded so the exact text Bo's customer agreed to is reconstructible even if Bo updates the wording later. Returns 409 if a `consent_given` event already exists for this doc (idempotency). |
@@ -291,10 +292,9 @@ v1 captures the four required elements:
 4. **Retention** — signed PDF and every audit row retained indefinitely; admin can download a complete record (JSON export of `documents` row + `document_events` rows + `document_field_values` rows) via the editor's "Download audit JSON" button.
 
 ### Ops
-- Storage directory created idempotently on server boot.
+- Storage directory `<parent>/documents/` created idempotently on server boot (see "File access" for the parent-dir one-time ops step and the fail-fast behavior if it's missing).
 - Backup: out of scope (existing EBS snapshot rotation, if any, covers `/var/lib/`).
 - Disk monitoring: out of scope for v1; realistic 1-year volume = 50–200 docs × 5 MB avg = ≤ 1 GB.
-- Out-of-band: a one-time deploy step needs to `sudo mkdir /var/lib/nextlevel && sudo chown ubuntu:ubuntu /var/lib/nextlevel` since the app user (ubuntu) can't create the path otherwise. This is a manual ops step documented in the deploy README; the app-side initializer only creates `documents/` underneath.
 
 ### Out of scope altogether (not deferred — never)
 - KBA / phone OTP / ID verification (would require a third-party identity provider; v1 is good-faith e-sign).
@@ -337,7 +337,7 @@ Three PRs behind a single migration:
    - Smoke-test: upload a PDF, edit title/recipient, delete it. No outbound email yet.
 2. **Field placement + send.**
    - Lights up: `PUT /api/documents/:id/fields`, `POST /api/documents/:id/send`, `/resend`, `/void`. Editor gains the drag-and-drop overlay + auto-save. Resend `buildSigningEmail`. Editor handles `sent`/`viewed`/`voided` read-only views.
-   - Smoke-test: send a doc to your own email and verify the email arrives with the link (link returns 404 still — signer flow is PR 3). Resend + void work.
+   - Smoke-test: send a doc to your own email and verify the email arrives with the link. (Clicking the link 404s until PR 3 ships the signer routes — that's expected; we're only validating outbound email at this stage.) Resend + void work.
 3. **Signer flow + signing + audit.**
    - `/api/sign/*` router (all six endpoints + `/agreement`), `SignDocument.jsx`, `Signed.jsx`, `pdf-lib` stamping, certificate-of-completion page, audit JSON download in admin editor, `signed` editor view.
    - Smoke-test: end-to-end (upload → place → send → open in incognito → consent → sign typed + drawn → submit → verify signed PDF + cert page + audit row + Bo sees status flip in admin).
