@@ -156,11 +156,11 @@ Two routers because the signer flow needs different middleware than admin.
 
 | Method | Path | Behavior |
 |---|---|---|
-| GET | `/api/sign/:token` | Resolves token → doc. Returns `title`, `recipient_name`, `status`, `fields[]` (no admin fields). On first call per token, if `status='sent'`, set `status='viewed'`, `viewed_at=NOW()`, log `viewed` event. Returns 410 if `voided`. |
+| GET | `/api/sign/:token` | Token format validated at the edge: `/^[a-f0-9]{64}$/`, else 404. Resolves token → doc. Returns `title`, `recipient_name`, `status`, `fields[]` (no admin fields). On first call per token, if `status='sent'`, set `status='viewed'`, `viewed_at=NOW()`, log `viewed` event. **Returns 404 for both not-found-token AND voided docs** (uniform response prevents enumeration of which tokens existed). Signed docs return 200 with `status='signed'` so the signer can re-download. |
 | GET | `/api/sign/:token/file` | Streams original PDF. |
-| POST | `/api/sign/:token/consent` | Body: `{ agreement_text }`. Server stores a `consent_given` event with `detail = { agreement_text, ip, user_agent }`. Required before submit. |
-| POST | `/api/sign/:token/values` | Body: `{ values: [{ field_id, value_text?, value_image? }] }`. Upserts (unique constraint enforces 1 row per field). Validates each `field_id` belongs to this doc. Can be called many times (partial / progressive save). |
-| POST | `/api/sign/:token/submit` | Transaction: verify all `required=1` fields have non-empty values + a `consent_given` event exists. Stamp signed PDF via `pdf-lib` → write to `<id>-signed.pdf`, hash it. Set `signed_file_path`, `status='signed'`, `signed_at=NOW()`. Log `signed` event with `detail = { signed_sha256 }`. Returns `{ signed_file_url: '/api/sign/<token>/signed-file' }`. Idempotent: 409 if already `signed`. |
+| POST | `/api/sign/:token/consent` | Body: `{}` (no client-supplied payload). Server logs a `consent_given` event with `detail = { agreement_version: AGREEMENT_VERSION, ip, user_agent }`. The canonical agreement text is a server-side constant (`server/services/agreementText.js`) keyed by version; only the version identifier (e.g., `"v1-2026-05-14"`) is recorded so the exact text Bo's customer agreed to is reconstructible even if Bo updates the wording later. Returns 409 if a `consent_given` event already exists for this doc (idempotency). |
+| POST | `/api/sign/:token/values` | Body: `{ values: [{ field_id, value_text?, value_image? }] }`. Validates each `field_id` belongs to **this** doc (else 400 — prevents cross-doc field tampering). Validates `value_image` decoded length ≤ 200 KB (else 413). Upserts (unique constraint enforces 1 row per field). Can be called many times (partial / progressive save). |
+| POST | `/api/sign/:token/submit` | Transaction (REPEATABLE READ): `SELECT … FROM documents WHERE id = ? FOR UPDATE`, re-check `status NOT IN ('signed','voided')` under the lock — if it's already signed return 409, if voided return 410. Verify all `required=1` fields have non-empty values + a `consent_given` event exists. Stamp signed PDF via `pdf-lib` → write to `<id>-signed.pdf`, hash it. Set `signed_file_path`, `status='signed'`, `signed_at=NOW()`. Log `signed` event with `detail = { signed_sha256, agreement_version }`. COMMIT. Returns `{ signed_file_url: '/api/sign/<token>/signed-file' }`. The `FOR UPDATE` lock serializes concurrent submits from double-clicks or two tabs. |
 | GET | `/api/sign/:token/signed-file` | Streams signed PDF; 404 if not signed. |
 
 ### Cross-cutting
@@ -169,7 +169,15 @@ Two routers because the signer flow needs different middleware than admin.
 - `req.ip` already trustworthy (memory: trust-proxy fixed in `server/index.js`).
 - Email reuses `server/services/email.js`. New builder: `buildSigningEmail({ doc, signUrl })`.
 - New `signLimiter`: 30 req/min/IP, same pattern as `leadLimiter`.
-- Multer config: `limits.fileSize = 25 * 1024 * 1024`; `fileFilter` accepts only `mimetype === 'application/pdf'` AND first 4 bytes `%PDF`.
+- Multer config: `dest: <tmp>`, `limits.fileSize = 25 * 1024 * 1024`. The `fileFilter` accepts only `mimetype === 'application/pdf'` (a fast guard for the wrong type). The **real check** is in the route handler AFTER multer has written the file: open the file, read bytes 0–3, verify they equal `25 50 44 46` (`%PDF`). On mismatch, `unlink` the file and return 415. (Magic-number checks cannot run in `fileFilter` because the file isn't on disk yet.)
+
+### Field-set frozen at `status='sent'`
+
+`PUT /api/documents/:id/fields` returns 409 unless `status='draft'`, and the `status` transitions `draft → sent` are one-way absent admin void. Therefore, by the time any signer endpoint runs, the field set the signer sees in `GET /api/sign/:token` is the same field set that will be valid for `POST /values` and `POST /submit`. Signer-side handlers still validate `field_id` belongs to the doc on every call — defense in depth — but the freeze guarantees no mid-flight schema drift.
+
+### Dual-gate file access
+
+`GET /api/documents/:id/signed-file` (admin auth) and `GET /api/sign/:token/signed-file` (token) intentionally serve the same file via two distinct authorization paths: Bo can audit any signed file at any time; the signer can re-download for life of the doc. Both are required.
 
 ## UI
 
@@ -227,19 +235,25 @@ After Bo clicks "Send for Signature":
 
 ### Token security
 - 256-bit random via `crypto.randomBytes(32).toString('hex')` (64 hex chars). Brute-force is not on the table.
+- Edge validation: every `/api/sign/:token*` route validates `/^[a-f0-9]{64}$/` before any DB lookup.
 - Token valid for life of doc; allows the signer to redownload signed PDF later.
 - `POST /api/sign/:token/submit` is idempotent — returns 409 after `status='signed'`.
-- `void` doesn't rotate the token; subsequent `/api/sign/:token*` calls return 410.
+- `void` doesn't rotate the token; subsequent `/api/sign/:token*` calls return 404 (uniform with bad-token to prevent enumeration).
+- **Referer leak mitigation:** the public `/sign/:token` page renders `<meta name="referrer" content="no-referrer">` in the document head so that any link the customer follows from the page does not include the token in the Referer header. The signed-PDF download intentionally does the same. (Token rotation post-signing is Phase 4 hardening; v1 accepts the residual risk because the only thing a leaked post-signing token grants is re-downloading an already-signed PDF.)
 
 ### File access
 - Storage: `/var/lib/nextlevel/documents/` — **outside** nginx's static root. Nginx never serves these files directly.
 - Admin file routes require `authenticate + requireRole(['admin'])`.
 - Public file routes require token resolution + non-voided status.
 - Directory created idempotently on app start: `mkdir -p` with mode `0750`, owned `ubuntu:ubuntu`. Files mode `0640`. Initializer lives in `server/util/documentStorage.js`.
+- The parent path `/var/lib/nextlevel` requires root to create — handled by a one-time deploy ops step (`sudo mkdir /var/lib/nextlevel && sudo chown ubuntu:ubuntu /var/lib/nextlevel`). The app-side initializer creates only `documents/` underneath. **If the manual ops step is missed**, the initializer's `mkdir -p` throws EACCES; the server fails fast on boot with a clear error: `"Document storage init failed: cannot create /var/lib/nextlevel/documents. Run: sudo mkdir /var/lib/nextlevel && sudo chown ubuntu:ubuntu /var/lib/nextlevel"`. PM2 retains the previous version's process until restart, so no production downtime if the operator notices and fixes before restart completes.
 
 ### Upload validation
 - `multer` `limits.fileSize: 25 * 1024 * 1024` (25 MB).
-- `fileFilter` rejects unless **both** `req.file.mimetype === 'application/pdf'` AND the first 4 bytes of the buffer (read on disk after multer writes) equal `%PDF`. Content-Type alone is forgeable; the magic-number check is the real gate.
+- Two-stage validation (because `fileFilter` runs before the file is on disk):
+  1. `fileFilter` rejects unless `mimetype === 'application/pdf'` — fast guard for the obviously-wrong type.
+  2. After multer writes to a temp path, the route handler opens the file and reads bytes 0–3. They must equal `25 50 44 46` (`%PDF`). Mismatch → `unlink` the temp file and return 415 `Unsupported Media Type`. Content-Type alone is forgeable; the magic-number check is the real gate.
+- On successful validation, atomically `rename(2)` the multer-temp file to `<storage>/<id>-original.pdf` (after the DB INSERT has assigned the id). If `rename` fails (cross-device, perms), `unlink` temp + return 500 + leave no orphan DB row.
 - Original filename used only for `title` default and `original_filename` column — never as a filesystem path.
 
 ### Rate limits
@@ -248,18 +262,33 @@ After Bo clicks "Send for Signature":
 
 ### Tamper evidence
 - `documents.file_hash` = sha256 of the original PDF at upload.
-- After signing, signed-PDF sha256 stored in the `signed` event's `detail` JSON (`{ signed_sha256: "..." }`).
-- Audit panel in the editor shows both hashes side-by-side.
-- An auto-appended **Certificate of Completion** is the final page of the signed PDF, generated server-side via `pdf-lib`. Contents: doc title, signer name + email, consent timestamp + IP, signing timestamp + IP, original SHA256, signed SHA256 (computed after the certificate page is composed — so this value is from a "pre-certificate" hash; the value the certificate displays is the *original* hash and the *post-stamp-pre-cert* hash; the cert page itself is then appended and the final-signed-hash recorded in the event row). This evidence travels with the PDF so it's portable without admin access.
+- After signing, the signed PDF (including its appended Certificate of Completion page) is hashed once; the value is stored in the `signed` event's `detail` JSON (`{ signed_sha256: "..." }`). This is the hash a verifier independently recomputes against the downloaded file — it MUST equal the value stored in the event.
+- Audit panel in the editor shows the original and signed hashes side-by-side.
+- The Certificate of Completion is the final page of the signed PDF, generated server-side via `pdf-lib`. It displays:
+  - Doc title
+  - Signer name + email
+  - Consent timestamp + IP
+  - Signing timestamp + IP
+  - **Original SHA256** of the uploaded PDF (this is fixed at upload time — printing it is safe)
+  - Agreement-text version identifier (see legal compliance section)
+
+  The certificate **does NOT** display the signed-file SHA256 (self-referential hash impossibility — the value would have to be computed after composing the page that displays it). A third-party verifier computes the signed-file SHA256 themselves and matches it against the audit record (Bo provides the audit JSON on request, or the admin UI exposes a "Download audit JSON" button).
 
 ### Legal compliance (ESIGN Act / UETA — bare-minimum-but-real)
 v1 captures the four required elements:
 
-1. **Consent** — explicit checkbox + agreement text persisted into the `consent_given` event's `detail` JSON. Default agreement text:
-   > *"I agree to use an electronic signature for this document. I understand my electronic signature is legally binding and equivalent to a handwritten signature."*
+1. **Consent** — explicit checkbox + canonical server-side agreement text. The text is a module constant in `server/services/agreementText.js`:
+   ```js
+   const AGREEMENTS = {
+     'v1-2026-05-14': 'I agree to use an electronic signature for this document. I understand my electronic signature is legally binding and equivalent to a handwritten signature.',
+   };
+   const CURRENT_AGREEMENT_VERSION = 'v1-2026-05-14';
+   ```
+   `POST /api/sign/:token/consent` does NOT accept an agreement string from the client — it logs `detail: { agreement_version: CURRENT_AGREEMENT_VERSION }` and the server reconstructs the actual text from the version key when needed. If the wording ever changes, the new copy is added under a new version key; old events stay reconstructible against their original wording.
+   The signer's UI fetches the canonical text from a new public endpoint `GET /api/sign/agreement` (returns `{ version, text }`) so the page can render the correct text without hardcoding it.
 2. **Intent** — "Adopt and sign" click in the signature modal AND the final "Finish & Sign" submit click both fire distinct events.
 3. **Attribution** — IP + user-agent on each signing event; recipient email tied to doc at creation; signer's typed/drawn name stamped into the signed PDF and certificate.
-4. **Retention** — signed PDF and every audit row retained indefinitely; admin can download a complete record.
+4. **Retention** — signed PDF and every audit row retained indefinitely; admin can download a complete record (JSON export of `documents` row + `document_events` rows + `document_field_values` rows) via the editor's "Download audit JSON" button.
 
 ### Ops
 - Storage directory created idempotently on server boot.
@@ -274,9 +303,10 @@ v1 captures the four required elements:
 
 **New backend:**
 - `server/db/migrations/007_documents.sql` — the four-table migration
-- `server/util/documentStorage.js` — directory initializer, path builders, hash helper
+- `server/util/documentStorage.js` — directory initializer, path builders, hash helper, atomic-rename wrapper
+- `server/services/agreementText.js` — canonical agreement text + version registry
 - `server/routes/documents.js` — admin CRUD + send/resend/void
-- `server/routes/sign.js` — public signer flow
+- `server/routes/sign.js` — public signer flow + `/api/sign/agreement`
 - `server/services/email.js` — add `buildSigningEmail` + `sendSigningInvitation` exports
 
 **New frontend:**
@@ -301,9 +331,16 @@ v1 captures the four required elements:
 
 Three PRs behind a single migration:
 
-1. **Backend + admin list/editor scaffold** — migration + storage util + admin routes + upload modal + list page + editor in `draft` state only (no field placement yet, no send). Smoke-test upload + edit.
-2. **Field placement + send** — drag-and-drop field overlay on the editor's draft view + `PUT /fields` + `/send` + Resend email integration. Editor handles `sent`/`viewed` read-only views. Smoke-test sending an email to yourself.
-3. **Signer flow + signing + audit** — `/api/sign/*` router + `SignDocument.jsx` + `Signed.jsx` + `pdf-lib` stamping + certificate page + the signed/voided editor views. Smoke-test end-to-end (upload → place → send → open in incognito → consent → sign → verify signed PDF).
+1. **Backend + admin list/editor scaffold.**
+   - Ships live: `POST /api/documents`, `GET /api/documents`, `GET /api/documents/:id`, `GET /api/documents/:id/file`, `PUT /api/documents/:id`, `DELETE /api/documents/:id`. The storage util + initializer. List page + upload modal + editor in `draft` state only (PDF preview + recipient form, **no field placement yet**, **no Send button**).
+   - **Stubbed (return 501 Not Implemented):** `PUT /api/documents/:id/fields`, `POST /send`, `POST /resend`, `POST /void`. This keeps the route file's structure stable; PR 2 fills them in.
+   - Smoke-test: upload a PDF, edit title/recipient, delete it. No outbound email yet.
+2. **Field placement + send.**
+   - Lights up: `PUT /api/documents/:id/fields`, `POST /api/documents/:id/send`, `/resend`, `/void`. Editor gains the drag-and-drop overlay + auto-save. Resend `buildSigningEmail`. Editor handles `sent`/`viewed`/`voided` read-only views.
+   - Smoke-test: send a doc to your own email and verify the email arrives with the link (link returns 404 still — signer flow is PR 3). Resend + void work.
+3. **Signer flow + signing + audit.**
+   - `/api/sign/*` router (all six endpoints + `/agreement`), `SignDocument.jsx`, `Signed.jsx`, `pdf-lib` stamping, certificate-of-completion page, audit JSON download in admin editor, `signed` editor view.
+   - Smoke-test: end-to-end (upload → place → send → open in incognito → consent → sign typed + drawn → submit → verify signed PDF + cert page + audit row + Bo sees status flip in admin).
 
 Each PR is reversible; the migration runs once on PR 1.
 
@@ -318,8 +355,12 @@ Deferred: end-to-end signing automation (Playwright), pdf-lib stamping snapshot 
 ## Open questions for implementation (do NOT block spec approval; flag during planning)
 
 - Which Google Font for typed signatures? Default "Dancing Script" (free, well-known).
-- pdfjs-dist worker bundling under CRA — known to be quirky; may need `pdfjs-dist/legacy/build/pdf.worker.entry`.
+- pdfjs-dist worker bundling under CRA — known to be quirky; may need `pdfjs-dist/legacy/build/pdf.worker.entry`. **Recommend the implementation plan front-load a 30-minute spike in PR 1** to confirm the bundling story before PR 2's editor depends on it.
 - Certificate-of-completion page layout — pure pdf-lib text drawing or use the existing PDF template? Recommend pdf-lib programmatic to avoid maintaining a fixture PDF.
+
+## Email deliverability
+
+Signing emails go to customer inboxes whose engagement signals matter for Bo's transactional reputation. Resend is already wired with the domain's SPF/DKIM/DMARC (per memory `project_resend_key_incident_2026_05_17.md` and `project_email_resend.md`) — no DNS work needed. Reuse the existing `from` address and the established Bo-first-person voice. Subject line should be specific enough not to look phishy ("[Doc Title] — please sign at your convenience" rather than "Action required").
 
 ## Skills used
 
