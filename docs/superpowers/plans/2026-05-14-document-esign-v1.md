@@ -2976,7 +2976,16 @@ git commit -m "feat(public): wire /sign/:token and /signed/:token outside admin 
   <Card>
     <Banner>Signed on {fmtDate(doc.signed_at)} ✓</Banner>
     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-      <Button as="a" href={`/api/documents/${id}/signed-file`} target="_blank" rel="noopener noreferrer">
+      <Button onClick={async () => {
+        // Plain <a href> would not carry the admin Bearer token; fetch as blob via the auth-aware api instance.
+        const resp = await api.get(`/api/documents/${id}/signed-file`, { responseType: 'blob' });
+        const url = URL.createObjectURL(resp.data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(doc.title || 'document').replace(/[^\w.-]+/g, '_')}-signed.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }}>
         <FiDownload /> Download signed PDF
       </Button>
       <ButtonSecondary onClick={() => {
