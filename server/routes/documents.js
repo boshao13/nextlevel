@@ -8,6 +8,7 @@ const requireRole = require('../middleware/requireRole');
 const {
   pathForOriginal, pathForTmp, atomicMove, isPdf, sha256OfFile,
 } = require('../util/documentStorage');
+const { sendSigningInvitation } = require('../services/email');
 
 const router = express.Router();
 const adminOnly = requireRole(['admin']);
@@ -175,11 +176,122 @@ router.delete('/:id', adminOnly, async (req, res) => {
   }
 });
 
-// === Stubs to fill in PR 2 ===
-router.put('/:id/fields',  adminOnly, (req, res) => res.status(501).json({ error: 'Not implemented (PR 2)' }));
-router.post('/:id/send',   adminOnly, (req, res) => res.status(501).json({ error: 'Not implemented (PR 2)' }));
-router.post('/:id/resend', adminOnly, (req, res) => res.status(501).json({ error: 'Not implemented (PR 2)' }));
-router.post('/:id/void',   adminOnly, (req, res) => res.status(501).json({ error: 'Not implemented (PR 2)' }));
+// PUT /api/documents/:id/fields — full-replace field placements (draft only)
+router.put('/:id/fields', adminOnly, async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [[doc]] = await conn.query('SELECT status FROM documents WHERE id = ? FOR UPDATE', [req.params.id]);
+    if (!doc) { await conn.rollback(); return res.status(404).json({ error: 'Not found' }); }
+    if (doc.status !== 'draft') { await conn.rollback(); return res.status(409).json({ error: 'Document is no longer editable' }); }
+
+    const fields = Array.isArray(req.body.fields) ? req.body.fields : [];
+    const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+    const clean = fields.map((f, i) => ({
+      page:       Math.max(1, Math.floor(num(f.page))),
+      field_type: ['signature','initials','date','text'].includes(f.field_type) ? f.field_type : 'text',
+      x: Math.min(1, Math.max(0, num(f.x))),
+      y: Math.min(1, Math.max(0, num(f.y))),
+      w: Math.min(1, Math.max(0.01, num(f.w))),
+      h: Math.min(1, Math.max(0.01, num(f.h))),
+      required: f.required === 0 ? 0 : 1,
+      label: typeof f.label === 'string' ? f.label.slice(0, 80) : null,
+      sort_order: i,
+    }));
+
+    await conn.query('DELETE FROM document_fields WHERE document_id = ?', [req.params.id]);
+    if (clean.length) {
+      const values = clean.map(f => [req.params.id, f.page, f.field_type, f.x, f.y, f.w, f.h, f.required, f.label, f.sort_order]);
+      await conn.query(
+        `INSERT INTO document_fields (document_id, page, field_type, x, y, w, h, required, label, sort_order) VALUES ?`,
+        [values]
+      );
+    }
+    await conn.commit();
+
+    const [rows] = await pool.query('SELECT * FROM document_fields WHERE document_id = ? ORDER BY page, sort_order', [req.params.id]);
+    res.json(rows);
+  } catch (err) {
+    await conn.rollback();
+    console.error('documents fields:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    conn.release();
+  }
+});
+
+// POST /api/documents/:id/send — flip status to 'sent', fire Resend email
+router.post('/:id/send', adminOnly, async (req, res) => {
+  try {
+    const [[doc]] = await pool.query('SELECT * FROM documents WHERE id = ?', [req.params.id]);
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+    if (doc.status !== 'draft') return res.status(409).json({ error: `Document is ${doc.status}; cannot send` });
+    if (!doc.recipient_email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(doc.recipient_email)) {
+      return res.status(400).json({ error: 'Recipient email is missing or invalid' });
+    }
+    const [[{ sig_count }]] = await pool.query(
+      `SELECT COUNT(*) AS sig_count FROM document_fields WHERE document_id = ? AND field_type = 'signature'`,
+      [req.params.id]
+    );
+    if (sig_count === 0) return res.status(400).json({ error: 'At least one signature field is required' });
+
+    await pool.query(`UPDATE documents SET status = 'sent', sent_at = NOW() WHERE id = ?`, [req.params.id]);
+    await pool.query(
+      `INSERT INTO document_events (document_id, event_type, ip, user_agent, detail) VALUES (?, 'sent', ?, ?, ?)`,
+      [req.params.id, req.ip, (req.headers['user-agent'] || '').slice(0, 500), JSON.stringify({ recipient: doc.recipient_email })]
+    );
+
+    // Best-effort email send; failure leaves status='sent' and surfaces via banner.
+    try {
+      await sendSigningInvitation({ doc, signUrl: `https://nextlevelepoxynm.com/sign/${doc.sign_token}` });
+    } catch (mailErr) {
+      console.error('signing email send failed (status still set to sent):', mailErr);
+    }
+
+    const [[row]] = await pool.query('SELECT * FROM documents WHERE id = ?', [req.params.id]);
+    res.json(row);
+  } catch (err) {
+    console.error('documents send:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/documents/:id/resend
+router.post('/:id/resend', adminOnly, async (req, res) => {
+  try {
+    const [[doc]] = await pool.query('SELECT * FROM documents WHERE id = ?', [req.params.id]);
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+    if (!['sent','viewed'].includes(doc.status)) return res.status(409).json({ error: `Cannot resend in status ${doc.status}` });
+    await sendSigningInvitation({ doc, signUrl: `https://nextlevelepoxynm.com/sign/${doc.sign_token}` });
+    await pool.query(
+      `INSERT INTO document_events (document_id, event_type, ip, user_agent, detail) VALUES (?, 'resent', ?, ?, ?)`,
+      [req.params.id, req.ip, (req.headers['user-agent'] || '').slice(0, 500), null]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('documents resend:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/documents/:id/void
+router.post('/:id/void', adminOnly, async (req, res) => {
+  try {
+    const [[doc]] = await pool.query('SELECT status FROM documents WHERE id = ?', [req.params.id]);
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+    if (!['draft','sent','viewed'].includes(doc.status)) return res.status(409).json({ error: `Cannot void in status ${doc.status}` });
+
+    await pool.query(`UPDATE documents SET status = 'voided', voided_at = NOW() WHERE id = ?`, [req.params.id]);
+    await pool.query(
+      `INSERT INTO document_events (document_id, event_type, ip, user_agent, detail) VALUES (?, 'voided', ?, ?, ?)`,
+      [req.params.id, req.ip, (req.headers['user-agent'] || '').slice(0, 500), null]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('documents void:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // === Stubs to fill in PR 3 ===
 router.get('/:id/signed-file', adminOnly, (req, res) => res.status(501).json({ error: 'Not implemented (PR 3)' }));

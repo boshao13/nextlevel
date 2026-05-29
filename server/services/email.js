@@ -317,4 +317,89 @@ async function sendCustomerConfirmation(lead) {
   }
 }
 
-module.exports = { sendLeadNotification, sendCustomerConfirmation };
+// ---------------------------------------------------------------------------
+// E-signature signing invitation (to recipient)
+// ---------------------------------------------------------------------------
+function buildSigningEmail({ doc, signUrl }) {
+  const safeTitle = escapeHtml(doc.title || 'Document');
+  const greeting = doc.recipient_name ? `Hi ${escapeHtml(doc.recipient_name)},` : 'Hi,';
+
+  const html = `<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:${BRAND.bg};margin:0;padding:32px 16px;color:${BRAND.text};">
+  <div style="max-width:560px;margin:0 auto;background:${BRAND.card};border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+    <div style="padding:24px 28px;border-bottom:4px solid ${BRAND.primary};text-align:center;">
+      <img src="${BRAND.logo}" alt="Next Level Epoxy" width="200" style="max-width:200px;height:auto;"/>
+    </div>
+    <div style="padding:28px 28px 8px;">
+      <p style="margin:0 0 14px;">${greeting}</p>
+      <p style="margin:0 0 14px;">I have a document for you to review and sign &mdash; <strong>${safeTitle}</strong>. It'll take a couple minutes and you can do the whole thing from your phone.</p>
+      <p style="margin:0 0 22px;">Tap the button below to open it.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${signUrl}" style="display:inline-block;background:${BRAND.primary};color:#fff;padding:14px 30px;border-radius:999px;text-decoration:none;font-weight:700;">Open document to sign</a>
+      </div>
+      <p style="margin:0 0 6px;font-size:.85rem;color:${BRAND.muted};">Or paste this link into your browser:</p>
+      <p style="margin:0 0 22px;font-size:.85rem;word-break:break-all;color:${BRAND.primary};">${signUrl}</p>
+    </div>
+    <div style="padding:0 28px 28px;text-align:center;font-size:.95rem;color:${BRAND.text};">
+      <div style="font-style:italic;color:${BRAND.muted};margin-bottom:2px;">Talk soon,</div>
+      <div style="font-weight:700;">&mdash; Bo</div>
+      <div style="font-size:.78rem;color:${BRAND.muted};margin-top:2px;">Next Level Epoxy Flooring</div>
+    </div>
+    ${footerHtml()}
+  </div>
+</body></html>`;
+
+  const text = [
+    doc.recipient_name ? `Hi ${doc.recipient_name},` : 'Hi,',
+    '',
+    `I have a document for you to review and sign — ${doc.title || 'Document'}. It'll take a couple minutes and you can do the whole thing from your phone.`,
+    '',
+    'Open document to sign:',
+    signUrl,
+    '',
+    'Talk soon,',
+    '— Bo',
+    'Next Level Epoxy Flooring',
+    '',
+    `Reach me anytime: ${BRAND.phone}`,
+  ].join('\n');
+
+  return {
+    subject: `${doc.title || 'Document'} — please sign at your convenience`,
+    html,
+    text,
+  };
+}
+
+async function sendSigningInvitation({ doc, signUrl }) {
+  const r = client();
+  if (!r) {
+    console.warn('[email] RESEND_API_KEY not set — skipping signing invite');
+    return { sent: false, reason: 'no_api_key' };
+  }
+  if (!process.env.LEAD_FROM_EMAIL) {
+    console.warn('[email] LEAD_FROM_EMAIL not set — skipping signing invite');
+    return { sent: false, reason: 'no_from' };
+  }
+  if (!doc.recipient_email) return { sent: false, reason: 'no_recipient' };
+
+  const { subject, html, text } = buildSigningEmail({ doc, signUrl });
+  try {
+    const { data, error } = await r.emails.send({
+      from: process.env.LEAD_FROM_EMAIL,
+      to: doc.recipient_email,
+      subject, html, text,
+    });
+    if (error) {
+      console.error('[email] signing invite send error:', error);
+      return { sent: false, reason: 'resend_error', error: String(error) };
+    }
+    console.log('[email] signing invite sent id=' + (data?.id || '?') + ' to=' + doc.recipient_email);
+    return { sent: true, id: data?.id };
+  } catch (err) {
+    console.error('[email] signing invite send failed:', err);
+    return { sent: false, reason: 'exception', error: String(err) };
+  }
+}
+
+module.exports = { sendLeadNotification, sendCustomerConfirmation, buildSigningEmail, sendSigningInvitation };
