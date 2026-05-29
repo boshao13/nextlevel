@@ -361,6 +361,8 @@ function ensureStorageDir() {
   const dir = root();
   try {
     fs.mkdirSync(dir, { recursive: true, mode: 0o750 });
+    // Also create the tmp subdir multer writes uploads into, BEFORE any route mounts itself.
+    fs.mkdirSync(path.join(dir, 'tmp'), { recursive: true, mode: 0o750 });
   } catch (err) {
     if (err.code === 'EACCES') {
       throw new Error(
@@ -370,6 +372,10 @@ function ensureStorageDir() {
     }
     throw err;
   }
+}
+
+function pathForTmp() {
+  return path.join(root(), 'tmp');
 }
 
 function sha256OfFile(filePath) {
@@ -408,7 +414,7 @@ async function isPdf(filePath) {
   }
 }
 
-module.exports = { pathForOriginal, pathForSigned, ensureStorageDir, sha256OfFile, atomicMove, isPdf, root };
+module.exports = { pathForOriginal, pathForSigned, pathForTmp, ensureStorageDir, sha256OfFile, atomicMove, isPdf, root };
 ```
 
 - [ ] **Step 4: Re-run tests; expect PASS.**
@@ -495,7 +501,7 @@ const path = require('path');
 const pool = require('../db/pool');
 const requireRole = require('../middleware/requireRole');
 const {
-  pathForOriginal, pathForSigned, atomicMove, isPdf, sha256OfFile, root: storageRoot,
+  pathForOriginal, pathForSigned, pathForTmp, atomicMove, isPdf, sha256OfFile,
 } = require('../util/documentStorage');
 
 const router = express.Router();
@@ -503,11 +509,10 @@ const adminOnly = requireRole(['admin']);
 
 // Multer: keep uploads small + bounded; write to a tmp subdir of storage root
 // (same filesystem as the final target, so atomicMove uses real rename).
-const TMP_DIR = path.join(storageRoot(), 'tmp');
-try { fs.mkdirSync(TMP_DIR, { recursive: true, mode: 0o750 }); } catch (e) { /* logged at boot */ }
+// `pathForTmp()` is created by ensureStorageDir() at server boot, before this router mounts.
 
 const upload = multer({
-  dest: TMP_DIR,
+  dest: pathForTmp(),
   limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype !== 'application/pdf') return cb(null, false);
@@ -542,22 +547,27 @@ router.post('/', adminOnly, upload.single('file'), async (req, res) => {
   const fileHash = await sha256OfFile(req.file.path);
   const token = newToken();
 
+  let insertedId = null;
   try {
     const [result] = await pool.query(
       `INSERT INTO documents (title, original_filename, file_path, file_hash, recipient_name, recipient_email, sign_token, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [title, originalFilename, '__pending__', fileHash, recipientName, recipientEmail || '', token, req.user?.username || 'unknown']
     );
-    const id = result.insertId;
-    const finalPath = pathForOriginal(id);
+    insertedId = result.insertId;
+    const finalPath = pathForOriginal(insertedId);
     await atomicMove(req.file.path, finalPath);
-    await pool.query('UPDATE documents SET file_path = ? WHERE id = ?', [finalPath, id]);
+    await pool.query('UPDATE documents SET file_path = ? WHERE id = ?', [finalPath, insertedId]);
 
-    const [[row]] = await pool.query('SELECT * FROM documents WHERE id = ?', [id]);
+    const [[row]] = await pool.query('SELECT * FROM documents WHERE id = ?', [insertedId]);
     res.status(201).json(row);
   } catch (err) {
     console.error('documents create:', err);
     await fs.promises.unlink(req.file.path).catch(() => {});
+    // If we inserted the DB row before the file move failed, drop the orphan row.
+    if (insertedId !== null) {
+      await pool.query('DELETE FROM documents WHERE id = ? AND file_path = ?', [insertedId, '__pending__']).catch(() => {});
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -1556,6 +1566,15 @@ git commit -m "feat(admin): FieldOverlay component for drag-and-drop field place
 
 - [ ] **Step 1: Add field-state + toolbar + overlay rendering. Auto-save debounced.**
 
+**IMPORTANT:** All `styled.div\`...\`` / `styled.button\`...\`` declarations below MUST be hoisted to **module scope** (alongside the other existing styled components at the top of `DocumentEditor.jsx`), NOT placed inside the component body. Defining styled components inside the render path creates a new component identity every render and triggers React reconciler warnings.
+
+Also: this task references `useRef`, which is NOT currently imported. Update the existing React import:
+
+```diff
+- import React, { useEffect, useState, useCallback } from 'react';
++ import React, { useEffect, useRef, useState, useCallback } from 'react';
+```
+
 Changes to the existing draft section:
 
 ```jsx
@@ -1896,11 +1915,21 @@ async function sendSigningInvitation({ doc, signUrl }) {
   return { sent: true };
 }
 
-module.exports.buildSigningEmail = buildSigningEmail;
-module.exports.sendSigningInvitation = sendSigningInvitation;
 ```
 
-(`client()` and the module.exports object already exist in `email.js` — re-exporting the new functions explicitly is harmless and keeps the diff minimal. Verify the existing file's pattern: if it uses a single `module.exports = { ... }` block at the bottom, add the two names there instead. Read it first.)
+- [ ] **Step 1b: Extend the existing exports block at the bottom of the file.**
+
+`server/services/email.js` ends with a single `module.exports = { ... }` object literal — find it (likely the last non-blank line of the file). Add the two new names to it:
+
+```js
+// BEFORE (example — confirm exact existing names; do NOT remove any)
+module.exports = { sendLeadNotification, sendCustomerConfirmation };
+
+// AFTER
+module.exports = { sendLeadNotification, sendCustomerConfirmation, buildSigningEmail, sendSigningInvitation };
+```
+
+(This matches the existing single-object-literal export style in this file. Adding `module.exports.X = X;` lines after the literal also works in CommonJS, but the object-literal form is what the rest of the file uses — keep it consistent.)
 
 - [ ] **Step 2: Sanity check.**
 
@@ -2593,6 +2622,7 @@ git commit -m "feat(ui): SignatureModal with Type and Draw modes"
 ```jsx
 // src/public/SignDocument.jsx
 import React, { useEffect, useMemo, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import styled from 'styled-components';
@@ -2623,8 +2653,51 @@ const Stick = styled.div`
 const FieldBtn = styled.button`
   position: absolute; background: #fef3c7cc; border: 2px solid #f59e0b; cursor: pointer;
   font-size: 11px; color: #1f2937; display: flex; align-items: center; justify-content: center;
+  font-weight: 600; text-transform: uppercase; letter-spacing: .03em; padding: 0;
   &.filled { background: #d1fae5cc; border-color: #10b981; }
 `;
+
+const Thumb = styled.img`
+  max-width: 90%; max-height: 90%; object-fit: contain;
+`;
+
+// SignerPageOverlay — renders absolutely-positioned <FieldBtn>s inside the given page wrap.
+// Mirrors the FieldOverlay pattern from PR 2 (ReactDOM.createPortal into the page wrap div),
+// but each button is interactive and dispatches click-handlers per field type.
+const SignerPageOverlay = ({ pageWrap, fields, values, onSignatureClick, onDateClick, onTextClick }) => {
+  if (!pageWrap) return null;
+  return ReactDOM.createPortal(
+    <>
+      {fields.map((f) => {
+        const v = values[f.id];
+        const filled = !!v && (!!(v.value_text && v.value_text.trim()) || !!v.value_image);
+        const style = {
+          left:   `${f.x * 100}%`,
+          top:    `${f.y * 100}%`,
+          width:  `${f.w * 100}%`,
+          height: `${f.h * 100}%`,
+        };
+        const onClick = (e) => {
+          e.preventDefault();
+          if (f.field_type === 'signature' || f.field_type === 'initials') onSignatureClick(f);
+          else if (f.field_type === 'date') onDateClick(f);
+          else if (f.field_type === 'text') onTextClick(f);
+        };
+        return (
+          <FieldBtn key={f.id} className={filled ? 'filled' : ''} style={style} onClick={onClick}>
+            {filled && v.value_image && <Thumb src={v.value_image} alt="" />}
+            {filled && !v.value_image && (v.value_text || '').slice(0, 40)}
+            {!filled && (f.field_type === 'signature' ? 'Tap to sign' :
+                         f.field_type === 'initials' ? 'Initials' :
+                         f.field_type === 'date'     ? 'Tap for date' :
+                                                       'Tap to type')}
+          </FieldBtn>
+        );
+      })}
+    </>,
+    pageWrap
+  );
+};
 
 const SignDocument = () => {
   const { token } = useParams();
@@ -2741,23 +2814,20 @@ const SignDocument = () => {
 
       <div style={{ position: 'relative' }}>
         {pdfBlob && <PdfPreview src={pdfBlob} onPagesLoaded={setPages} />}
-        {pages.map((p) => {
-          const fs = fieldByPage.get(p.num) || [];
-          return fs.map((f) => {
-            const v = values[f.id];
-            const filled = !!v && (!!v.value_text?.trim() || !!v.value_image);
-            // Render an absolutely-positioned button inside this page's wrap via a portal-like approach:
-            //   we inject the button as a child of p.wrap using a small effect — easier: render as siblings
-            //   inside a page-relative DOM tree. Simplest approach below: button is rendered into a
-            //   portal-equivalent. To keep things tight, we render absolutely-positioned buttons relative
-            //   to the document body using p.wrap.getBoundingClientRect on every scroll/resize.
-            // For brevity here, the implementer should adopt the same portal approach used in FieldOverlay
-            // (ReactDOM.createPortal into p.wrap) — pattern verified in PR 2.
-            return null;
-          });
-        })}
-        {/* SIGNER NOTE: use the same ReactDOM.createPortal-per-page pattern as FieldOverlay
-            to render a <FieldBtn> inside each pageWrap at left/top/width/height = f.* * 100% */}
+        {pages.map((p) => (
+          <SignerPageOverlay
+            key={p.num}
+            pageWrap={p.wrap}
+            fields={fieldByPage.get(p.num) || []}
+            values={values}
+            onSignatureClick={(f) => setOpenField({ kind: 'signature', field: f })}
+            onDateClick={async (f) => {
+              const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              await saveValue(f.id, { value_text: today });
+            }}
+            onTextClick={(f) => setTextPrompt({ open: true, fieldId: f.id, value: values[f.id]?.value_text || '' })}
+          />
+        ))}
       </div>
 
       <Stick>
@@ -2802,10 +2872,7 @@ const SignDocument = () => {
 export default SignDocument;
 ```
 
-**IMPORTANT NOTE for the implementer:** The field-button rendering above is sketched but not concrete — the implementer must adopt the **same `ReactDOM.createPortal`-per-page pattern used in `FieldOverlay.jsx`** to render `<FieldBtn>` elements inside each `p.wrap` at percentage-based `left/top/width/height`. Click handlers per field type:
-- `signature` / `initials` → open `SignatureModal`
-- `date` → auto-fill today's date inline (no modal needed, just save and mark filled)
-- `text` → open `textPrompt`
+Per-field click behaviour is implemented above via `SignerPageOverlay` + the three `on*Click` callbacks: signature/initials open `SignatureModal`; date auto-fills today's date; text opens the `textPrompt` modal.
 
 - [ ] **Step 2: Signed.jsx — confirmation.**
 
