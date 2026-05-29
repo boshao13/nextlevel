@@ -18,17 +18,43 @@ const upload = multer({
   dest: pathForTmp(),
   limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB
   fileFilter: (req, file, cb) => {
-    if (file.mimetype !== 'application/pdf') return cb(null, false);
+    if (file.mimetype !== 'application/pdf') {
+      // Stash the reason so the route handler can return a proper JSON 415
+      // (multer's default behaviour for filterFilter-rejection is to silently
+      // omit req.file, which produces a confusing "PDF file required" message).
+      req._uploadFilterError = `Not a PDF (mimetype: ${file.mimetype || 'unknown'})`;
+      return cb(null, false);
+    }
     cb(null, true);
   },
 });
+
+// Wrap multer so its errors come back as JSON instead of HTML 500 pages.
+function uploadPdf(req, res, next) {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'PDF too large — 25 MB limit' });
+      }
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ error: 'Unexpected upload field — use "file"' });
+      }
+      console.error('multer upload error:', err);
+      return res.status(400).json({ error: err.message || 'Upload error' });
+    }
+    if (req._uploadFilterError) {
+      return res.status(415).json({ error: req._uploadFilterError });
+    }
+    next();
+  });
+}
 
 function newToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
 // POST /api/documents — upload + create draft
-router.post('/', adminOnly, upload.single('file'), async (req, res) => {
+router.post('/', adminOnly, uploadPdf, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'PDF file required (multipart field "file")' });
 
   // Magic-number check post-write.
