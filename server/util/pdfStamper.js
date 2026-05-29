@@ -13,7 +13,9 @@ const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 // buffers (no async-yield in its parser), so a Promise.race timeout can't save us.
 // Validate the signature + IHDR + IEND markers BEFORE handing the buffer over.
 function isValidPngBuffer(buf) {
-  if (!Buffer.isBuffer(buf) || buf.length < 80) return false;
+  // 500 bytes covers any realistic signature (signature_pad PNGs are 2-30KB);
+  // smaller buffers are placeholder/test data that pdf-lib's parser can't handle.
+  if (!Buffer.isBuffer(buf) || buf.length < 500) return false;
   // PNG signature: 89 50 4E 47 0D 0A 1A 0A
   const sig = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
   if (!buf.subarray(0, 8).equals(sig)) return false;
