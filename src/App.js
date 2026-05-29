@@ -45,6 +45,8 @@ import Timesheet from "./admin/Timesheet";
 import ApproveTimesheets from "./admin/ApproveTimesheets";
 import Inventory from "./admin/Inventory";
 import Payroll from "./admin/Payroll";
+import Documents from "./admin/Documents";
+import DocumentEditor from "./admin/DocumentEditor";
 
 // Styled layout container
 const LayoutContainer = styled.div`
@@ -141,6 +143,8 @@ function App() {
             <Route path="timesheet" element={<Timesheet />} />
             <Route path="payroll" element={<Payroll />} />
             <Route path="inventory" element={<Inventory />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="documents/:id" element={<DocumentEditor />} />
             <Route path="approve" element={<ApproveTimesheets />} />
           </Route>
         </Routes>
