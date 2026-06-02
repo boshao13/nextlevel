@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
 import { trackFormSubmission } from './lib/analytics';
+import TurnstileWidget from './components/TurnstileWidget';
 
 // Styled components for the Careers Page
 const CareersContainer = styled.section`
@@ -93,6 +94,9 @@ const Careers = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
+  const [formMountedAt] = useState(() => Date.now());
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -113,6 +117,9 @@ const Careers = () => {
           phone: formData.phone_number,
           source: 'career_form',
           notes: `Age: ${formData.age}\nExperience: ${formData.relevant_experience}`,
+          company_website: honeypot,
+          form_ts: formMountedAt,
+          turnstile_token: turnstileToken,
         }),
       });
       if (!res.ok) throw new Error('Lead post failed');
@@ -142,7 +149,18 @@ const Careers = () => {
         We hire installers and crew year-round across Albuquerque and Santa Fe. Send us a quick note about yourself and we'll keep your info on file — even when we're not actively hiring, we revisit every inquiry when openings come up.
       </CareersSubheading>
       {!isSubmitted ? (
-        <Form onSubmit={handleSubmit}>
+        <Form onSubmit={handleSubmit} method="post">
+          {/* Honeypot — visually hidden, off accessibility tree. */}
+          <input
+            type="text"
+            name="company_website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            aria-hidden="true"
+            style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
+          />
           <InputField
             type="text"
             name="applicant_name"
@@ -183,6 +201,7 @@ const Careers = () => {
             onChange={handleChange}
             required
           />
+          <TurnstileWidget onToken={setTurnstileToken} />
           <SubmitButton type="submit" disabled={isLoading}>
             {isLoading ? 'Sending...' : 'Send Inquiry'}
           </SubmitButton>

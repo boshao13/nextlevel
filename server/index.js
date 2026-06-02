@@ -32,10 +32,16 @@ app.set('trust proxy', 1);
 app.use(cors());
 app.use(bodyParser.json());
 
+// Lead submissions are public + expensive (DB write + 2 outbound Resend emails).
+// Real humans fill at most one form per minute; bots try to fan out across
+// the 3 form sources. Cap at 2/IP/min — covers real users with margin, halves
+// the bot ceiling. Pairs with per-email cooldown in routes/leads.js.
 const leadLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 2,
   message: { error: 'Too many submissions, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.use('/api', authRoutes);

@@ -3,6 +3,7 @@ import styled, { css, keyframes } from 'styled-components';
 import { Helmet } from 'react-helmet';
 import useScrollReveal from './useScrollReveal';
 import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
+import TurnstileWidget from './components/TurnstileWidget';
 
 const MOBILE_MQ = '(max-width: 768px)';
 const commercialMobileSrc  = { webm: '/videos/commercial-mobile.webm',  mp4: '/videos/commercial-mobile.mp4' };
@@ -815,6 +816,9 @@ const Commercial = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
+  const [formMountedAt] = useState(() => Date.now());
+  const [turnstileToken, setTurnstileToken] = useState('');
 
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.matchMedia(MOBILE_MQ).matches
@@ -863,6 +867,9 @@ const Commercial = () => {
           area_desired: form.area_desired,
           source: 'commercial_form',
           notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
+          company_website: honeypot,
+          form_ts: formMountedAt,
+          turnstile_token: turnstileToken,
         }),
       });
       if (!res.ok) throw new Error('Lead post failed');
@@ -1081,7 +1088,18 @@ const Commercial = () => {
                 </SuccessText>
               </SuccessBox>
             ) : (
-              <form onSubmit={handleSubmit} noValidate>
+              <form onSubmit={handleSubmit} method="post" noValidate>
+                {/* Honeypot — visually hidden, off accessibility tree. */}
+                <input
+                  type="text"
+                  name="company_website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
+                />
                 <CardHeader>
                   <CardTitle>Request a Commercial Quote</CardTitle>
                   <CardSubtitle>Tell us about your facility and we'll prepare a custom proposal.</CardSubtitle>
@@ -1186,6 +1204,7 @@ const Commercial = () => {
                   />
                 </FieldGroup>
 
+                <TurnstileWidget onToken={setTurnstileToken} />
                 <SubmitBtn type="submit" disabled={!isValid || sending}>
                   {sending ? 'Sending...' : 'Get My Commercial Quote →'}
                 </SubmitBtn>
