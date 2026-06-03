@@ -282,6 +282,18 @@ const Note = styled.p`
   }
 `;
 
+const ErrorMsg = styled.p`
+  font-size: 0.85rem;
+  color: #c62828;
+  background: #fde8e8;
+  border: 1px solid #f5c2c2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  text-align: center;
+  font-weight: 600;
+`;
+
 /* ── Success State ────────────────────────────────────────────────── */
 const SuccessBox = styled.div`
   display: flex;
@@ -334,7 +346,11 @@ const SuccessText = styled.p`
 `;
 
 /* ── Component ────────────────────────────────────────────────────── */
-const ContactForm = () => {
+// `source` defaults to the home-page residential form. Pages that embed
+// ContactForm with a more specific context should override (e.g. the
+// GarageMakeover page passes "garage_makeover_form" so Bo's inbox
+// distinguishes those leads from generic /contact submissions).
+const ContactForm = ({ source = 'contact_form' }) => {
   const [form, setForm] = useState({
     user_name: '',
     user_email: '',
@@ -344,6 +360,7 @@ const ContactForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [sectionRef, sectionVisible] = useScrollReveal({ threshold: 0.1 });
 
   const isValid = form.user_name && form.user_email && form.user_number && form.area_desired;
@@ -356,6 +373,13 @@ const ContactForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isValid) return;
+    setErrorMsg('');
+
+    if (!turnstileToken) {
+      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+      return;
+    }
+
     setSending(true);
 
     try {
@@ -367,18 +391,25 @@ const ContactForm = () => {
           email: form.user_email,
           phone: form.user_number,
           area_desired: form.area_desired,
-          source: 'contact_form',
+          source,
           turnstile_token: turnstileToken,
         }),
       });
-      if (!res.ok) throw new Error('Lead post failed');
+      if (res.status === 403) {
+        setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+        return;
+      }
+      if (!res.ok) {
+        setErrorMsg('We couldn\'t submit your request. Please try again or call 505-352-4674.');
+        return;
+      }
       trackFormSubmission('residential');
       setSubmitted(true);
       // Hand off to /thank-you for the Ads URL-match conversion.
       // Full reload so gtag('config', 'AW-...') re-fires cleanly.
       window.location.href = '/thank-you';
     } catch (err) {
-      alert('Something went wrong. Please try again or call us directly.');
+      setErrorMsg('We couldn\'t submit your request. Please try again or call 505-352-4674.');
     } finally {
       setSending(false);
     }
@@ -481,6 +512,8 @@ const ContactForm = () => {
               </FieldGroup>
 
               <TurnstileWidget onToken={setTurnstileToken} />
+
+              {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
 
               <SubmitBtn type="submit" disabled={!isValid || sending}>
                 {sending ? 'Sending…' : 'Get My Free Quote →'}

@@ -690,6 +690,18 @@ const Note = styled.p`
   svg { flex-shrink: 0; color: #4ade80; }
 `;
 
+const ErrorMsg = styled.p`
+  font-size: 0.85rem;
+  color: #c62828;
+  background: #fde8e8;
+  border: 1px solid #f5c2c2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  text-align: center;
+  font-weight: 600;
+`;
+
 const SuccessBox = styled.div`
   display: flex;
   flex-direction: column;
@@ -817,6 +829,7 @@ const Commercial = () => {
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.matchMedia(MOBILE_MQ).matches
@@ -852,6 +865,13 @@ const Commercial = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isValid) return;
+    setErrorMsg('');
+
+    if (!turnstileToken) {
+      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+      return;
+    }
+
     setSending(true);
 
     try {
@@ -868,12 +888,19 @@ const Commercial = () => {
           turnstile_token: turnstileToken,
         }),
       });
-      if (!res.ok) throw new Error('Lead post failed');
+      if (res.status === 403) {
+        setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+        return;
+      }
+      if (!res.ok) {
+        setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
+        return;
+      }
       trackFormSubmission('commercial');
       setSubmitted(true);
       window.location.href = '/thank-you';
     } catch (err) {
-      alert('Something went wrong. Please try again or call us directly.');
+      setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
     } finally {
       setSending(false);
     }
@@ -1190,6 +1217,7 @@ const Commercial = () => {
                 </FieldGroup>
 
                 <TurnstileWidget onToken={setTurnstileToken} />
+                {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
                 <SubmitBtn type="submit" disabled={!isValid || sending}>
                   {sending ? 'Sending...' : 'Get My Commercial Quote →'}
                 </SubmitBtn>

@@ -67,6 +67,18 @@ const TextArea = styled.textarea`
   }
 `;
 
+const ErrorMsg = styled.p`
+  font-size: 0.85rem;
+  color: #c62828;
+  background: #fde8e8;
+  border: 1px solid #f5c2c2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  text-align: center;
+  font-weight: 600;
+`;
+
 const SubmitButton = styled.button`
   background-color: ${({ disabled }) => (disabled ? '#ccc' : '#0f4c81')};
   color: white;
@@ -95,6 +107,7 @@ const Careers = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,6 +116,13 @@ const Careers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    if (!turnstileToken) {
+      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -118,13 +138,20 @@ const Careers = () => {
           turnstile_token: turnstileToken,
         }),
       });
-      if (!res.ok) throw new Error('Lead post failed');
+      if (res.status === 403) {
+        setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+        return;
+      }
+      if (!res.ok) {
+        setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
+        return;
+      }
       trackFormSubmission('career');
       setIsSubmitted(true);
       window.location.href = '/thank-you';
     } catch (error) {
       console.error('Error:', error);
-      alert('There was an issue submitting your inquiry. Please try again or call us directly.');
+      setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
     } finally {
       setIsLoading(false);
     }
@@ -187,6 +214,7 @@ const Careers = () => {
             required
           />
           <TurnstileWidget onToken={setTurnstileToken} />
+          {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
           <SubmitButton type="submit" disabled={isLoading}>
             {isLoading ? 'Sending...' : 'Send Inquiry'}
           </SubmitButton>

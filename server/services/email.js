@@ -67,6 +67,19 @@ const SOURCES = {
       'For larger jobs I usually do a site visit and prep evaluation before quoting. I\'ll bring photos of ' +
       'similar installs to our meeting so you can see real outcomes.',
   },
+  garage_makeover_form: {
+    label: 'Garage Makeover Lead',
+    badge: 'GARAGE MAKEOVER',
+    accent: '#b45309',        // amber — distinct from residential blue
+    customerSubject: 'Got your garage makeover request — Bo at Next Level Epoxy',
+    customerHeadline: 'Thanks — I\'ll be in touch shortly.',
+    customerBody:
+      'I usually call back <strong>within the hour</strong> during business hours, and never more than a few ' +
+      'hours either way. I\'ll grab a few quick details from you and lock in a time for your free in-home ' +
+      'estimate so we can walk through your garage and pick the right makeover package.',
+    customerNext:
+      'Keep an eye on your phone — <strong>I\'ll be giving you a call shortly</strong>. Thanks so much for reaching out about your garage.',
+  },
   career_form: {
     label: 'Career Inquiry',
     badge: 'CAREERS',
