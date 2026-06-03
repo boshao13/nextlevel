@@ -13,24 +13,28 @@ module.exports = function (leadLimiter) {
     try {
       const { name, email, phone, area_desired, source, notes } = req.body;
 
+      // Identify "suspect" submissions WITHOUT dropping them. The whole point of
+      // these layers is to defeat bots that auto-fill / time-skip / spam-burst —
+      // but real customers occasionally trip them (password manager fills the
+      // honeypot; customer races through a short form; customer revisits a form
+      // page and resubmits). We save the lead with a flag, send Bo the
+      // notification so he can decide, and skip the customer auto-confirmation
+      // (protects Resend reputation from confirming bot addresses).
+      let flagReason = null;
+
       // ── Layer 1: honeypot ──────────────────────────────────────────
-      // `company_website` is rendered hidden off-screen. Humans never see
-      // or fill it; bots auto-fill every field. Any value = drop silently
-      // and fake success so the bot doesn't retry or adapt.
       if (req.body.company_website) {
-        console.warn(`[leads] silent-drop honeypot — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} hp="${String(req.body.company_website).slice(0, 60)}"`);
-        return res.status(201).json({ id: null });
+        flagReason = 'honeypot';
+        console.warn(`[leads] FLAG honeypot — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} hp="${String(req.body.company_website).slice(0, 60)}"`);
       }
 
       // ── Layer 2: submission timing ─────────────────────────────────
       // Client sends form_ts = Date.now() captured when the form mounted.
-      // Real users take seconds to fill a form; bots (and direct-API
-      // scripts that omit the field entirely) submit instantly.
       const ts = Number(req.body.form_ts);
       const elapsed = Date.now() - ts;
-      if (!ts || Number.isNaN(elapsed) || elapsed < 2500 || elapsed > 60 * 60 * 1000) {
-        console.warn(`[leads] silent-drop timing — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} elapsed=${elapsed} ts=${ts}`);
-        return res.status(201).json({ id: null }); // silent drop
+      if (!flagReason && (!ts || Number.isNaN(elapsed) || elapsed < 2500 || elapsed > 60 * 60 * 1000)) {
+        flagReason = 'timing';
+        console.warn(`[leads] FLAG timing — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} elapsed=${elapsed} ts=${ts}`);
       }
 
       // ── Layer 3: Cloudflare Turnstile (if configured) ──────────────
@@ -65,46 +69,52 @@ module.exports = function (leadLimiter) {
       }
 
       // ── Layer 5: per-email cooldown ────────────────────────────────
-      // The bot pattern observed 2026-06-02 was: same email submits all 3 form
+      // The bot pattern observed 2026-06-02: same email submits all 3 form
       // sources (contact / careers / commercial) within ~75 seconds. Real
-      // customers don't do this. If the same email submitted in the last 10
-      // minutes, silently drop — return fake 201 so the bot doesn't adapt.
-      if (em) {
+      // customers don't do this — but they MIGHT accidentally double-submit.
+      // Flag rather than drop so Bo still sees both copies.
+      if (em && !flagReason) {
         const [[recent]] = await pool.query(
           `SELECT id FROM leads WHERE email = ? AND created_at > NOW() - INTERVAL 10 MINUTE LIMIT 1`,
           [em]
         );
         if (recent) {
-          console.warn(`[leads] silent-drop email-cooldown — ip=${req.ip} email=${em} prev_lead_id=${recent.id}`);
-          return res.status(201).json({ id: null });
+          flagReason = 'email-cooldown';
+          console.warn(`[leads] FLAG email-cooldown — ip=${req.ip} email=${em} prev_lead_id=${recent.id}`);
         }
       }
 
       const [result] = await pool.query(
-        'INSERT INTO leads (name, email, phone, area_desired, source, notes) VALUES (?, ?, ?, ?, ?, ?)',
-        [nm, em || null, ph || null, area || null, source || 'contact_form', nt || null]
+        'INSERT INTO leads (name, email, phone, area_desired, source, notes, flagged, flag_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [nm, em || null, ph || null, area || null, source || 'contact_form', nt || null, flagReason ? 1 : 0, flagReason]
       );
 
-      // Fire notification + customer confirmation emails in parallel.
-      // Both fail soft — the lead is already saved in the DB.
       const leadPayload = {
         id: result.insertId,
         name: nm, email: em, phone: ph, area_desired: area,
         source: source || 'contact_form',
-        notes: nt,
+        notes: flagReason ? `⚠️ FLAGGED (${flagReason})\n\n${nt || ''}` : nt,
       };
+
+      // Always notify Bo — flagged or not. He decides what's real.
       sendLeadNotification(leadPayload).catch((err) =>
         console.error('[leads] notification error:', err)
       );
-      // Only confirm to a validated email — never send Resend mail to a
-      // junk address (protects sender domain reputation).
-      if (emailOk) {
+
+      // Customer confirmation gates:
+      //  - email must be well-formed (protects Resend reputation)
+      //  - lead must NOT be flagged (don't auto-confirm to a potential bot;
+      //    Bo can trigger manually from admin once he verifies)
+      if (emailOk && !flagReason) {
         sendCustomerConfirmation(leadPayload).catch((err) =>
           console.error('[leads] customer confirmation error:', err)
         );
       }
 
-      res.status(201).json({ id: result.insertId });
+      // Return the bot-pleasing fake-success response shape for flagged leads
+      // (id: null) so a real bot doesn't learn we're storing it. Real users
+      // never inspect the response anyway.
+      res.status(201).json({ id: flagReason ? null : result.insertId });
     } catch (err) {
       console.error('Error creating lead:', err);
       res.status(500).json({ error: 'Internal server error' });
