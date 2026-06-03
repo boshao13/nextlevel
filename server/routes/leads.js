@@ -8,45 +8,25 @@ const { verifyTurnstile } = require('../services/turnstile');
 module.exports = function (leadLimiter) {
   const router = express.Router();
 
-  // POST / — public, rate-limited, multi-layer bot defense
+  // POST / — public, rate-limited, Cloudflare Turnstile + input validation.
+  // Honeypot / timing / email-cooldown layers were removed 2026-06-03 because
+  // password managers + browser autofill were false-positiving on real customers
+  // (Bo's own test submission landed as FLAGGED). Turnstile is the single
+  // bot gate now; the soft layers were redundant defense-in-depth that cost
+  // more in false positives than they prevented in bots.
   router.post('/', leadLimiter, async (req, res) => {
     try {
       const { name, email, phone, area_desired, source, notes } = req.body;
 
-      // Identify "suspect" submissions WITHOUT dropping them. The whole point of
-      // these layers is to defeat bots that auto-fill / time-skip / spam-burst —
-      // but real customers occasionally trip them (password manager fills the
-      // honeypot; customer races through a short form; customer revisits a form
-      // page and resubmits). We save the lead with a flag, send Bo the
-      // notification so he can decide, and skip the customer auto-confirmation
-      // (protects Resend reputation from confirming bot addresses).
-      let flagReason = null;
-
-      // ── Layer 1: honeypot ──────────────────────────────────────────
-      if (req.body.company_website) {
-        flagReason = 'honeypot';
-        console.warn(`[leads] FLAG honeypot — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} hp="${String(req.body.company_website).slice(0, 60)}"`);
-      }
-
-      // ── Layer 2: submission timing ─────────────────────────────────
-      // Client sends form_ts = Date.now() captured when the form mounted.
-      const ts = Number(req.body.form_ts);
-      const elapsed = Date.now() - ts;
-      if (!flagReason && (!ts || Number.isNaN(elapsed) || elapsed < 2500 || elapsed > 60 * 60 * 1000)) {
-        flagReason = 'timing';
-        console.warn(`[leads] FLAG timing — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} elapsed=${elapsed} ts=${ts}`);
-      }
-
-      // ── Layer 3: Cloudflare Turnstile (if configured) ──────────────
-      // verifyTurnstile() returns true automatically when TURNSTILE_SECRET_KEY
-      // is unset, so legitimate forms keep working before the operator finishes
-      // CF setup. Once the env var is set, every request must carry a valid token.
+      // Cloudflare Turnstile — single source of truth for "is this a human".
+      // verifyTurnstile() short-circuits to true if TURNSTILE_SECRET_KEY is
+      // unset (boot-time warning logged once), so dev/local still works.
       const captchaOk = await verifyTurnstile(req.body.turnstile_token, req.ip);
       if (!captchaOk) {
         return res.status(403).json({ error: 'CAPTCHA verification failed. Please reload and try again.' });
       }
 
-      // ── Layer 4: input validation ──────────────────────────────────
+      // Input validation
       const clean = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
       const nm = clean(name, 80);
       const em = clean(email, 120);
@@ -68,53 +48,28 @@ module.exports = function (leadLimiter) {
         return res.status(400).json({ error: 'Please enter a valid phone number' });
       }
 
-      // ── Layer 5: per-email cooldown ────────────────────────────────
-      // The bot pattern observed 2026-06-02: same email submits all 3 form
-      // sources (contact / careers / commercial) within ~75 seconds. Real
-      // customers don't do this — but they MIGHT accidentally double-submit.
-      // Flag rather than drop so Bo still sees both copies.
-      if (em && !flagReason) {
-        const [[recent]] = await pool.query(
-          `SELECT id FROM leads WHERE email = ? AND created_at > NOW() - INTERVAL 10 MINUTE LIMIT 1`,
-          [em]
-        );
-        if (recent) {
-          flagReason = 'email-cooldown';
-          console.warn(`[leads] FLAG email-cooldown — ip=${req.ip} email=${em} prev_lead_id=${recent.id}`);
-        }
-      }
-
       const [result] = await pool.query(
-        'INSERT INTO leads (name, email, phone, area_desired, source, notes, flagged, flag_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [nm, em || null, ph || null, area || null, source || 'contact_form', nt || null, flagReason ? 1 : 0, flagReason]
+        'INSERT INTO leads (name, email, phone, area_desired, source, notes) VALUES (?, ?, ?, ?, ?, ?)',
+        [nm, em || null, ph || null, area || null, source || 'contact_form', nt || null]
       );
 
       const leadPayload = {
         id: result.insertId,
         name: nm, email: em, phone: ph, area_desired: area,
         source: source || 'contact_form',
-        notes: flagReason ? `⚠️ FLAGGED (${flagReason})\n\n${nt || ''}` : nt,
+        notes: nt,
       };
 
-      // Always notify Bo — flagged or not. He decides what's real.
       sendLeadNotification(leadPayload).catch((err) =>
         console.error('[leads] notification error:', err)
       );
-
-      // Customer confirmation gates:
-      //  - email must be well-formed (protects Resend reputation)
-      //  - lead must NOT be flagged (don't auto-confirm to a potential bot;
-      //    Bo can trigger manually from admin once he verifies)
-      if (emailOk && !flagReason) {
+      if (emailOk) {
         sendCustomerConfirmation(leadPayload).catch((err) =>
           console.error('[leads] customer confirmation error:', err)
         );
       }
 
-      // Return the bot-pleasing fake-success response shape for flagged leads
-      // (id: null) so a real bot doesn't learn we're storing it. Real users
-      // never inspect the response anyway.
-      res.status(201).json({ id: flagReason ? null : result.insertId });
+      res.status(201).json({ id: result.insertId });
     } catch (err) {
       console.error('Error creating lead:', err);
       res.status(500).json({ error: 'Internal server error' });

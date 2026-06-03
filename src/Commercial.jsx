@@ -816,8 +816,6 @@ const Commercial = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
-  const [honeypot, setHoneypot] = useState('');
-  const [formMountedAt] = useState(() => Date.now());
   const [turnstileToken, setTurnstileToken] = useState('');
 
   const [isMobile, setIsMobile] = useState(
@@ -867,8 +865,6 @@ const Commercial = () => {
           area_desired: form.area_desired,
           source: 'commercial_form',
           notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
-          company_website: honeypot,
-          form_ts: formMountedAt,
           turnstile_token: turnstileToken,
         }),
       });
@@ -1089,17 +1085,6 @@ const Commercial = () => {
               </SuccessBox>
             ) : (
               <form onSubmit={handleSubmit} method="post" noValidate>
-                {/* Honeypot — visually hidden, off accessibility tree. */}
-                <input
-                  type="text"
-                  name="company_website"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  value={honeypot}
-                  onChange={(e) => setHoneypot(e.target.value)}
-                  aria-hidden="true"
-                  style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
-                />
                 <CardHeader>
                   <CardTitle>Request a Commercial Quote</CardTitle>
                   <CardSubtitle>Tell us about your facility and we'll prepare a custom proposal.</CardSubtitle>

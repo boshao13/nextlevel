@@ -343,8 +343,6 @@ const ContactForm = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
-  const [honeypot, setHoneypot] = useState('');               // bot trap
-  const [formMountedAt] = useState(() => Date.now());          // timing trap
   const [turnstileToken, setTurnstileToken] = useState('');
   const [sectionRef, sectionVisible] = useScrollReveal({ threshold: 0.1 });
 
@@ -370,8 +368,6 @@ const ContactForm = () => {
           phone: form.user_number,
           area_desired: form.area_desired,
           source: 'contact_form',
-          company_website: honeypot,
-          form_ts: formMountedAt,
           turnstile_token: turnstileToken,
         }),
       });
@@ -427,18 +423,6 @@ const ContactForm = () => {
             </SuccessBox>
           ) : (
             <form onSubmit={handleSubmit} method="post" noValidate>
-              {/* Honeypot — visually hidden, off accessibility tree. Real
-                  users never fill this; bots auto-fill every field. */}
-              <input
-                type="text"
-                name="company_website"
-                tabIndex={-1}
-                autoComplete="off"
-                value={honeypot}
-                onChange={(e) => setHoneypot(e.target.value)}
-                aria-hidden="true"
-                style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
-              />
               <CardHeader>
                 <CardTitle>Request a Free Quote</CardTitle>
                 <CardSubtitle>Fill out the form and we'll get back to you within 24 hours.</CardSubtitle>

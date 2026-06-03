@@ -94,8 +94,6 @@ const Careers = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [honeypot, setHoneypot] = useState('');
-  const [formMountedAt] = useState(() => Date.now());
   const [turnstileToken, setTurnstileToken] = useState('');
 
   const handleChange = (e) => {
@@ -117,8 +115,6 @@ const Careers = () => {
           phone: formData.phone_number,
           source: 'career_form',
           notes: `Age: ${formData.age}\nExperience: ${formData.relevant_experience}`,
-          company_website: honeypot,
-          form_ts: formMountedAt,
           turnstile_token: turnstileToken,
         }),
       });
@@ -150,17 +146,6 @@ const Careers = () => {
       </CareersSubheading>
       {!isSubmitted ? (
         <Form onSubmit={handleSubmit} method="post">
-          {/* Honeypot — visually hidden, off accessibility tree. */}
-          <input
-            type="text"
-            name="company_website"
-            tabIndex={-1}
-            autoComplete="off"
-            value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
-            aria-hidden="true"
-            style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
-          />
           <InputField
             type="text"
             name="applicant_name"
