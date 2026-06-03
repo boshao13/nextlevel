@@ -18,6 +18,7 @@ module.exports = function (leadLimiter) {
       // or fill it; bots auto-fill every field. Any value = drop silently
       // and fake success so the bot doesn't retry or adapt.
       if (req.body.company_website) {
+        console.warn(`[leads] silent-drop honeypot — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} hp="${String(req.body.company_website).slice(0, 60)}"`);
         return res.status(201).json({ id: null });
       }
 
@@ -28,6 +29,7 @@ module.exports = function (leadLimiter) {
       const ts = Number(req.body.form_ts);
       const elapsed = Date.now() - ts;
       if (!ts || Number.isNaN(elapsed) || elapsed < 2500 || elapsed > 60 * 60 * 1000) {
+        console.warn(`[leads] silent-drop timing — ip=${req.ip} email=${(req.body.email || '').slice(0, 60)} elapsed=${elapsed} ts=${ts}`);
         return res.status(201).json({ id: null }); // silent drop
       }
 
@@ -73,6 +75,7 @@ module.exports = function (leadLimiter) {
           [em]
         );
         if (recent) {
+          console.warn(`[leads] silent-drop email-cooldown — ip=${req.ip} email=${em} prev_lead_id=${recent.id}`);
           return res.status(201).json({ id: null });
         }
       }
