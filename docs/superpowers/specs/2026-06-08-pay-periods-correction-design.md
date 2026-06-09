@@ -98,6 +98,10 @@ Exports:
 local copies of these functions are deleted. This collapses the two client copies
 into one.
 
+Note: the only `getRecentPeriods` caller (`ApproveTimesheets.jsx:790`) passes `6`.
+Preserve that call site exactly (don't change the history depth shown in the
+approval dropdown).
+
 - **Inputs:** a JS `Date` (local time), or `(year, month, half)` integers.
 - **Outputs:** plain objects with ISO-ish `YYYY-MM-DD` `start`/`end` strings, a
   human `label` (e.g. `Jun 11 – Jun 26, 2026`), and the `YYYY-MM-H` `key`.
@@ -140,8 +144,9 @@ hand-adjusted values that cannot be computed.
 `admin` and `manager`.
 
 - Renders the 25 rows as a table: Period | Payday | Submit by.
-- Highlights the **current** period (computed from today via Component 1 or by
-  date-range match against the data).
+- Highlights the **current** period by matching today's date against each row's
+  `start`/`end` range in the schedule data (Component 3) — single source of truth,
+  no second formula to keep in sync on this page.
 - Surfaces the **next payday** and **next "submit payroll by"** deadline near the
   top (the actionable bits).
 - Read-only. No forms, no money.
@@ -169,6 +174,9 @@ hand-adjusted values that cannot be computed.
 4. Run Payroll: dropdown from schedule data (Component 3) → fills start/end →
    existing preview → run → snapshot + lock — **mechanics unchanged**.
 5. Pay Schedule page: renders schedule data (Component 3).
+
+`POST /timesheet/approve-all` takes raw `start`/`end` from its request body (not a
+period key), so it is **unaffected** by the formula change — no edits needed there.
 
 ## Edge Cases
 
