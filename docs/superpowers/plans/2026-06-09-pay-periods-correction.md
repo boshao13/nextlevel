@@ -50,7 +50,9 @@ import { getPayPeriod, periodFromYMH, getRecentPeriods } from './payPeriods';
 
 // Owner-provided authoritative boundaries (spec Appendix) as [key, start, end].
 // Half derived from start day: 11th → half 1, 27th → half 2 (keyed by start month).
-export const PERIOD_FIXTURE = [
+// NOTE: server/config/payPeriods.test.js carries an identical copy (the CRA
+// src/-boundary forces duplication); Task 9 has a sync check for the two.
+const PERIOD_FIXTURE = [
   ['2026-05-2', '2026-05-27', '2026-06-10'],
   ['2026-06-1', '2026-06-11', '2026-06-26'],
   ['2026-06-2', '2026-06-27', '2026-07-10'],
@@ -89,11 +91,13 @@ test('periodFromYMH reproduces all 25 owner-provided periods', () => {
   }
 });
 
-test('getPayPeriod maps first and last day of every fixture period to that period', () => {
+test('getPayPeriod maps first, middle, and last day of every fixture period to that period', () => {
   for (const [key, start, end] of PERIOD_FIXTURE) {
     const [sy, sm, sd] = start.split('-').map(Number);
     const [ey, em, ed] = end.split('-').map(Number);
     expect(getPayPeriod(new Date(sy, sm - 1, sd)).key).toBe(key);
+    // start+7 days is always interior (H1: the 18th; H2: the 3rd-6th of the next month)
+    expect(getPayPeriod(new Date(sy, sm - 1, sd + 7)).key).toBe(key);
     expect(getPayPeriod(new Date(ey, em - 1, ed)).key).toBe(key);
   }
 });
@@ -358,15 +362,19 @@ The 25 owner-provided rows, including the hand-adjusted `payday`/`submitBy` date
 
 - [ ] **Step 1: Write the failing test (agreement between data and formula)**
 
-Append to `src/admin/payPeriods.test.js`:
+In `src/admin/payPeriods.test.js`, add to the import block at the top of the file:
+
+```js
+import { PAY_SCHEDULE } from './payScheduleData';
+```
+
+Then append at the bottom of the file:
 
 ```js
 // ── Schedule data agreement ─────────────────────────────────────────
 // payScheduleData rows must match the formula exactly, be contiguous,
 // and have sanely ordered deadlines. This catches typos in the data file
 // and any future drift between data and formula.
-import { PAY_SCHEDULE } from './payScheduleData';
-
 function nextDay(ymd) {
   const [y, m, d] = ymd.split('-').map(Number);
   const t = new Date(y, m - 1, d + 1);
@@ -395,8 +403,6 @@ test('schedule rows are sorted, contiguous, with ordered deadlines', () => {
   }
 });
 ```
-
-Note: `import` statements must sit at the top of the file with the other imports — put `import { PAY_SCHEDULE } from './payScheduleData';` next to the existing import line, and the helper + two tests at the bottom.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
@@ -461,6 +467,8 @@ git commit -m "feat(payroll): owner-provided pay schedule data (25 periods, hand
 ## Chunk 2: Rewire the three formula consumers
 
 No behavior other than the period boundaries changes in this chunk. Each task deletes one stale copy of the old formula and imports the shared module. **Do not modify any other logic in these files.**
+
+Line numbers in Tasks 4–6 are **pre-edit** (the files as they exist before this chunk). Each task's Step 1 inserts an import line, which shifts everything below it down by one — when deleting, anchor on the quoted comment text and function names, not the raw numbers. The per-task grep verifications confirm the right code was removed.
 
 ### Task 4: Server route `server/routes/timesheet.js`
 
@@ -559,8 +567,8 @@ Expected: PASS
 
 - [ ] **Step 4: Build check (catches unused-import/undefined-symbol issues CRA treats as warnings/errors)**
 
-Run: `npx react-scripts build 2>&1 | tail -12`
-Expected: `Compiled successfully` (or `Compiled with warnings` — read any warnings; none should mention Timesheet.jsx, ApproveTimesheets.jsx, or payPeriods)
+Run: `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
+Expected: `Compiled with warnings.` followed by ONLY the four pre-existing warnings (`src/Patios.jsx`: unused `useState` and `MOBILE_MQ`; `src/admin/DocumentEditor.jsx`: two `react-hooks/exhaustive-deps`). None may mention Timesheet.jsx, ApproveTimesheets.jsx, or payPeriods. Do NOT fix the pre-existing warnings — out of scope for this plan.
 
 - [ ] **Step 5: Commit**
 
@@ -606,7 +614,7 @@ function todayYMD() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-const SummaryGrid = styled.div`
+const TopGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
@@ -614,7 +622,7 @@ const SummaryGrid = styled.div`
   @media (max-width: 700px) { grid-template-columns: 1fr; }
 `;
 
-const SummaryLabel = styled.div`
+const TopLabel = styled.div`
   font-size: 0.78rem;
   font-weight: 600;
   color: #4a5468;
@@ -622,7 +630,7 @@ const SummaryLabel = styled.div`
   letter-spacing: 0.04em;
 `;
 
-const SummaryValue = styled.div`
+const TopValue = styled.div`
   font-size: 1.15rem;
   font-weight: 800;
   color: #0f4c81;
@@ -645,22 +653,22 @@ const PaySchedule = () => {
     <PageContainer>
       <PageTitle>Pay Schedule</PageTitle>
 
-      <SummaryGrid>
+      <TopGrid>
         <Card>
-          <SummaryLabel>Current pay period</SummaryLabel>
-          <SummaryValue>
+          <TopLabel>Current pay period</TopLabel>
+          <TopValue>
             {current ? `${fmtUS(current.start)} – ${fmtUS(current.end)}` : '—'}
-          </SummaryValue>
+          </TopValue>
         </Card>
         <Card>
-          <SummaryLabel>Submit payroll by</SummaryLabel>
-          <SummaryValue>{nextSubmit ? fmtUS(nextSubmit.submitBy) : '—'}</SummaryValue>
+          <TopLabel>Submit payroll by</TopLabel>
+          <TopValue>{nextSubmit ? fmtUS(nextSubmit.submitBy) : '—'}</TopValue>
         </Card>
         <Card>
-          <SummaryLabel>Next payday</SummaryLabel>
-          <SummaryValue>{nextPayday ? fmtUS(nextPayday.payday) : '—'}</SummaryValue>
+          <TopLabel>Next payday</TopLabel>
+          <TopValue>{nextPayday ? fmtUS(nextPayday.payday) : '—'}</TopValue>
         </Card>
-      </SummaryGrid>
+      </TopGrid>
 
       <Card>
         <Table>
@@ -697,6 +705,8 @@ const PaySchedule = () => {
 export default PaySchedule;
 ```
 
+Two deliberate notes: (1) the table column order is chronological — Period | Submit by | Payday — which differs from the spec Appendix's display order (Period | Payday | Submit by); the spec's Component 4 has been updated to match. (2) The summary components are named `TopGrid`/`TopLabel`/`TopValue` because `styles.js` already exports unrelated `SummaryGrid`/`SummaryLabel`/`SummaryValue` — don't shadow those names.
+
 - [ ] **Step 2: Register the route**
 
 In `src/App.js`:
@@ -724,8 +734,8 @@ In `src/admin/AdminLayout.jsx` (FiCalendar is already imported):
 Run: `CI=true npm test -- --watchAll=false 2>&1 | tail -4`
 Expected: PASS
 
-Run: `npx react-scripts build 2>&1 | tail -8`
-Expected: `Compiled successfully` (no new warnings referencing PaySchedule/App/AdminLayout)
+Run: `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
+Expected: `Compiled with warnings.` — ONLY the four pre-existing warnings (Patios.jsx ×2, DocumentEditor.jsx ×2); none may reference PaySchedule.jsx, App.js, or AdminLayout.jsx
 
 - [ ] **Step 5: Commit**
 
@@ -815,10 +825,20 @@ Change the two date `<Input>` onChange handlers to also reset the selection:
   onChange={(e) => { setEnd(e.target.value); setPeriodSel(''); }} />
 ```
 
+Also clear the dropdown after a successful run — in `runPayroll`'s success path, the existing code resets the form (`setNotes(''); setStart('');` around line 98-99); add `setPeriodSel('');` beside them:
+
+```js
+setNotes('');
+setStart('');
+setPeriodSel('');
+```
+
+(Otherwise the dropdown keeps displaying the just-run period while the start date is empty, violating the dates-match-dropdown rule above.)
+
 - [ ] **Step 5: Verify compile**
 
-Run: `CI=true npm test -- --watchAll=false 2>&1 | tail -4` then `npx react-scripts build 2>&1 | tail -8`
-Expected: PASS, then `Compiled successfully`
+Run: `CI=true npm test -- --watchAll=false 2>&1 | tail -4` then `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
+Expected: PASS, then `Compiled with warnings.` — ONLY the four pre-existing warnings; none may reference Payroll.jsx or payScheduleData
 
 - [ ] **Step 6: Commit**
 
@@ -843,20 +863,38 @@ Expected: PASS — payPeriods (4 tests) + documentStorage (6 tests)
 
 - [ ] **Step 3: Production build**
 
-Run: `npx react-scripts build 2>&1 | tail -8`
-Expected: `Compiled successfully`
+Run: `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
+Expected: `Compiled with warnings.` — ONLY the four pre-existing warnings (`src/Patios.jsx`: unused `useState`/`MOBILE_MQ`; `src/admin/DocumentEditor.jsx`: two `react-hooks/exhaustive-deps`). Nothing this plan touched may appear.
 
 - [ ] **Step 4: Stale-formula sweep**
 
 Run: `grep -rn "lastDay - 3\|lastDay-3\|prevLast - 2\|prevLastDay" src/admin server/routes server/config --include="*.js" --include="*.jsx"`
 Expected: no output — every copy of the old 29→12/13→27 formula is gone
 
-- [ ] **Step 5: Boundary sanity demo (server module, today's data)**
+- [ ] **Step 5: Fixture-sync check (client vs server test fixtures)**
+
+The 25-row PERIOD_FIXTURE is duplicated across the two test files (CRA `src/` boundary). Verify the copies are identical:
+
+```bash
+node -e "
+const fs = require('fs');
+const rows = (f) => fs.readFileSync(f, 'utf8').match(/\['\d{4}-\d{2}-[12]', '\d{4}-\d{2}-\d{2}', '\d{4}-\d{2}-\d{2}'\]/g) || [];
+const a = rows('src/admin/payPeriods.test.js');
+const b = rows('server/config/payPeriods.test.js');
+const ok = a.length === 25 && JSON.stringify(a) === JSON.stringify(b);
+console.log(ok ? 'fixtures identical (25 rows)' : 'FIXTURE DRIFT: ' + a.length + ' vs ' + b.length);
+process.exit(ok ? 0 : 1);
+"
+```
+
+Expected: `fixtures identical (25 rows)`
+
+- [ ] **Step 6: Boundary sanity demo (server module, today's data)**
 
 Run: `node -e "const {resolvePeriod}=require('./server/config/payPeriods'); console.log(resolvePeriod('2026-06-1'), resolvePeriod('2026-05-2'))"`
 Expected: `{ start: '2026-06-11', end: '2026-06-26' } { start: '2026-05-27', end: '2026-06-10' }`
 
-- [ ] **Step 6: Report for owner smoke test (do NOT deploy)**
+- [ ] **Step 7: Report for owner smoke test (do NOT deploy)**
 
 Deployment is owner-triggered (`./deploy.sh`). After deploy, the owner's smoke checklist (from spec):
 - Worker timesheet shows the correct current period and all existing hours still appear.

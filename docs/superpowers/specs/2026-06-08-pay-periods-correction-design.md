@@ -143,7 +143,7 @@ hand-adjusted values that cannot be computed.
 **Wiring:** add route + nav link in the admin layout/router, visible to roles
 `admin` and `manager`.
 
-- Renders the 25 rows as a table: Period | Payday | Submit by.
+- Renders the 25 rows as a table in chronological column order: Period | Submit by | Payday.
 - Highlights the **current** period by matching today's date against each row's
   `start`/`end` range in the schedule data (Component 3) — single source of truth,
   no second formula to keep in sync on this page.
@@ -242,6 +242,7 @@ unit tests — this is correctness-critical.
 | `src/admin/Payroll.jsx` | add period dropdown that fills start/end |
 | admin router + nav (layout) | add Pay Schedule route + link (admin, manager) |
 | `*.test.js` (client + server) | period formula + data-agreement tests |
+| `package.json` | add `test:server` script (CRA's Jest only scans `src/`; server tests were unreachable) |
 
 ## Appendix — Owner-provided schedule (authoritative data)
 
