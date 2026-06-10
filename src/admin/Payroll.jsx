@@ -5,9 +5,10 @@ import { FiPlay, FiUnlock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import api from './api';
 import {
   PageContainer, PageTitle, Card, Table, Th, Td,
-  Input, TextArea, Button, ButtonSecondary,
+  Input, TextArea, Button, ButtonSecondary, Select,
 } from './styles';
 import { useAuth } from './AdminRoute';
+import { PAY_SCHEDULE } from './payScheduleData';
 
 const Grid = styled.div`
   display: grid;
@@ -41,12 +42,30 @@ const HistoryHeader = styled.div`
 
 const fmtMoney = (n) => `$${Number(n || 0).toFixed(2)}`;
 const fmtDate = (s) => String(s || '').slice(0, 10);
+// 'YYYY-MM-DD' → 'MM/DD/YYYY' for option labels (string ops only — never new Date(iso))
+const fmtUS = (ymd) => {
+  const [y, m, d] = String(ymd).split('-');
+  return `${m}/${d}/${y}`;
+};
 
 const Payroll = () => {
   const { role } = useAuth();
   const isAdmin = role === 'admin';
   const [start, setStart] = useState('');
   const [end, setEnd] = useState(new Date().toISOString().slice(0, 10));
+  const [periodSel, setPeriodSel] = useState('');
+
+  const onSelectPeriod = (e) => {
+    const v = e.target.value;
+    setPeriodSel(v);
+    if (!v) return;
+    const p = PAY_SCHEDULE.find((r) => r.start === v);
+    if (p) {
+      setStart(p.start);
+      setEnd(p.end);
+    }
+  };
+
   const [preview, setPreview] = useState(null);
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
@@ -97,6 +116,7 @@ const Payroll = () => {
       await api.post('/payroll/runs', { start, end, notes: notes || null });
       setNotes('');
       setStart('');
+      setPeriodSel('');
       setPreview(null);
       await loadRuns();
       alert('Payroll saved to history.');
@@ -126,12 +146,27 @@ const Payroll = () => {
           <h3 style={{ marginTop: 0 }}>Run a new payroll</h3>
           <DateRow>
             <div>
+              <label htmlFor="payroll-period">Pay period (from schedule)</label>
+              <Select id="payroll-period" value={periodSel} onChange={onSelectPeriod}>
+                <option value="">— Custom dates —</option>
+                {PAY_SCHEDULE.map((p) => (
+                  <option key={p.start} value={p.start}>
+                    {fmtUS(p.start)} – {fmtUS(p.end)} · payday {fmtUS(p.payday)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </DateRow>
+          <DateRow>
+            <div>
               <label htmlFor="payroll-start">Start</label>
-              <Input id="payroll-start" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+              <Input id="payroll-start" type="date" value={start}
+                onChange={(e) => { setStart(e.target.value); setPeriodSel(''); }} />
             </div>
             <div>
               <label htmlFor="payroll-end">End</label>
-              <Input id="payroll-end" type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+              <Input id="payroll-end" type="date" value={end}
+                onChange={(e) => { setEnd(e.target.value); setPeriodSel(''); }} />
             </div>
           </DateRow>
 
