@@ -8,6 +8,7 @@ const canEnter   = requireRole(['admin', 'manager']);     // create/update/delet
 const canApprove = requireRole(['admin', 'payroll']);     // approve / unapprove
 
 const { WORKERS } = require('../config/workers');
+const { resolvePeriod } = require('../config/payPeriods');
 
 function calcTrailerMinutes(flags) {
   return (flags.trailer_delivered_abq ? 30 : 0)
@@ -37,32 +38,6 @@ async function isLocked({ worker, date, id }) {
   const params = id ? [id] : [worker, date];
   const [rows] = await pool.query(sql, params);
   return rows.length > 0;
-}
-
-// Period key format: YYYY-MM-H
-//   H=1 → (prev month lastDay-2) through (current month 12). Run 13th, deposit 15th.
-//   H=2 → (current month 13) through (current month lastDay-3). Run lastDay-2, deposit lastDay.
-function resolvePeriod(periodKey) {
-  const [yearMonth, half] = [periodKey.slice(0, 7), periodKey.slice(8)];
-  const [year, month] = yearMonth.split('-').map(Number); // month is 1-12
-  const pad = (n) => String(n).padStart(2, '0');
-
-  if (half === '1') {
-    const prevMonth = month === 1 ? 12 : month - 1;
-    const prevYear = month === 1 ? year - 1 : year;
-    const prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
-    const startDay = prevLastDay - 2;
-    return {
-      start: `${prevYear}-${pad(prevMonth)}-${pad(startDay)}`,
-      end: `${yearMonth}-12`,
-    };
-  } else {
-    const lastDay = new Date(year, month, 0).getDate();
-    return {
-      start: `${yearMonth}-13`,
-      end: `${yearMonth}-${pad(lastDay - 3)}`,
-    };
-  }
 }
 
 // GET /api/timesheet?worker=jesus_garcia&start=2026-04-01&end=2026-04-15
