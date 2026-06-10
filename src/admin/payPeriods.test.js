@@ -1,4 +1,5 @@
 import { getPayPeriod, periodFromYMH, getRecentPeriods } from './payPeriods';
+import { PAY_SCHEDULE } from './payScheduleData';
 
 // Owner-provided authoritative boundaries (spec Appendix) as [key, start, end].
 // Half derived from start day: 11th → half 1, 27th → half 2 (keyed by start month).
@@ -86,5 +87,37 @@ test('getRecentPeriods is newest-first, contiguous, and crosses year boundaries'
     expect(ps[1].start).toBe('2026-12-27');
   } finally {
     jest.useRealTimers();
+  }
+});
+
+// ── Schedule data agreement ─────────────────────────────────────────
+// payScheduleData rows must match the formula exactly, be contiguous,
+// and have sanely ordered deadlines. This catches typos in the data file
+// and any future drift between data and formula.
+function nextDay(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const t = new Date(y, m - 1, d + 1);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`;
+}
+
+test('every schedule row matches the formula boundaries', () => {
+  expect(PAY_SCHEDULE).toHaveLength(25);
+  for (const row of PAY_SCHEDULE) {
+    const [y, m, d] = row.start.split('-').map(Number);
+    const half = d === 11 ? 1 : 2; // rows start on the 11th (H1) or 27th (H2)
+    const p = periodFromYMH(y, m, half);
+    expect(p.start).toBe(row.start);
+    expect(p.end).toBe(row.end);
+  }
+});
+
+test('schedule rows are sorted, contiguous, with ordered deadlines', () => {
+  for (let i = 0; i < PAY_SCHEDULE.length; i++) {
+    const r = PAY_SCHEDULE[i];
+    expect(r.start < r.end).toBe(true);
+    expect(r.submitBy >= r.end).toBe(true);   // submit deadline on/after period end
+    expect(r.payday >= r.submitBy).toBe(true); // payday on/after submit deadline
+    if (i > 0) expect(r.start).toBe(nextDay(PAY_SCHEDULE[i - 1].end));
   }
 });
