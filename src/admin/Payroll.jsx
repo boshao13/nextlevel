@@ -75,7 +75,7 @@ const Payroll = () => {
   const loadRuns = async () => {
     const { data } = await api.get('/payroll/runs');
     setRuns(data);
-    if (data.length && !start) {
+    if (data.length) {
       const lastActive = data.find(r => !r.unlocked_at);
       if (lastActive) {
         // TZ-safe day math on YYYY-MM-DD string parts (avoid `new Date(iso)` UTC parsing).
@@ -83,7 +83,9 @@ const Payroll = () => {
         const [y, m, d] = ymd.split('-').map(Number);
         const next = new Date(y, m - 1, d + 1);
         const pad = (n) => String(n).padStart(2, '0');
-        setStart(`${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`);
+        // Functional update: only auto-suggest if start is still empty when the
+        // response lands (a period selected mid-flight must not be overwritten).
+        setStart(s => s || `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`);
       }
     }
   };
