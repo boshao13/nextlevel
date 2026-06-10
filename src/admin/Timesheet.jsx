@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FiChevronLeft, FiChevronRight, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import api from './api';
+import { getPayPeriod } from './payPeriods';
 import { isHalfStep } from './halfStep';
 import { useAuth } from './AdminRoute';
 
@@ -26,54 +27,6 @@ function normalizeDateKey(apiDate) {
   return String(apiDate).slice(0, 10);
 }
 
-// Pay period logic:
-//   Period 1 (H=1): (prev month lastDay-2) → current month 12. Payroll 13, deposit 15.
-//   Period 2 (H=2): current month 13 → current month (lastDay-3). Payroll lastDay-2, deposit lastDay.
-function getPayPeriod(date) {
-  const pad = (n) => String(n).padStart(2, '0');
-  const y = date.getFullYear();
-  const m = date.getMonth(); // 0-indexed
-  const d = date.getDate();
-  const lastDay = new Date(y, m + 1, 0).getDate();
-  const p2End = lastDay - 3;
-
-  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-  if (d <= 12) {
-    // Period 1 of current month
-    const prevLast = new Date(y, m, 0).getDate();
-    const startDate = new Date(y, m - 1, prevLast - 2);
-    const endDate = new Date(y, m, 12);
-    return {
-      start: `${startDate.getFullYear()}-${pad(startDate.getMonth() + 1)}-${pad(startDate.getDate())}`,
-      end: `${y}-${pad(m + 1)}-12`,
-      label: `${fmt(startDate)} – ${fmt(endDate)}`,
-      key: `${y}-${pad(m + 1)}-1`,
-    };
-  }
-  if (d <= p2End) {
-    // Period 2 of current month
-    const startDate = new Date(y, m, 13);
-    const endDate = new Date(y, m, p2End);
-    return {
-      start: `${y}-${pad(m + 1)}-13`,
-      end: `${y}-${pad(m + 1)}-${pad(p2End)}`,
-      label: `${fmt(startDate)} – ${fmt(endDate)}`,
-      key: `${y}-${pad(m + 1)}-2`,
-    };
-  }
-  // Period 1 of NEXT month (last 3 days of this month roll forward)
-  const startDate = new Date(y, m, lastDay - 2);
-  const nextY = m === 11 ? y + 1 : y;
-  const nextM = m === 11 ? 0 : m + 1;
-  const endDate = new Date(nextY, nextM, 12);
-  return {
-    start: `${y}-${pad(m + 1)}-${pad(lastDay - 2)}`,
-    end: `${nextY}-${pad(nextM + 1)}-12`,
-    label: `${fmt(startDate)} – ${fmt(endDate)}`,
-    key: `${nextY}-${pad(nextM + 1)}-1`,
-  };
-}
 
 const TRAILER_TRIPS = [
   { key: 'trailer_delivered_abq', label: 'Delivered → ABQ', minutes: 30, short: '+30m' },
