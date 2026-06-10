@@ -185,12 +185,14 @@ const adminNavItems = [
   { to: '/admin/approve', icon: FiCheckSquare, label: 'Approve Time' },
   { to: '/admin/inventory', icon: FiBox, label: 'Inventory' },
   { to: '/admin/payroll', icon: FiDollarSign, label: 'Payroll' },
+  { to: '/admin/pay-schedule', icon: FiCalendar, label: 'Pay Schedule' },
   { to: '/admin/documents', icon: FiFileText, label: 'Documents' },
 ];
 
 const managerNavItems = [
   { to: '/admin/timesheet', icon: FiClock, label: 'Timesheet' },
   { to: '/admin/inventory', icon: FiBox, label: 'Inventory' },
+  { to: '/admin/pay-schedule', icon: FiCalendar, label: 'Pay Schedule' },
 ];
 
 const payrollNavItems = [

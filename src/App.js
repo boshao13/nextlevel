@@ -45,6 +45,7 @@ import Timesheet from "./admin/Timesheet";
 import ApproveTimesheets from "./admin/ApproveTimesheets";
 import Inventory from "./admin/Inventory";
 import Payroll from "./admin/Payroll";
+import PaySchedule from "./admin/PaySchedule";
 import Documents from "./admin/Documents";
 import DocumentEditor from "./admin/DocumentEditor";
 import SignDocument from "./public/SignDocument";
@@ -148,6 +149,7 @@ function App() {
             <Route path="finances" element={<Finances />} />
             <Route path="timesheet" element={<Timesheet />} />
             <Route path="payroll" element={<Payroll />} />
+            <Route path="pay-schedule" element={<PaySchedule />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="documents" element={<Documents />} />
             <Route path="documents/:id" element={<DocumentEditor />} />
