@@ -21,6 +21,14 @@
 - Server tests: `npm run test:server` (script added in Task 2).
 - Do NOT run `./deploy.sh` — deploy is owner-triggered, out of scope for this plan.
 - Never parse `YYYY-MM-DD` strings with `new Date(iso)` (UTC off-by-one footgun — see repo memory); split the string or use `new Date(y, m-1, d)` parts.
+- **Pre-existing build warnings (verified by running `npx react-scripts build` on the untouched tree):** the build says `Compiled with warnings.` with exactly these EIGHT warnings. Do NOT fix any of them (out of scope). Match on file + message — line numbers may shift as the plan edits files:
+  - `src/Patios.jsx` — unused `useState`; unused `MOBILE_MQ` (no-unused-vars ×2)
+  - `src/admin/DocumentEditor.jsx` — react-hooks/exhaustive-deps ×2
+  - `src/admin/Documents.jsx` — react-hooks/exhaustive-deps (`load`)
+  - `src/admin/Payroll.jsx` — react-hooks/exhaustive-deps (`loadRuns`) — this file IS modified by Task 8; this one warning is still expected afterwards (at a shifted line number)
+  - `src/components/PdfPreview.jsx` — unused `useState`; react-hooks/exhaustive-deps (`onPagesLoaded`)
+
+  Every build-verification step below means by "the eight pre-existing warnings" exactly this list, nothing more.
 
 ---
 
@@ -568,7 +576,7 @@ Expected: PASS
 - [ ] **Step 4: Build check (catches unused-import/undefined-symbol issues CRA treats as warnings/errors)**
 
 Run: `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
-Expected: `Compiled with warnings.` followed by ONLY the four pre-existing warnings (`src/Patios.jsx`: unused `useState` and `MOBILE_MQ`; `src/admin/DocumentEditor.jsx`: two `react-hooks/exhaustive-deps`). None may mention Timesheet.jsx, ApproveTimesheets.jsx, or payPeriods. Do NOT fix the pre-existing warnings — out of scope for this plan.
+Expected: `Compiled with warnings.` followed by ONLY the eight pre-existing warnings (see Working Conventions). None may mention Timesheet.jsx, ApproveTimesheets.jsx, or payPeriods.
 
 - [ ] **Step 5: Commit**
 
@@ -735,7 +743,7 @@ Run: `CI=true npm test -- --watchAll=false 2>&1 | tail -4`
 Expected: PASS
 
 Run: `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
-Expected: `Compiled with warnings.` — ONLY the four pre-existing warnings (Patios.jsx ×2, DocumentEditor.jsx ×2); none may reference PaySchedule.jsx, App.js, or AdminLayout.jsx
+Expected: `Compiled with warnings.` — ONLY the eight pre-existing warnings (see Working Conventions); none may reference PaySchedule.jsx, App.js, or AdminLayout.jsx
 
 - [ ] **Step 5: Commit**
 
@@ -768,6 +776,16 @@ In `src/admin/Payroll.jsx`:
 
 - [ ] **Step 2: Add dropdown state + handler**
 
+At module level, next to the existing `fmtMoney`/`fmtDate` helpers (line ~42), add:
+
+```js
+// 'YYYY-MM-DD' → 'MM/DD/YYYY' for option labels (string ops only — never new Date(iso))
+const fmtUS = (ymd) => {
+  const [y, m, d] = String(ymd).split('-');
+  return `${m}/${d}/${y}`;
+};
+```
+
 Inside the `Payroll` component, after `const [end, setEnd] = useState(...)` (line ~49), add:
 
 ```js
@@ -782,12 +800,6 @@ const onSelectPeriod = (e) => {
     setStart(p.start);
     setEnd(p.end);
   }
-};
-
-// 'YYYY-MM-DD' → 'MM/DD/YYYY' for option labels (string ops only)
-const fmtUS = (ymd) => {
-  const [y, m, d] = String(ymd).split('-');
-  return `${m}/${d}/${y}`;
 };
 ```
 
@@ -838,7 +850,7 @@ setPeriodSel('');
 - [ ] **Step 5: Verify compile**
 
 Run: `CI=true npm test -- --watchAll=false 2>&1 | tail -4` then `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
-Expected: PASS, then `Compiled with warnings.` — ONLY the four pre-existing warnings; none may reference Payroll.jsx or payScheduleData
+Expected: PASS, then `Compiled with warnings.` — ONLY the eight pre-existing warnings (see Working Conventions). Payroll.jsx will still show its ONE pre-existing `loadRuns` exhaustive-deps warning at a shifted line number — that is expected; any OTHER Payroll.jsx warning, or anything mentioning payScheduleData, is a regression.
 
 - [ ] **Step 6: Commit**
 
@@ -864,7 +876,7 @@ Expected: PASS — payPeriods (4 tests) + documentStorage (6 tests)
 - [ ] **Step 3: Production build**
 
 Run: `npx react-scripts build 2>&1 | grep -A30 "Compiled"`
-Expected: `Compiled with warnings.` — ONLY the four pre-existing warnings (`src/Patios.jsx`: unused `useState`/`MOBILE_MQ`; `src/admin/DocumentEditor.jsx`: two `react-hooks/exhaustive-deps`). Nothing this plan touched may appear.
+Expected: `Compiled with warnings.` — ONLY the eight pre-existing warnings (see Working Conventions; Payroll.jsx's `loadRuns` warning sits at a shifted line number). No new files in the warning list; nothing referencing payPeriods, payScheduleData, PaySchedule, App.js, or AdminLayout.
 
 - [ ] **Step 4: Stale-formula sweep**
 
@@ -882,8 +894,12 @@ const rows = (f) => fs.readFileSync(f, 'utf8').match(/\['\d{4}-\d{2}-[12]', '\d{
 const a = rows('src/admin/payPeriods.test.js');
 const b = rows('server/config/payPeriods.test.js');
 const ok = a.length === 25 && JSON.stringify(a) === JSON.stringify(b);
-console.log(ok ? 'fixtures identical (25 rows)' : 'FIXTURE DRIFT: ' + a.length + ' vs ' + b.length);
-process.exit(ok ? 0 : 1);
+if (ok) { console.log('fixtures identical (25 rows)'); process.exit(0); }
+const i = a.findIndex((r, j) => r !== b[j]);
+console.log('FIXTURE DRIFT (' + a.length + ' vs ' + b.length + ' rows); first mismatch at index ' + i + ':');
+console.log('  client: ' + a[i]);
+console.log('  server: ' + (b[i] || '<missing>'));
+process.exit(1);
 "
 ```
 
