@@ -2,107 +2,13 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FiCheck, FiX, FiPrinter, FiClock, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import api from './api';
+import { getRecentPeriods } from './payPeriods';
 
 const WORKERS = {
   jesus_garcia: { name: 'Jesus Garcia', rate: 30, color: '#0f4c81' },
   jerry_francia: { name: 'Jerry Francia', rate: 25, color: '#0d7377' },
   robert_pyle: { name: 'Robert Pyle', rate: 20, color: '#b45309' },
 };
-
-// Same logic as Timesheet.jsx
-// P1: (prev lastDay-2) → current 12. Payroll 13, deposit 15.
-// P2: current 13 → current (lastDay-3). Payroll lastDay-2, deposit lastDay.
-function getPayPeriod(date) {
-  const pad = (n) => String(n).padStart(2, '0');
-  const y = date.getFullYear();
-  const m = date.getMonth();
-  const d = date.getDate();
-  const lastDay = new Date(y, m + 1, 0).getDate();
-  const p2End = lastDay - 3;
-  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-  if (d <= 12) {
-    const prevLast = new Date(y, m, 0).getDate();
-    const startDate = new Date(y, m - 1, prevLast - 2);
-    const endDate = new Date(y, m, 12);
-    return {
-      start: `${startDate.getFullYear()}-${pad(startDate.getMonth() + 1)}-${pad(startDate.getDate())}`,
-      end: `${y}-${pad(m + 1)}-12`,
-      label: `${fmt(startDate)} – ${fmt(endDate)}`,
-      key: `${y}-${pad(m + 1)}-1`,
-    };
-  }
-  if (d <= p2End) {
-    const startDate = new Date(y, m, 13);
-    const endDate = new Date(y, m, p2End);
-    return {
-      start: `${y}-${pad(m + 1)}-13`,
-      end: `${y}-${pad(m + 1)}-${pad(p2End)}`,
-      label: `${fmt(startDate)} – ${fmt(endDate)}`,
-      key: `${y}-${pad(m + 1)}-2`,
-    };
-  }
-  const startDate = new Date(y, m, lastDay - 2);
-  const nextY = m === 11 ? y + 1 : y;
-  const nextM = m === 11 ? 0 : m + 1;
-  const endDate = new Date(nextY, nextM, 12);
-  return {
-    start: `${y}-${pad(m + 1)}-${pad(lastDay - 2)}`,
-    end: `${nextY}-${pad(nextM + 1)}-12`,
-    label: `${fmt(startDate)} – ${fmt(endDate)}`,
-    key: `${nextY}-${pad(nextM + 1)}-1`,
-  };
-}
-
-// Build a period object directly from (year, month, half) — no date-math drift.
-function periodFromYMH(year, month, half) {
-  const pad = (n) => String(n).padStart(2, '0');
-  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const lastDay = new Date(year, month, 0).getDate();
-  if (half === 1) {
-    const prevMonth = month === 1 ? 12 : month - 1;
-    const prevYear = month === 1 ? year - 1 : year;
-    const prevLast = new Date(prevYear, prevMonth, 0).getDate();
-    const startDate = new Date(prevYear, prevMonth - 1, prevLast - 2);
-    const endDate = new Date(year, month - 1, 12);
-    return {
-      start: `${prevYear}-${pad(prevMonth)}-${pad(prevLast - 2)}`,
-      end: `${year}-${pad(month)}-12`,
-      label: `${fmt(startDate)} – ${fmt(endDate)}`,
-      key: `${year}-${pad(month)}-1`,
-    };
-  }
-  const startDate = new Date(year, month - 1, 13);
-  const endDate = new Date(year, month - 1, lastDay - 3);
-  return {
-    start: `${year}-${pad(month)}-13`,
-    end: `${year}-${pad(month)}-${pad(lastDay - 3)}`,
-    label: `${fmt(startDate)} – ${fmt(endDate)}`,
-    key: `${year}-${pad(month)}-2`,
-  };
-}
-
-// Returns current pay period + N past ones (24 = 12 months of history).
-function getRecentPeriods(count = 24) {
-  const today = new Date();
-  const current = getPayPeriod(today);
-  let [year, month] = current.key.slice(0, 7).split('-').map(Number);
-  let h = parseInt(current.key.slice(8), 10);
-
-  const periods = [];
-  for (let i = 0; i < count; i++) {
-    periods.push(periodFromYMH(year, month, h));
-    // step back one half-month
-    if (h === 1) {
-      h = 2;
-      month -= 1;
-      if (month === 0) { month = 12; year -= 1; }
-    } else {
-      h = 1;
-    }
-  }
-  return periods;
-}
 
 function normalizeDateKey(apiDate) {
   return String(apiDate || '').slice(0, 10);
