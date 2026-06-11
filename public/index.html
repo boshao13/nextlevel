@@ -117,15 +117,18 @@
     }
     </script>
 
-    <!-- Custom Fonts -->
+    <!-- Custom Fonts (preconnect + preload the H1/body weights so the font
+         race isn't lost to the hero video; if Google bumps the font version
+         these preloads become harmless no-ops and the stylesheet still wins) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFd2JQEk.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Hero video posters: paint the hero before video data arrives -->
-    <link rel="preload" as="image" href="/videos/posters/hero-desktop.jpg" media="(min-width: 769px)" />
-    <link rel="preload" as="image" href="/videos/posters/hero-mobile.jpg" media="(max-width: 768px)" />
 
     <!-- Google Analytics (GA4) + Google Ads (AW) — gtag.js is loaded once and
          routes to both destinations via separate config calls. -->

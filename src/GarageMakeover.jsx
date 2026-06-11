@@ -533,7 +533,7 @@ const GarageMakeover = () => {
     <PageContainer>
       <SEO />
       <HeroSection aria-label="Garage makeover hero section">
-        <HeroVideo ref={videoRef} autoPlay muted loop playsInline preload="metadata" poster={isMobile ? '/videos/posters/makeover-mobile.jpg' : '/videos/posters/makeover-desktop.jpg'} aria-label="Professional epoxy garage floor coating transformation video">
+        <HeroVideo ref={videoRef} autoPlay muted loop playsInline preload="metadata" poster="/videos/posters/makeover.jpg" aria-label="Professional epoxy garage floor coating transformation video">
           {(() => {
             const src = isMobile ? mobileSrc : desktopSrc;
             return (

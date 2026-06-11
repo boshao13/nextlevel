@@ -20,7 +20,6 @@ import Commercial from "./Commercial";
 import Patios from "./Patios";
 import Snake from "./Snake";
 import Careers from "./Careers";
-import AllColors from "./AllColors";
 import StickyCallButton from "./StickyCallButton";
 import LocationPage from "./LocationPage";
 import PolishedConcreteDivision from "./PolishedConcreteDivision";
@@ -51,6 +50,11 @@ import Documents from "./admin/Documents";
 import DocumentEditor from "./admin/DocumentEditor";
 import SignDocument from "./public/SignDocument";
 import Signed from "./public/Signed";
+
+// Code-split: the full Torginol catalog (500+ entries + swatch wiring) stays
+// out of the main bundle; prerender still captures /colors (networkidle0
+// waits for the chunk).
+const AllColors = React.lazy(() => import("./AllColors"));
 
 // Styled layout container
 const LayoutContainer = styled.div`

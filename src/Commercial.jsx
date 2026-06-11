@@ -919,7 +919,7 @@ const Commercial = () => {
       </Helmet>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <HeroSection>
-        <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="metadata" poster={isMobile ? '/videos/posters/commercial-mobile.jpg' : '/videos/posters/commercial-desktop.jpg'}>
+        <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="metadata" poster="/videos/posters/commercial.jpg">
           {(() => {
             const src = isMobile ? commercialMobileSrc : commercialDesktopSrc;
             return (

@@ -314,13 +314,15 @@ const Hero = () => {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const desktopSrc = { webm: '/videos/hero-desktop.webm', mp4: '/videos/hero-desktop.mp4', poster: '/videos/posters/hero-desktop.jpg' };
-  const mobileSrc  = { webm: '/videos/hero-mobile.webm',  mp4: '/videos/hero-mobile.mp4',  poster: '/videos/posters/hero-mobile.jpg'  };
+  const desktopSrc = { webm: '/videos/hero-desktop.webm', mp4: '/videos/hero-desktop.mp4' };
+  const mobileSrc  = { webm: '/videos/hero-mobile.webm',  mp4: '/videos/hero-mobile.mp4'  };
   const src = isMobile ? mobileSrc : desktopSrc;
 
   return (
     <HeroSection>
-      <video ref={videoRef} autoPlay loop muted playsInline preload="metadata" poster={src.poster}>
+      {/* Single poster for both breakpoints: the prerendered attribute survives
+          hydration unchanged, so LCP stays anchored to the early poster paint. */}
+      <video ref={videoRef} autoPlay loop muted playsInline preload="metadata" poster="/videos/posters/hero.jpg">
         <source src={src.webm} type="video/webm" />
         <source src={src.mp4}  type="video/mp4" />
       </video>
