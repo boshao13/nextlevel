@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
+import COLLECTIONS from './flakeCatalog';
 
 /* ── Signature colors (in stock, ready to install) ───────────────── */
 const SIGNATURE_FILENAMES = new Set([
@@ -9,136 +10,70 @@ const SIGNATURE_FILENAMES = new Set([
   'nightfall', 'citrine', 'tidal-wave', 'wombat',
 ]);
 
-/* ── Dynamically import all flake images ─────────────────────────── */
-const flakeContext = require.context('./images/flakes', false, /\.jpg$/);
-const allFlakes = flakeContext.keys().map((key) => {
-  const filename = key.replace('./', '').replace('.jpg', '');
-  const name = filename
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
-  return { name, filename, img: flakeContext(key), signature: SIGNATURE_FILENAMES.has(filename) };
-}).sort((a, b) => a.name.localeCompare(b.name));
+/* ── Image resolution (legacy flat folder + per-collection folders) ─ */
+const flakeCtx = require.context('./images/flakes', false, /\.jpg$/);
+const torginolCtx = require.context('./images/torginol', true, /\.jpg$/);
 
-const signatureFlakes = allFlakes.filter((f) => f.signature);
-const otherFlakes = allFlakes.filter((f) => !f.signature);
+const resolveImg = (file) => {
+  try {
+    if (file.startsWith('flakes/')) return flakeCtx('./' + file.slice('flakes/'.length));
+    if (file.startsWith('torginol/')) return torginolCtx('./' + file.slice('torginol/'.length));
+  } catch (e) {
+    return null;
+  }
+  return null;
+};
+
+const slugOf = (file) => file.split('/').pop().replace('.jpg', '');
+const isInStock = (item) => SIGNATURE_FILENAMES.has(slugOf(item.file));
+
+/* Pre-resolve everything once */
+const CATALOG = COLLECTIONS.map((c) => ({
+  ...c,
+  items: c.items
+    .map((it) => ({ ...it, img: resolveImg(it.file), inStock: isInStock(it) }))
+    .filter((it) => it.img),
+}));
+
+const inStockItems = (() => {
+  const seen = new Set();
+  const out = [];
+  CATALOG.forEach((c) => c.items.forEach((it) => {
+    const s = slugOf(it.file);
+    if (it.inStock && !seen.has(s)) { seen.add(s); out.push({ ...it, collection: c.title }); }
+  }));
+  return out;
+})();
+
+const TOTAL_COUNT = CATALOG.reduce((n, c) => n + c.items.length, 0);
 
 /* ── Styled Components ────────────────────────────────────────────── */
 const Page = styled.div`
   min-height: 100vh;
-  background: var(--bg);
+  background: var(--bg0);
 `;
 
 const HeroBanner = styled.div`
-  background: linear-gradient(160deg, #0a3356 0%, var(--primary) 40%, #0d3f6e 100%);
-  padding: 140px 24px 80px;
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
+  border-bottom: 1px solid var(--line);
+  padding: 140px 24px 64px;
   text-align: center;
-  color: white;
+  color: var(--text-hi);
 `;
 
 const HeroTitle = styled.h1`
   font-size: clamp(2rem, 4.5vw, 3rem);
   font-weight: 800;
+  letter-spacing: -0.02em;
   margin-bottom: 16px;
 `;
 
 const HeroSubtitle = styled.p`
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  max-width: 520px;
+  color: var(--text-body);
+  max-width: 560px;
   margin: 0 auto;
   line-height: 1.7;
-`;
-
-const Content = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 24px 100px;
-`;
-
-const Toolbar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 36px;
-  flex-wrap: wrap;
-
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`;
-
-const SearchInput = styled.input`
-  padding: 12px 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  font-size: 0.95rem;
-  width: 280px;
-  background: white;
-  color: var(--text);
-  transition: border-color var(--transition), box-shadow var(--transition);
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.1);
-  }
-
-  &::placeholder {
-    color: var(--text-light);
-  }
-
-  @media (max-width: 600px) {
-    width: 100%;
-  }
-`;
-
-const Count = styled.p`
-  font-size: 0.88rem;
-  color: var(--text-light);
-  font-weight: 500;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-`;
-
-const Card = styled.div`
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: white;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-  }
-`;
-
-const SwatchImg = styled.img`
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  display: block;
-`;
-
-const CardLabel = styled.p`
-  padding: 10px 14px 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text);
-  text-align: center;
 `;
 
 const BackLink = styled(Link)`
@@ -148,30 +83,145 @@ const BackLink = styled(Link)`
   margin-bottom: 8px;
   font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-dim);
   text-decoration: none;
   transition: color var(--transition);
 
   &:hover {
-    color: white;
+    color: var(--resin-hot);
   }
 `;
 
-const SignatureSection = styled.div`
-  margin-bottom: 64px;
+const Content = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 100px;
 `;
 
-const SignatureHeader = styled.div`
+/* Sticky toolbar: search + jump chips */
+const Toolbar = styled.div`
+  position: sticky;
+  top: 76px;
+  z-index: 20;
+  background: rgba(12, 14, 17, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 40px;
+
+  @media (max-width: 768px) {
+    top: 64px;
+  }
+`;
+
+const ToolbarRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const SearchInput = styled.input`
+  padding: 11px 18px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  font-family: inherit;
+  width: 280px;
+  background: var(--bg0);
+  color: var(--text-hi);
+  transition: border-color var(--transition), box-shadow var(--transition);
+
+  &:focus {
+    outline: none;
+    border-color: var(--resin);
+    box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.14);
+  }
+
+  &::placeholder {
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
+`;
+
+const Count = styled.p`
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  font-weight: 500;
+  white-space: nowrap;
+`;
+
+const ChipRow = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 2px;
+  }
+`;
+
+const Chip = styled.a`
+  flex-shrink: 0;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-body);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+
+  &:hover {
+    color: #14110a;
+    background: var(--resin);
+    border-color: var(--resin);
+  }
+`;
+
+const Section = styled.section`
+  margin-bottom: 56px;
+  scroll-margin-top: 170px;
+`;
+
+const SectionHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
 `;
 
-const SignatureTitle = styled.h2`
+const SectionTitle = styled.h2`
   font-size: 1.4rem;
   font-weight: 800;
-  color: var(--text);
+  letter-spacing: -0.01em;
+  color: var(--text-hi);
+`;
+
+const SectionCount = styled.span`
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dim);
 `;
 
 const InStockBadge = styled.span`
@@ -179,12 +229,12 @@ const InStockBadge = styled.span`
   align-items: center;
   gap: 6px;
   padding: 4px 14px;
-  background: rgba(74, 222, 128, 0.12);
+  background: rgba(74, 222, 128, 0.1);
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: var(--radius-full);
   font-size: 0.72rem;
   font-weight: 700;
-  color: #16a34a;
+  color: #4ade80;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 
@@ -197,21 +247,18 @@ const InStockBadge = styled.span`
   }
 `;
 
-const SignatureNote = styled.p`
-  font-size: 0.95rem;
-  color: var(--text-mid);
+const SectionNote = styled.p`
+  font-size: 0.92rem;
+  color: var(--text-body);
   line-height: 1.7;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  max-width: 720px;
 `;
 
-const SignatureGrid = styled.div`
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
 
   @media (max-width: 600px) {
     grid-template-columns: repeat(2, 1fr);
@@ -219,57 +266,249 @@ const SignatureGrid = styled.div`
   }
 `;
 
-const Divider = styled.hr`
-  border: none;
-  border-top: 1px solid var(--border);
-  margin-bottom: 48px;
+const Card = styled.button`
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgba(240, 165, 0, 0.4);
+    box-shadow: var(--shadow-dk-md);
+  }
 `;
 
-const AllColorsHeader = styled.div`
+const SwatchImg = styled.img`
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+`;
+
+const CardLabel = styled.p`
+  padding: 10px 12px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-hi);
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 8px;
+  justify-content: center;
+  gap: 7px;
+
+  span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    flex-shrink: 0;
+  }
 `;
 
-const AllColorsTitle = styled.h2`
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text);
-`;
-
-const ShippingNote = styled.p`
+const UvNote = styled.p`
   font-size: 0.92rem;
-  color: var(--text-light);
-  margin-bottom: 28px;
-  font-style: italic;
+  color: var(--text-dim);
+  margin-bottom: 40px;
+
+  a {
+    color: var(--resin-hot);
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const NoResults = styled.p`
   text-align: center;
   font-size: 1.05rem;
-  color: var(--text-light);
+  color: var(--text-dim);
   padding: 60px 0;
-  grid-column: 1 / -1;
 `;
+
+/* ── Modal ────────────────────────────────────────────────────────── */
+const Backdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(5, 6, 8, 0.8);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+`;
+
+const ModalBox = styled.div`
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dk-lg);
+  max-width: 560px;
+  width: 100%;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  position: relative;
+`;
+
+const ModalImg = styled.img`
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+`;
+
+const ModalBody = styled.div`
+  padding: 20px 24px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+`;
+
+const ModalInfo = styled.div``;
+
+const ModalName = styled.h3`
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-hi);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ModalMeta = styled.p`
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+`;
+
+const ModalCta = styled.button`
+  padding: 12px 24px;
+  background: var(--resin-grad);
+  color: #14110a;
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--transition), filter var(--transition);
+
+  &:hover {
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+  }
+`;
+
+const ModalClose = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: rgba(12, 14, 17, 0.7);
+  backdrop-filter: blur(8px);
+  color: var(--text-hi);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), border-color var(--transition);
+
+  &:hover {
+    background: var(--resin);
+    border-color: var(--resin);
+    color: #14110a;
+  }
+`;
+
+/* ── Modal component ──────────────────────────────────────────────── */
+const SwatchModal = ({ item, onClose }) => {
+  const closeRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    if (closeRef.current) closeRef.current.focus();
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  const goQuote = () => {
+    onClose();
+    navigate('/', { state: { scrollToContact: true } });
+  };
+
+  return (
+    <Backdrop onClick={onClose}>
+      <ModalBox
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${item.name} flake color`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ModalClose ref={closeRef} onClick={onClose} aria-label="Close">✕</ModalClose>
+        <ModalImg src={item.img} alt={`${item.name} epoxy flake blend — close-up`} />
+        <ModalBody>
+          <ModalInfo>
+            <ModalName>
+              {item.name}
+              {item.inStock && <InStockBadge>In Stock</InStockBadge>}
+            </ModalName>
+            <ModalMeta>
+              {item.collection}{item.sku ? ` · ${item.sku}` : ''}
+            </ModalMeta>
+          </ModalInfo>
+          <ModalCta onClick={goQuote}>Get a Free Quote →</ModalCta>
+        </ModalBody>
+      </ModalBox>
+    </Backdrop>
+  );
+};
 
 /* ── Component ────────────────────────────────────────────────────── */
 const AllColors = () => {
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
 
-  const filteredOther = useMemo(() => {
-    if (!search.trim()) return otherFlakes;
-    const q = search.toLowerCase();
-    return otherFlakes.filter((f) => f.name.toLowerCase().includes(q));
-  }, [search]);
+  const close = useCallback(() => setSelected(null), []);
 
-  const filteredSignature = useMemo(() => {
-    if (!search.trim()) return signatureFlakes;
-    const q = search.toLowerCase();
-    return signatureFlakes.filter((f) => f.name.toLowerCase().includes(q));
-  }, [search]);
+  const q = search.trim().toLowerCase();
 
-  const totalCount = filteredSignature.length + filteredOther.length;
+  const filteredCatalog = useMemo(() => {
+    if (!q) return CATALOG;
+    return CATALOG.map((c) => ({
+      ...c,
+      items: c.items.filter((it) => it.name.toLowerCase().includes(q) || (it.sku || '').toLowerCase().includes(q)),
+    })).filter((c) => c.items.length > 0);
+  }, [q]);
+
+  const filteredInStock = useMemo(() => {
+    if (!q) return inStockItems;
+    return inStockItems.filter((it) => it.name.toLowerCase().includes(q));
+  }, [q]);
+
+  const shownCount = filteredCatalog.reduce((n, c) => n + c.items.length, 0);
 
   return (
     <Page>
@@ -283,66 +522,90 @@ const AllColors = () => {
       </Helmet>
       <HeroBanner>
         <BackLink to="/">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
           Back to Home
         </BackLink>
         <HeroTitle>All Flake Colors</HeroTitle>
         <HeroSubtitle>
-          Browse our full selection of decorative flake colors. Not sure which to pick? We bring samples to every consultation.
+          The complete Torginol® flake line — every collection, every color. Not sure which to pick? We bring samples to every consultation.
         </HeroSubtitle>
       </HeroBanner>
 
       <Content>
         <Toolbar>
-          <SearchInput
-            type="text"
-            placeholder="Search colors..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Count>{totalCount} color{totalCount !== 1 ? 's' : ''}</Count>
+          <ToolbarRow>
+            <SearchInput
+              type="text"
+              placeholder="Search colors or SKU…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Count>{q ? `${shownCount} of ${TOTAL_COUNT}` : TOTAL_COUNT} colors</Count>
+          </ToolbarRow>
+          <ChipRow>
+            {CATALOG.map((c) => (
+              <Chip key={c.key} href={`#${c.key}`}>{c.title}</Chip>
+            ))}
+          </ChipRow>
         </Toolbar>
 
-        {filteredSignature.length > 0 && (
-          <SignatureSection>
-            <SignatureHeader>
-              <SignatureTitle>Our Signature Colors</SignatureTitle>
+        {filteredInStock.length > 0 && (
+          <Section id="in-stock">
+            <SectionHeader>
+              <SectionTitle>Our Signature Colors</SectionTitle>
               <InStockBadge>In Stock</InStockBadge>
-            </SignatureHeader>
-            <SignatureNote>
+            </SectionHeader>
+            <SectionNote>
               We carry these colors in stock and they are available to install immediately.
-            </SignatureNote>
-            <SignatureGrid>
-              {filteredSignature.map((f) => (
-                <Card key={f.filename}>
-                  <SwatchImg src={f.img} alt={f.name} loading="lazy" />
-                  <CardLabel>{f.name}</CardLabel>
+              All other colors are available to order and subject to shipping times.
+            </SectionNote>
+            <Grid>
+              {filteredInStock.map((it) => (
+                <Card key={`stock-${it.file}`} onClick={() => setSelected(it)} aria-label={`View ${it.name}`}>
+                  <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
+                  <CardLabel><span aria-hidden="true" />{it.name}</CardLabel>
                 </Card>
               ))}
-            </SignatureGrid>
-          </SignatureSection>
+            </Grid>
+          </Section>
         )}
 
-        <Divider />
+        <UvNote>
+          Looking for outdoor flake? Our UV-stable patio line lives on the{' '}
+          <Link to="/patios">Patios page</Link>.
+        </UvNote>
 
-        <AllColorsHeader>
-          <AllColorsTitle>All Colors</AllColorsTitle>
-        </AllColorsHeader>
-        <ShippingNote>All other colors are available to order and subject to shipping times.</ShippingNote>
-
-        <Grid>
-          {filteredOther.length > 0 ? (
-            filteredOther.map((f) => (
-              <Card key={f.filename}>
-                <SwatchImg src={f.img} alt={f.name} loading="lazy" />
-                <CardLabel>{f.name}</CardLabel>
-              </Card>
-            ))
-          ) : (
-            <NoResults>No colors match "{search}"</NoResults>
-          )}
-        </Grid>
+        {filteredCatalog.length === 0 ? (
+          <NoResults>No colors match "{search}"</NoResults>
+        ) : (
+          filteredCatalog.map((c) => (
+            <Section key={c.key} id={c.key}>
+              <SectionHeader>
+                <SectionTitle>{c.title}</SectionTitle>
+                <SectionCount>{c.items.length} color{c.items.length !== 1 ? 's' : ''}</SectionCount>
+              </SectionHeader>
+              <SectionNote>{c.blurb}</SectionNote>
+              <Grid>
+                {c.items.map((it) => (
+                  <Card
+                    key={`${c.key}-${it.file}`}
+                    onClick={() => setSelected({ ...it, collection: c.title })}
+                    aria-label={`View ${it.name}`}
+                  >
+                    <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
+                    <CardLabel>
+                      {it.inStock && <span aria-hidden="true" />}
+                      {it.name}
+                    </CardLabel>
+                  </Card>
+                ))}
+              </Grid>
+            </Section>
+          ))
+        )}
       </Content>
+
+      {selected && <SwatchModal item={selected} onClose={close} />}
     </Page>
   );
 };
