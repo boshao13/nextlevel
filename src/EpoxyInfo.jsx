@@ -6,17 +6,12 @@ import epoxyDiagram from './images/epoxydiagram.jpg';
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
   position: relative;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: var(--section-pad) 24px;
+  padding: 40px 24px var(--section-pad);
   background: var(--bg0);
   overflow: hidden;
 
   @media (max-width: 900px) {
-    min-height: auto;
-    padding: 72px 24px 56px;
+    padding: 32px 24px 56px;
   }
 `;
 
