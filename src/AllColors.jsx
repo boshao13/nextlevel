@@ -27,23 +27,30 @@ const resolveImg = (file) => {
 const slugOf = (file) => file.split('/').pop().replace('.jpg', '');
 const isInStock = (item) => SIGNATURE_FILENAMES.has(slugOf(item.file));
 
-/* Pre-resolve everything once */
-const CATALOG = COLLECTIONS.map((c) => ({
-  ...c,
-  items: c.items
-    .map((it) => ({ ...it, img: resolveImg(it.file), inStock: isInStock(it) }))
-    .filter((it) => it.img),
-}));
+/* Collections we don't present (catalog data is kept for SKU lookups) */
+const EXCLUDED_COLLECTIONS = new Set(['solid-colors', 'signature']);
 
-const inStockItems = (() => {
-  const seen = new Set();
-  const out = [];
-  CATALOG.forEach((c) => c.items.forEach((it) => {
-    const s = slugOf(it.file);
-    if (it.inStock && !seen.has(s)) { seen.add(s); out.push({ ...it, collection: c.title }); }
+/* Pre-resolve everything once */
+const CATALOG = COLLECTIONS
+  .filter((c) => !EXCLUDED_COLLECTIONS.has(c.key))
+  .map((c) => ({
+    ...c,
+    items: c.items
+      .map((it) => ({ ...it, img: resolveImg(it.file), inStock: isInStock(it) }))
+      .filter((it) => it.img),
   }));
-  return out;
-})();
+
+/* In-stock section is built straight from the stocked filenames so it never
+   depends on which collections are displayed. */
+const inStockItems = [...SIGNATURE_FILENAMES].map((slug) => {
+  let sku = '';
+  let collection = '';
+  COLLECTIONS.forEach((c) => c.items.forEach((it) => {
+    if (slugOf(it.file) === slug && !sku) { sku = it.sku; collection = c.title; }
+  }));
+  const name = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return { name, sku, collection: collection || 'In Stock', file: `flakes/${slug}.jpg`, img: resolveImg(`flakes/${slug}.jpg`), inStock: true };
+}).filter((it) => it.img).sort((a, b) => a.name.localeCompare(b.name));
 
 const TOTAL_COUNT = CATALOG.reduce((n, c) => n + c.items.length, 0);
 

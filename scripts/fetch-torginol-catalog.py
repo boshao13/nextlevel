@@ -32,6 +32,9 @@ CATALOG_JS = os.path.join(ROOT, 'src', 'flakeCatalog.js')
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
 SIZES = ['_600x600_crop_center-center_none_ns', '_400x400_crop_center-center_none_ns', '_1200x630_crop_center-center_82_none_ns']
 
+# Note: 'signature' stays in the catalog for SKU lookups but is hidden on the
+# page (EXCLUDED_COLLECTIONS in AllColors.jsx). 'Solid Colors' was removed
+# entirely per owner decision 2026-06-11 — do not re-add.
 ORDER = [
     ('Signature',     'signature',     'Signature Collection',   "Torginol's flagship blends — the most popular looks in epoxy flooring."),
     ('Garage',        'garage',        'Garage Collection',      'Purpose-built blends that hide dust, dirt, and tire marks in working garages.'),
@@ -45,7 +48,6 @@ ORDER = [
     ('Insignia',      'insignia',      'Insignia Collection',    'Team-and-brand color blends — show your colors underfoot.'),
     ('Mica-Enhanced', 'mica-enhanced', 'Mica-Enhanced',          'Vinyl blends with natural mica for depth and sparkle.'),
     ('GLITTER',       'shimmer',       'Shimmer & Glitter',      'Reflective accents broadcast alone or over any blend.'),
-    ('Solid Colors',  'solid-colors',  'Solid Colors',           'Single-color flake — build your own custom blend ratio.'),
     ('Archive',       'archive',       'Classic Archive',        'Long-running classics from the Torginol archive, available special-order.'),
 ]
 
@@ -139,7 +141,7 @@ def main():
 
     local = {f[:-4] for f in os.listdir(FLAKES_DIR) if f.endswith('.jpg')}
     flake_rows = [r for r in rows if r['cat'] in ('Flake', 'Glitter')
-                  and r['coll'] not in ('environment-collections', 'UV-flake')]
+                  and r['coll'] not in ('environment-collections', 'UV-flake', 'Solid Colors')]
     missing = [r for r in flake_rows if r['name_slug'] not in local]
     print(f'{len(flake_rows)} flake-line products, {len(missing)} not in legacy folder')
 
