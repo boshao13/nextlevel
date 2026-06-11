@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * Lightweight scroll-reveal hook using IntersectionObserver.
  * Returns [ref, isVisible] — attach ref to the element, use isVisible to trigger CSS.
+ * Respects prefers-reduced-motion: elements are visible immediately, no observer.
  *
  * @param {Object} options
  * @param {number} options.threshold - 0–1, how much must be visible (default 0.15)
@@ -16,6 +22,11 @@ const useScrollReveal = ({ threshold = 0.15, rootMargin = '0px 0px -60px 0px', o
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    if (prefersReducedMotion()) {
+      setIsVisible(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {

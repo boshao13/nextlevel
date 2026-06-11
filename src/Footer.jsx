@@ -1,14 +1,15 @@
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaInstagram, FaGamepad } from 'react-icons/fa';
+import { FaInstagram } from 'react-icons/fa';
 import codelabsLogo from './images/codelabslogo.png';
 import { FiPhone, FiMapPin } from 'react-icons/fi';
 import { trackPhoneClick } from './lib/analytics';
 
 const FooterEl = styled.footer`
-  background: linear-gradient(180deg, #0a1628 0%, #060e1a 100%);
-  color: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(180deg, var(--bg1) 0%, #08090c 100%);
+  border-top: 1px solid var(--line);
+  color: var(--text-body);
   padding: 72px 24px 0;
 `;
 
@@ -22,7 +23,7 @@ const TopGrid = styled.div`
   grid-template-columns: 1.6fr 1fr 1fr 1.1fr;
   gap: 48px;
   padding-bottom: 56px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--line);
 
   @media (max-width: 800px) {
     grid-template-columns: 1fr 1fr;
@@ -51,7 +52,7 @@ const FooterLogo = styled.img`
 const Tagline = styled.p`
   font-size: 0.9rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-dim);
   max-width: 280px;
 `;
 
@@ -65,19 +66,19 @@ const SocialBtn = styled.a`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface);
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-dim);
   font-size: 1.1rem;
   transition: background var(--transition), color var(--transition), transform var(--transition), border-color var(--transition);
 
   &:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
+    background: var(--resin);
+    border-color: var(--resin);
+    color: #14110a;
     transform: translateY(-3px);
   }
 `;
@@ -87,9 +88,9 @@ const Column = styled.div``;
 const ColTitle = styled.h4`
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: white;
+  color: var(--text-hi);
   margin-bottom: 20px;
 `;
 
@@ -104,11 +105,11 @@ const NavItem = styled.li``;
 
 const NavLink = styled(Link)`
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-dim);
   transition: color var(--transition), padding-left var(--transition);
 
   &:hover {
-    color: white;
+    color: var(--resin-hot);
     padding-left: 4px;
   }
 `;
@@ -118,32 +119,34 @@ const ContactItem = styled.a`
   align-items: flex-start;
   gap: 10px;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-dim);
   margin-bottom: 14px;
   transition: color var(--transition);
 
   svg {
     flex-shrink: 0;
     margin-top: 3px;
-    color: var(--primary-light);
+    color: var(--resin);
     transition: color var(--transition);
   }
 
   &:hover {
-    color: white;
-    svg { color: white; }
+    color: var(--text-hi);
   }
 `;
 
 const CtaBanner = styled.div`
+  position: relative;
   margin-top: 56px;
   padding: 36px 40px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: var(--resin-grad);
   border-radius: var(--radius-lg);
+  box-shadow: var(--glow-resin);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  overflow: hidden;
 
   @media (max-width: 700px) {
     flex-direction: column;
@@ -153,23 +156,27 @@ const CtaBanner = styled.div`
 `;
 
 const CtaText = styled.div`
+  position: relative;
+
   h3 {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-weight: 800;
-    color: white;
+    letter-spacing: -0.01em;
+    color: #14110a;
     margin-bottom: 4px;
   }
 
   p {
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(20, 17, 10, 0.75);
   }
 `;
 
 const CtaButton = styled.button`
+  position: relative;
   padding: 14px 32px;
-  background: white;
-  color: var(--primary);
+  background: #14110a;
+  color: var(--resin-hot);
   font-size: 0.95rem;
   font-weight: 700;
   border: none;
@@ -180,7 +187,7 @@ const CtaButton = styled.button`
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 `;
 
@@ -190,7 +197,7 @@ const BottomBar = styled.div`
   justify-content: space-between;
   padding: 24px 0;
   margin-top: 48px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--line);
   flex-wrap: wrap;
   gap: 12px;
 
@@ -203,17 +210,6 @@ const BottomBar = styled.div`
 const Copyright = styled.p`
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.25);
-`;
-
-const EasterEgg = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.15);
-  transition: color var(--transition);
-
-  &:hover { color: rgba(255, 255, 255, 0.45); }
 `;
 
 const MadeBy = styled.a`
@@ -319,11 +315,6 @@ const Footer = () => {
             Engineered with caffeine & code by
             <img src={codelabsLogo} alt="CodeLabs" />
           </MadeBy>
-          <EasterEgg to="/admin/login" aria-label="Admin">Admin</EasterEgg>
-          <EasterEgg to="/snake" aria-label="Easter egg">
-            <FaGamepad size={13} />
-            psst…
-          </EasterEgg>
         </BottomBar>
       </Inner>
     </FooterEl>

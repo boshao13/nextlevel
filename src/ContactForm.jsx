@@ -3,6 +3,7 @@ import styled, { css, keyframes } from 'styled-components';
 import useScrollReveal from './useScrollReveal';
 import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
 import TurnstileWidget from './components/TurnstileWidget';
+import { ConcreteTexture } from './accents';
 
 /* ── Keyframes ────────────────────────────────────────────────────── */
 const fadeIn = keyframes`
@@ -20,46 +21,17 @@ const checkDraw = keyframes`
 `;
 
 const pulse = keyframes`
-  0%   { box-shadow: 0 4px 20px rgba(15, 76, 129, 0.3); }
-  50%  { box-shadow: 0 4px 40px rgba(15, 76, 129, 0.5), 0 0 0 6px rgba(15, 76, 129, 0.1); }
-  100% { box-shadow: 0 4px 20px rgba(15, 76, 129, 0.3); }
-`;
-
-const shimmer = keyframes`
-  0%   { left: -100%; }
-  100% { left: 100%; }
+  0%   { box-shadow: 0 4px 20px rgba(240, 165, 0, 0.25); }
+  50%  { box-shadow: 0 4px 40px rgba(240, 165, 0, 0.4), 0 0 0 6px rgba(240, 165, 0, 0.08); }
+  100% { box-shadow: 0 4px 20px rgba(240, 165, 0, 0.25); }
 `;
 
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
-  padding: 64px 24px;
-  background: linear-gradient(160deg, #0a3356 0%, var(--primary) 40%, #0d3f6e 100%);
+  padding: var(--section-pad) 24px;
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
   position: relative;
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -180px;
-    right: -120px;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.03);
-    pointer-events: none;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -200px;
-    left: -150px;
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.02);
-    pointer-events: none;
-  }
 `;
 
 const Inner = styled.div`
@@ -71,25 +43,26 @@ const Inner = styled.div`
 `;
 
 const SectionLabel = styled.p`
-  font-size: 0.78rem;
+  font-size: var(--fs-eyebrow);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--resin);
   margin-bottom: 14px;
 `;
 
 const Heading = styled.h2`
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: var(--fs-h2);
   font-weight: 800;
-  color: white;
+  letter-spacing: -0.02em;
+  color: var(--text-hi);
   margin-bottom: 10px;
   line-height: 1.2;
 `;
 
 const Subheading = styled.p`
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-body);
   margin-bottom: 6px;
 `;
 
@@ -97,11 +70,11 @@ const PhoneLink = styled.a`
   display: inline-block;
   font-size: 1.35rem;
   font-weight: 700;
-  color: white;
+  color: var(--resin-hot);
   margin-bottom: 12px;
   transition: opacity var(--transition);
 
-  &:hover { opacity: 0.75; }
+  &:hover { opacity: 0.8; }
 `;
 
 /* ── Trust Badges ─────────────────────────────────────────────────── */
@@ -118,30 +91,31 @@ const TrustBadge = styled.div`
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(24, 28, 34, 0.6);
+  border: 1px solid var(--line);
   border-radius: var(--radius-full);
   backdrop-filter: blur(4px);
 
   svg {
     flex-shrink: 0;
-    color: #4ade80;
+    color: var(--resin);
   }
 
   span {
     font-size: 0.82rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-body);
     white-space: nowrap;
   }
 `;
 
 /* ── Form Card ────────────────────────────────────────────────────── */
 const Card = styled.div`
-  background: white;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   padding: 32px 40px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-dk-lg);
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -159,13 +133,13 @@ const CardHeader = styled.div`
 const CardTitle = styled.h3`
   font-size: 1.35rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 6px;
 `;
 
 const CardSubtitle = styled.p`
   font-size: 0.92rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   line-height: 1.5;
 `;
 
@@ -178,7 +152,7 @@ const Label = styled.label`
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 7px;
   letter-spacing: 0.03em;
 `;
@@ -188,22 +162,23 @@ const inputBase = `
   padding: 12px 14px;
   font-size: 0.92rem;
   font-family: inherit;
-  color: var(--text);
-  background: var(--bg);
-  border: 1.5px solid #e2e8f0;
+  color: var(--text-hi);
+  background: var(--bg0);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-sm);
   outline: none;
   transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   box-sizing: border-box;
 
   &:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
-    background: white;
+    border-color: var(--resin);
+    box-shadow: 0 0 0 4px rgba(240, 165, 0, 0.14);
+    background: #0e1014;
   }
 
   &::placeholder {
-    color: #b0bac6;
+    color: var(--text-dim);
+    opacity: 0.8;
   }
 `;
 
@@ -227,14 +202,14 @@ const Row = styled.div`
 const SubmitBtn = styled.button`
   width: 100%;
   padding: 14px 32px;
-  background: ${({ disabled }) => (disabled ? '#c5d5e8' : 'var(--primary)')};
-  color: white;
+  background: ${({ disabled }) => (disabled ? 'var(--surface-2)' : 'var(--resin-grad)')};
+  color: ${({ disabled }) => (disabled ? 'var(--text-dim)' : '#14110a')};
   font-size: 1.05rem;
   font-weight: 700;
-  border: none;
+  border: ${({ disabled }) => (disabled ? '1px solid var(--line)' : 'none')};
   border-radius: var(--radius-full);
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  transition: background var(--transition), transform var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
   margin-top: 8px;
   position: relative;
   overflow: hidden;
@@ -243,32 +218,17 @@ const SubmitBtn = styled.button`
     animation: ${pulse} 3s ease-in-out infinite;
   `}
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
-    animation: ${shimmer} 3s ease-in-out infinite;
-  }
-
   &:hover:not(:disabled) {
-    background: var(--primary-dark);
+    filter: brightness(1.07);
     transform: translateY(-2px);
     animation: none;
-    box-shadow: 0 8px 28px rgba(15, 76, 129, 0.4);
-
-    &::after {
-      animation: none;
-      opacity: 0;
-    }
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
   }
 `;
 
 const Note = styled.p`
   font-size: 0.8rem;
-  color: var(--text-light);
+  color: var(--text-dim);
   text-align: center;
   margin-top: 16px;
   display: flex;
@@ -278,15 +238,15 @@ const Note = styled.p`
 
   svg {
     flex-shrink: 0;
-    color: #4ade80;
+    color: var(--resin);
   }
 `;
 
 const ErrorMsg = styled.p`
   font-size: 0.85rem;
-  color: #c62828;
-  background: #fde8e8;
-  border: 1px solid #f5c2c2;
+  color: #ffb4ab;
+  background: rgba(147, 0, 10, 0.22);
+  border: 1px solid rgba(255, 100, 90, 0.4);
   border-radius: 8px;
   padding: 10px 14px;
   margin-top: 12px;
@@ -308,7 +268,8 @@ const CheckCircle = styled.div`
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(15, 76, 129, 0.1));
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,15 +295,19 @@ const CheckCircle = styled.div`
 const SuccessTitle = styled.h3`
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--text-hi);
 `;
 
 const SuccessText = styled.p`
   font-size: 0.95rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   text-align: center;
   line-height: 1.6;
   max-width: 400px;
+
+  strong {
+    color: var(--text-hi);
+  }
 `;
 
 /* ── Component ────────────────────────────────────────────────────── */
@@ -417,6 +382,7 @@ const ContactForm = ({ source = 'contact_form' }) => {
 
   return (
     <Section id="contact">
+      <ConcreteTexture opacity={0.04} />
       <Inner ref={sectionRef} className={`reveal ${sectionVisible ? 'visible' : ''}`}>
         <SectionLabel>Free Estimate</SectionLabel>
         <Heading>Get Your Free Quote Today</Heading>
@@ -425,15 +391,15 @@ const ContactForm = ({ source = 'contact_form' }) => {
 
         <TrustBadges>
           <TrustBadge>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <span>Lifetime Warranty</span>
           </TrustBadge>
           <TrustBadge>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <span>560+ Floors Done</span>
           </TrustBadge>
           <TrustBadge>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>100% Free — No Obligation</span>
           </TrustBadge>
         </TrustBadges>
@@ -442,7 +408,7 @@ const ContactForm = ({ source = 'contact_form' }) => {
           {submitted ? (
             <SuccessBox>
               <CheckCircle>
-                <svg viewBox="0 0 24 24">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
                   <polyline points="6 12 10 16 18 8" />
                 </svg>
               </CheckCircle>
@@ -519,7 +485,7 @@ const ContactForm = ({ source = 'contact_form' }) => {
                 {sending ? 'Sending…' : 'Get My Free Quote →'}
               </SubmitBtn>
               <Note>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 We respond within 24 hours. Your info stays private — no spam, ever.
               </Note>
             </form>

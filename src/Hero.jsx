@@ -19,7 +19,8 @@ const HeroSection = styled.section`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: white;
+  color: var(--text-hi);
+  background: var(--bg0);
 
   video {
     position: absolute;
@@ -41,22 +42,23 @@ const Overlay = styled.div`
   inset: 0;
   z-index: 1;
   background:
+    radial-gradient(ellipse at 50% 38%, rgba(12, 14, 17, 0) 0%, rgba(12, 14, 17, 0.42) 78%),
     linear-gradient(
       to bottom,
-      rgba(5, 15, 35, 0.5) 0%,
-      rgba(5, 15, 35, 0.35) 50%,
-      rgba(5, 15, 35, 0.6) 75%,
-      white 100%
+      rgba(12, 14, 17, 0.62) 0%,
+      rgba(12, 14, 17, 0.32) 42%,
+      rgba(12, 14, 17, 0.66) 78%,
+      var(--bg0) 100%
     );
 
   @media (max-width: 768px) {
     background:
       linear-gradient(
         to bottom,
-        rgba(5, 15, 35, 0.35) 0%,
-        rgba(5, 15, 35, 0.25) 40%,
-        rgba(5, 15, 35, 0.65) 70%,
-        white 100%
+        rgba(12, 14, 17, 0.55) 0%,
+        rgba(12, 14, 17, 0.3) 40%,
+        rgba(12, 14, 17, 0.72) 74%,
+        var(--bg0) 100%
       );
   }
 `;
@@ -66,12 +68,12 @@ const HeroContent = styled.div`
   z-index: 2;
   text-align: center;
   padding: 0 28px;
-  max-width: 900px;
+  max-width: 980px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
+  gap: 24px;
 
   @media (max-width: 768px) {
     gap: 18px;
@@ -82,22 +84,22 @@ const HeroContent = styled.div`
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 22px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  gap: 9px;
+  padding: 9px 22px;
+  background: rgba(18, 21, 26, 0.55);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-full);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-hi);
   backdrop-filter: blur(12px);
 
   @media (max-width: 768px) {
-    font-size: 0.68rem;
-    padding: 7px 16px;
-    gap: 6px;
+    font-size: 0.66rem;
+    padding: 7px 15px;
+    gap: 7px;
   }
 
   &::before {
@@ -105,31 +107,40 @@ const Badge = styled.span`
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #4ade80;
-    box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+    background: var(--resin-hot);
+    box-shadow: 0 0 10px rgba(240, 165, 0, 0.8);
   }
 `;
 
 const Headline = styled.h1`
-  font-size: clamp(2.6rem, 5.5vw, 4rem);
+  font-size: var(--fs-hero);
   font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-  color: white;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--text-hi);
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.65);
+
+  em {
+    font-style: normal;
+    background: var(--resin-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--resin); /* fallback for non-clip browsers */
+  }
 
   @media (max-width: 768px) {
-    font-size: 2.6rem;
-    line-height: 1.1;
+    font-size: 2.7rem;
+    line-height: 1.08;
   }
 `;
 
 const Subtitle = styled.p`
-  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  font-size: var(--fs-lead);
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.92);
-  max-width: 560px;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+  color: var(--text-body);
+  max-width: 580px;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
   line-height: 1.65;
 
   @media (max-width: 768px) {
@@ -144,6 +155,7 @@ const ButtonRow = styled.div`
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
+  margin-top: 6px;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -153,21 +165,26 @@ const ButtonRow = styled.div`
 `;
 
 const PrimaryBtn = styled.button`
-  padding: 18px 40px;
-  background: var(--primary);
-  color: white;
+  padding: 18px 42px;
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 1.05rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
   border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(15, 76, 129, 0.5);
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 6px 26px rgba(240, 165, 0, 0.35);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 
   &:hover {
-    background: var(--primary-dark);
     transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(15, 76, 129, 0.6);
+    filter: brightness(1.07);
+    box-shadow: 0 10px 38px rgba(240, 165, 0, 0.45);
+  }
+
+  &:active {
+    transform: translateY(-1px);
   }
 
   @media (max-width: 768px) {
@@ -178,20 +195,20 @@ const PrimaryBtn = styled.button`
 `;
 
 const GhostBtn = styled.button`
-  padding: 18px 40px;
-  background: rgba(255, 255, 255, 0.08);
-  color: white;
+  padding: 18px 42px;
+  background: rgba(18, 21, 26, 0.35);
+  color: var(--text-hi);
   font-size: 1.05rem;
   font-weight: 600;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-full);
   cursor: pointer;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   transition: background var(--transition), border-color var(--transition), transform var(--transition);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.18);
-    border-color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.55);
     transform: translateY(-3px);
   }
 
@@ -204,9 +221,9 @@ const GhostBtn = styled.button`
 
 const TrustRow = styled.div`
   display: flex;
-  gap: 28px;
+  gap: 30px;
   align-items: center;
-  margin-top: 4px;
+  margin-top: 8px;
 
   @media (max-width: 600px) {
     gap: 16px;
@@ -218,14 +235,15 @@ const TrustRow = styled.div`
 const TrustItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 0.82rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-body);
   letter-spacing: 0.02em;
 
   svg {
     flex-shrink: 0;
+    color: var(--resin);
   }
 `;
 
@@ -238,6 +256,7 @@ const ScrollIndicator = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  opacity: 0.65;
 
   @media (max-width: 768px) {
     display: none;
@@ -247,7 +266,7 @@ const ScrollIndicator = styled.div`
     display: block;
     width: 24px;
     height: 38px;
-    border: 2px solid rgba(255, 255, 255, 0.45);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
     position: relative;
 
@@ -259,7 +278,7 @@ const ScrollIndicator = styled.div`
       transform: translateX(-50%);
       width: 4px;
       height: 8px;
-      background: white;
+      background: var(--resin);
       border-radius: 2px;
       animation: ${bounce} 1.6s infinite;
     }
@@ -299,13 +318,13 @@ const Hero = () => {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const desktopSrc = { webm: '/videos/hero-desktop.webm', mp4: '/videos/hero-desktop.mp4' };
-  const mobileSrc  = { webm: '/videos/hero-mobile.webm',  mp4: '/videos/hero-mobile.mp4'  };
+  const desktopSrc = { webm: '/videos/hero-desktop.webm', mp4: '/videos/hero-desktop.mp4', poster: '/videos/posters/hero-desktop.jpg' };
+  const mobileSrc  = { webm: '/videos/hero-mobile.webm',  mp4: '/videos/hero-mobile.mp4',  poster: '/videos/posters/hero-mobile.jpg'  };
   const src = isMobile ? mobileSrc : desktopSrc;
 
   return (
     <HeroSection>
-      <video ref={videoRef} autoPlay loop muted playsInline preload="metadata">
+      <video ref={videoRef} autoPlay loop muted playsInline preload="metadata" poster={src.poster}>
         <source src={src.webm} type="video/webm" />
         <source src={src.mp4}  type="video/mp4" />
       </video>
@@ -315,7 +334,7 @@ const Hero = () => {
         <Badge>Now Booking — Albuquerque, Santa Fe &amp; Rio Rancho</Badge>
         <Headline>
           If Your Garage Could Talk,<br />
-          It'd Call Us
+          <em>It'd Call Us</em>
         </Headline>
         <Subtitle>
           New Mexico's #1 epoxy &amp; polyaspartic flooring crew — Albuquerque, Santa Fe &amp;
@@ -327,15 +346,15 @@ const Hero = () => {
         </ButtonRow>
         <TrustRow>
           <TrustItem>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Lifetime Warranty
           </TrustItem>
           <TrustItem>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             560+ Floors Done
           </TrustItem>
           <TrustItem>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             5-Star Rated
           </TrustItem>
         </TrustRow>

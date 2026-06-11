@@ -2,6 +2,7 @@ import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
   :root {
+    /* ── Legacy tokens (admin CRM + not-yet-reskinned pages consume these — leave) ── */
     --primary:       #0f4c81;
     --primary-dark:  #0a3356;
     --primary-light: #1a6ab5;
@@ -21,6 +22,64 @@ const GlobalStyle = createGlobalStyle`
     --radius-lg:     28px;
     --radius-full:   9999px;
     --transition:    0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── Dark-showroom system (public site reskin) ─────────────────────
+       Breakpoints for new code (not vars — CSS can't): 600 / 900 / 1100px */
+
+    /* Surfaces — charcoal base, graphite elevations */
+    --bg0:         #0c0e11;
+    --bg1:         #12151a;
+    --surface:     #181c22;
+    --surface-2:   #1f242c;
+    --line:        rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.16);
+
+    /* Text on dark — tuned for WCAG AA */
+    --text-hi:   #f4f6f8;
+    --text-body: #c5cdd6;
+    --text-dim:  #97a1ac;
+
+    /* Resin amber (brand accent) + metallic blue (brand navy, lifted for dark) */
+    --resin:      #f0a500;
+    --resin-hot:  #ffc940;
+    --resin-deep: #b97e00;
+    --resin-grad: linear-gradient(135deg, #ffc940 0%, #f0a500 48%, #c98a00 100%);
+    --steel:      #6aa5d8;
+    --navy:       #0f4c81;
+
+    /* Depth on dark */
+    --shadow-dk-sm: 0 2px 10px rgba(0, 0, 0, 0.45);
+    --shadow-dk-md: 0 12px 36px rgba(0, 0, 0, 0.5);
+    --shadow-dk-lg: 0 28px 80px rgba(0, 0, 0, 0.6);
+    --glow-resin:   0 0 28px rgba(240, 165, 0, 0.22);
+
+    /* Type scale */
+    --fs-hero:    clamp(2.7rem, 6.5vw, 4.8rem);
+    --fs-h2:      clamp(2rem, 4.2vw, 3.1rem);
+    --fs-h3:      clamp(1.2rem, 2vw, 1.5rem);
+    --fs-lead:    clamp(1.05rem, 1.5vw, 1.25rem);
+    --fs-body:    1rem;
+    --fs-small:   0.875rem;
+    --fs-eyebrow: 0.8rem;
+
+    /* Spacing scale */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 16px;
+    --sp-4: 24px;
+    --sp-5: 32px;
+    --sp-6: 48px;
+    --sp-7: 64px;
+    --sp-8: 96px;
+    --section-pad: clamp(72px, 10vw, 136px);
+    --content-max: 1180px;
+
+    /* Motion */
+    --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur-fast:    0.18s;
+    --dur-med:     0.45s;
+    --dur-slow:    0.8s;
   }
 
   *, *::before, *::after {
@@ -57,14 +116,27 @@ const GlobalStyle = createGlobalStyle`
     color: inherit;
   }
 
-  /* Hidden SEO h1 */
-  body > h1 {
+  ::selection {
+    background: rgba(240, 165, 0, 0.85);
+    color: #14110a;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--resin);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .sr-only {
     position: absolute;
     width: 1px;
     height: 1px;
+    padding: 0;
+    margin: -1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+    border: 0;
   }
 
   /* ── Scroll-reveal utility classes ──────────────────────────────── */
@@ -125,6 +197,22 @@ const GlobalStyle = createGlobalStyle`
   .stagger > *:nth-child(6) { transition-delay: 0.5s; }
   .stagger > *:nth-child(7) { transition-delay: 0.6s; }
   .stagger > *:nth-child(8) { transition-delay: 0.7s; }
+
+  /* ── Reduced motion: everything lands instantly, nothing loops ──── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+    .reveal, .reveal-left, .reveal-right, .reveal-scale {
+      opacity: 1;
+      transform: none;
+    }
+  }
 `;
 
 export default GlobalStyle;

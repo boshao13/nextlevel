@@ -12,7 +12,7 @@ const CareersContainer = styled.section`
   color: #0f4c81;
 `;
 
-const CareersHeading = styled.h2`
+const CareersHeading = styled.h1`
   font-size: 2.5rem;
   margin-bottom: 20px;
   margin-top: 60px;

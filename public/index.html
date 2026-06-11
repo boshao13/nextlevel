@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/favicon-192.png" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f4c81" />
+    <meta name="theme-color" content="#0c0e11" />
 
     <!-- SEO Meta Description (≤160 chars, leads with geo + service, ends with CTA) -->
     <meta
@@ -119,9 +119,13 @@
 
     <!-- Custom Fonts -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Dancing+Script:wght@600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Hero video posters: paint the hero before video data arrives -->
+    <link rel="preload" as="image" href="/videos/posters/hero-desktop.jpg" media="(min-width: 769px)" />
+    <link rel="preload" as="image" href="/videos/posters/hero-mobile.jpg" media="(max-width: 768px)" />
 
     <!-- Google Analytics (GA4) + Google Ads (AW) — gtag.js is loaded once and
          routes to both destinations via separate config calls. -->
@@ -138,32 +142,12 @@
     <style>
       body {
         font-family: 'Poppins', sans-serif;
-        background-color: #f0f0f0;
+        background-color: #0c0e11;
         margin: 0;
-      }
-      /* Pre-React fallback H1 stays in DOM for crawlers but is invisible/inaudible
-         when not needed — the React Hero renders the canonical visual H1. */
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
       }
     </style>
   </head>
   <body>
-    <h1 class="sr-only">Epoxy Flooring in Albuquerque, Santa Fe & Rio Rancho, NM — Next Level Epoxy</h1>
-
-    <!-- JavaScript Notice -->
-    <noscript>
-      NEXT LEVEL EPOXY FLOORING offers professional epoxy flooring services, including garage epoxy coatings, concrete overlays, and industrial epoxy applications in Albuquerque and Santa Fe, NM. We provide solutions for residential, commercial, and industrial properties across New Mexico. Contact us for durable and attractive epoxy flooring.
-    </noscript>
-
     <!-- Main React App Root -->
     <div id="root"></div>
   </body>

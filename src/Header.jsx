@@ -4,6 +4,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiPhone, FiHome, FiBriefcase, FiTool, FiMail, FiDroplet } from 'react-icons/fi';
 import { trackPhoneClick } from './lib/analytics';
 
+const glassDark = css`
+  background: rgba(12, 14, 17, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 var(--line), var(--shadow-dk-sm);
+`;
+
 const HeaderContainer = styled.header`
   position: fixed;
   top: 0;
@@ -18,40 +25,18 @@ const HeaderContainer = styled.header`
   transition: background var(--transition), box-shadow var(--transition);
 
   ${({ $scrolled, $subpage }) =>
-    $subpage
-      ? css`
-          background: var(--primary);
+    $subpage || $scrolled
+      ? glassDark
+      : css`
+          background: transparent;
           backdrop-filter: none;
-          box-shadow: 0 2px 12px rgba(15, 76, 129, 0.3);
-        `
-      : $scrolled
-        ? css`
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 1px 0 rgba(15, 76, 129, 0.08), var(--shadow-sm);
-          `
-        : css`
-            background: transparent;
-            backdrop-filter: none;
-            box-shadow: none;
-          `}
+          box-shadow: none;
+        `}
 
   @media (max-width: 768px) {
     padding: 0 20px;
     height: 64px;
-    ${({ $subpage }) =>
-      $subpage
-        ? css`
-            background: var(--primary);
-            box-shadow: 0 2px 12px rgba(15, 76, 129, 0.3);
-          `
-        : css`
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: var(--shadow-sm);
-          `}
+    ${glassDark}
   }
 `;
 
@@ -65,16 +50,12 @@ const LogoLink = styled(Link)`
 const LogoImg = styled.img`
   height: 48px;
   width: auto;
-  transition: opacity var(--transition), filter var(--transition);
-  filter: ${({ $scrolled, $subpage }) =>
-    $subpage ? 'brightness(0) invert(1)' : $scrolled ? 'none' : 'brightness(0) invert(1)'};
+  /* White wordmark on the dark theme, all states */
+  filter: brightness(0) invert(1);
+  transition: opacity var(--transition);
 
   &:hover {
     opacity: 0.85;
-  }
-
-  @media (max-width: 768px) {
-    filter: ${({ $subpage }) => ($subpage ? 'brightness(0) invert(1)' : 'none')};
   }
 `;
 
@@ -88,45 +69,13 @@ const Nav = styled.nav`
   }
 `;
 
-const NavLink = styled(Link)`
+const navItem = css`
   position: relative;
   padding: 8px 14px;
   font-size: 0.92rem;
   font-weight: 500;
-  color: ${({ $scrolled, $subpage }) =>
-    $subpage ? 'rgba(255,255,255,0.92)' : $scrolled ? 'var(--text)' : 'rgba(255,255,255,0.92)'};
+  color: var(--text-body);
   border-radius: var(--radius-sm);
-  transition: color var(--transition), background var(--transition);
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 14px;
-    right: 14px;
-    height: 2px;
-    background: ${({ $subpage }) => ($subpage ? 'white' : 'var(--primary)')};
-    border-radius: 2px;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.25s var(--ease);
-  }
-
-  &:hover {
-    color: ${({ $subpage }) => ($subpage ? 'white' : 'var(--primary)')};
-    &::after { transform: scaleX(1); }
-  }
-`;
-
-const NavAnchor = styled.a`
-  position: relative;
-  padding: 8px 14px;
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: ${({ $scrolled, $subpage }) =>
-    $subpage ? 'rgba(255,255,255,0.92)' : $scrolled ? 'var(--text)' : 'rgba(255,255,255,0.92)'};
-  border-radius: var(--radius-sm);
-  cursor: pointer;
   transition: color var(--transition);
 
   &::after {
@@ -136,17 +85,26 @@ const NavAnchor = styled.a`
     left: 14px;
     right: 14px;
     height: 2px;
-    background: ${({ $subpage }) => ($subpage ? 'white' : 'var(--primary)')};
+    background: var(--resin);
     border-radius: 2px;
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform 0.25s var(--ease);
+    transition: transform 0.25s var(--ease-out);
   }
 
   &:hover {
-    color: ${({ $subpage }) => ($subpage ? 'white' : 'var(--primary)')};
+    color: var(--text-hi);
     &::after { transform: scaleX(1); }
   }
+`;
+
+const NavLink = styled(Link)`
+  ${navItem}
+`;
+
+const NavAnchor = styled.a`
+  ${navItem}
+  cursor: pointer;
 `;
 
 const PhoneButton = styled.a`
@@ -154,21 +112,19 @@ const PhoneButton = styled.a`
   align-items: center;
   gap: 7px;
   padding: 10px 20px;
-  background: ${({ $subpage }) => ($subpage ? 'white' : 'var(--primary)')};
-  color: ${({ $subpage }) => ($subpage ? 'var(--primary)' : 'white')};
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: var(--radius-full);
   margin-left: 8px;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-  box-shadow: ${({ $subpage }) =>
-    $subpage ? '0 2px 12px rgba(0,0,0,0.15)' : '0 2px 12px rgba(15, 76, 129, 0.25)'};
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+  box-shadow: 0 2px 14px rgba(240, 165, 0, 0.3);
 
   &:hover {
-    background: ${({ $subpage }) => ($subpage ? 'rgba(255,255,255,0.85)' : 'var(--primary-dark)')};
+    filter: brightness(1.07);
     transform: translateY(-2px);
-    box-shadow: ${({ $subpage }) =>
-      $subpage ? '0 4px 20px rgba(0,0,0,0.2)' : '0 4px 20px rgba(15, 76, 129, 0.4)'};
+    box-shadow: 0 4px 22px rgba(240, 165, 0, 0.42);
   }
 
   @media (max-width: 900px) {
@@ -198,7 +154,7 @@ const HamburgerBtn = styled.button`
     display: block;
     width: 24px;
     height: 2.5px;
-    background: ${({ $subpage }) => ($subpage ? 'white' : 'var(--primary)')};
+    background: var(--text-hi);
     border-radius: 2px;
     position: absolute;
     left: 4px;
@@ -230,7 +186,7 @@ const HamburgerBtn = styled.button`
 const MobileOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(10, 18, 35, 0.55);
+  background: rgba(5, 6, 8, 0.7);
   z-index: 998;
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   pointer-events: ${({ $open }) => ($open ? 'all' : 'none')};
@@ -243,15 +199,17 @@ const MobileMenu = styled.nav`
   right: 0;
   width: min(320px, 88vw);
   height: 100%;
-  background: white;
+  background: var(--bg1);
+  border-left: 1px solid var(--line);
   z-index: 999;
   display: flex;
   flex-direction: column;
   padding: 80px 32px 40px;
   gap: 4px;
+  overflow-y: auto;
   transform: ${({ $open }) => ($open ? 'translateX(0)' : 'translateX(100%)')};
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.15);
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.5);
 `;
 
 const MobileNavLink = styled(Link)`
@@ -259,12 +217,12 @@ const MobileNavLink = styled(Link)`
   padding: 14px 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
+  color: var(--text-hi);
+  border-bottom: 1px solid var(--line);
   transition: color var(--transition), padding-left var(--transition);
 
   &:hover {
-    color: var(--primary);
+    color: var(--resin-hot);
     padding-left: 6px;
   }
 `;
@@ -276,7 +234,7 @@ const MobileSectionLabel = styled.div`
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(15, 76, 129, 0.55);
+  color: var(--text-dim);
 `;
 
 const MobileSubLink = styled(Link)`
@@ -284,12 +242,12 @@ const MobileSubLink = styled(Link)`
   padding: 12px 0;
   font-size: 1rem;
   font-weight: 500;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
+  color: var(--text-body);
+  border-bottom: 1px solid var(--line);
   transition: color var(--transition), padding-left var(--transition);
 
   &:hover {
-    color: var(--primary);
+    color: var(--resin-hot);
     padding-left: 6px;
   }
 `;
@@ -299,13 +257,13 @@ const MobileNavAnchor = styled.a`
   padding: 14px 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
+  color: var(--text-hi);
+  border-bottom: 1px solid var(--line);
   cursor: pointer;
   transition: color var(--transition), padding-left var(--transition);
 
   &:hover {
-    color: var(--primary);
+    color: var(--resin-hot);
     padding-left: 6px;
   }
 `;
@@ -317,15 +275,15 @@ const MobilePhoneBtn = styled.a`
   gap: 8px;
   margin-top: 24px;
   padding: 14px 20px;
-  background: var(--primary);
-  color: white;
+  background: var(--resin-grad);
+  color: #14110a;
   font-weight: 700;
   border-radius: var(--radius-md);
   font-size: 1rem;
-  transition: background var(--transition);
+  transition: filter var(--transition);
 
   &:hover {
-    background: var(--primary-dark);
+    filter: brightness(1.07);
   }
 `;
 
@@ -339,9 +297,11 @@ const BottomTabBar = styled.nav`
     left: 0;
     right: 0;
     z-index: 1000;
-    background: white;
-    border-top: 1px solid rgba(15, 76, 129, 0.1);
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+    background: rgba(12, 14, 17, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.4);
     padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
     justify-content: space-around;
     align-items: center;
@@ -357,7 +317,7 @@ const TabItem = styled(Link)`
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: ${({ $active }) => ($active ? 'var(--primary)' : 'rgba(15, 76, 129, 0.5)')};
+  color: ${({ $active }) => ($active ? 'var(--resin)' : 'var(--text-dim)')};
   transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 
@@ -379,7 +339,7 @@ const TabAnchor = styled.a`
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: rgba(15, 76, 129, 0.5);
+  color: var(--text-dim);
   cursor: pointer;
   transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
@@ -441,29 +401,27 @@ const Header = () => {
       <HeaderContainer $scrolled={scrolled} $subpage={isSubpage}>
         <LogoLink to="/">
           <LogoImg
-            $scrolled={scrolled}
-            $subpage={isSubpage}
             src={`${process.env.PUBLIC_URL}/nextlevellogo.png`}
             alt="Next Level Epoxy Flooring"
           />
         </LogoLink>
 
         <Nav>
-          <NavLink to="/" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Home</NavLink>
-          <NavLink to="/commercial" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Commercial</NavLink>
-          <NavLink to="/garagemakeover" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Garage Makeover</NavLink>
-          <NavLink to="/patios" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Patios</NavLink>
-          <NavLink to="/colors" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Colors</NavLink>
-          <NavLink to="/polished-concrete" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Polished Concrete</NavLink>
-          <NavLink to="/careers" $scrolled={scrolled} $subpage={isSubpage} onClick={handleNavClick}>Careers</NavLink>
-          <NavAnchor href="#contact" onClick={handleContactClick} $scrolled={scrolled} $subpage={isSubpage}>Contact</NavAnchor>
-          <PhoneButton href="tel:5053524674" $subpage={isSubpage} onClick={() => trackPhoneClick('header_desktop')}>
+          <NavLink to="/" onClick={handleNavClick}>Home</NavLink>
+          <NavLink to="/commercial" onClick={handleNavClick}>Commercial</NavLink>
+          <NavLink to="/garagemakeover" onClick={handleNavClick}>Garage Makeover</NavLink>
+          <NavLink to="/patios" onClick={handleNavClick}>Patios</NavLink>
+          <NavLink to="/colors" onClick={handleNavClick}>Colors</NavLink>
+          <NavLink to="/polished-concrete" onClick={handleNavClick}>Polished Concrete</NavLink>
+          <NavLink to="/careers" onClick={handleNavClick}>Careers</NavLink>
+          <NavAnchor href="#contact" onClick={handleContactClick}>Contact</NavAnchor>
+          <PhoneButton href="tel:5053524674" onClick={() => trackPhoneClick('header_desktop')}>
             <FiPhone size={14} />
             505-352-4674
           </PhoneButton>
         </Nav>
 
-        <HamburgerBtn onClick={() => setIsOpen(!isOpen)} $open={isOpen} $subpage={isSubpage} aria-label={isOpen ? 'Close menu' : 'Open menu'}>
+        <HamburgerBtn onClick={() => setIsOpen(!isOpen)} $open={isOpen} aria-label={isOpen ? 'Close menu' : 'Open menu'}>
           <span />
           <span />
           <span />

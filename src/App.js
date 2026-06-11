@@ -25,6 +25,7 @@ import StickyCallButton from "./StickyCallButton";
 import LocationPage from "./LocationPage";
 import PolishedConcreteDivision from "./PolishedConcreteDivision";
 import { ALBUQUERQUE, SANTA_FE, RIO_RANCHO } from "./locations";
+import { PourDivider, ResinSwirl } from "./accents";
 
 // Admin imports
 import Login from "./admin/Login";
@@ -100,8 +101,10 @@ function App() {
                     <meta name="twitter:image" content="https://www.nextlevelepoxynm.com/images/twitter-image.jpg" />
                   </Helmet>
                   <Hero />
+                  <PourDivider style={{ background: 'var(--bg0)' }} />
                   <EpoxyInfo />
                   <Warranty />
+                  <ResinSwirl style={{ background: 'var(--bg0)' }} />
                   <FlakeCarousel />
                   <Gallery />
                   <Testimonials />

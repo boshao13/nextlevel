@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import useScrollReveal from './useScrollReveal';
+import { GlossSweep, GrindRing, ConcreteTexture } from './accents';
 
 /* ── Keyframes ────────────────────────────────────────────────────── */
 const spin = keyframes`
@@ -8,38 +9,25 @@ const spin = keyframes`
   to   { transform: rotate(360deg); }
 `;
 
-const pulseGlow = keyframes`
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1); }
-  50%      { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
-`;
-
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
-  background: linear-gradient(160deg, #0a3356 0%, var(--primary) 40%, #0d3f6e 100%);
-  padding: 110px 24px;
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
+  padding: var(--section-pad) 24px;
   overflow: hidden;
   position: relative;
+`;
 
-  &::before, &::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.03);
-    pointer-events: none;
-  }
+const BgRing = styled(GrindRing)`
+  position: absolute;
+  top: -140px;
+  right: -120px;
+  color: var(--steel);
+  opacity: 0.1;
+  pointer-events: none;
 
-  &::before {
-    width: 600px;
-    height: 600px;
+  @media (max-width: 900px) {
     top: -200px;
-    right: -150px;
-  }
-
-  &::after {
-    width: 400px;
-    height: 400px;
-    bottom: -150px;
-    left: -100px;
+    right: -200px;
   }
 `;
 
@@ -52,19 +40,20 @@ const Inner = styled.div`
 
 const SectionLabel = styled.p`
   text-align: center;
-  font-size: 0.78rem;
+  font-size: var(--fs-eyebrow);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--resin);
   margin-bottom: 14px;
 `;
 
 const SectionTitle = styled.h2`
   text-align: center;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-size: var(--fs-h2);
   font-weight: 800;
-  color: white;
+  letter-spacing: -0.02em;
+  color: var(--text-hi);
   margin-bottom: 64px;
   line-height: 1.2;
 `;
@@ -89,7 +78,7 @@ const TextSide = styled.div`
 
 const WarrantyText = styled.p`
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-body);
   line-height: 1.8;
 `;
 
@@ -106,7 +95,7 @@ const FeatureItem = styled.li`
   align-items: flex-start;
   gap: 14px;
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-hi);
   font-weight: 500;
   opacity: 0;
   transform: translateX(-20px);
@@ -123,15 +112,15 @@ const FeatureItem = styled.li`
     flex-shrink: 0;
     width: 28px;
     height: 28px;
-    background: rgba(74, 222, 128, 0.2);
-    border: 1px solid rgba(74, 222, 128, 0.3);
+    background: rgba(240, 165, 0, 0.14);
+    border: 1px solid rgba(240, 165, 0, 0.35);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #4ade80;
+    color: var(--resin-hot);
     margin-top: 1px;
   }
 `;
@@ -151,23 +140,23 @@ const WarrantyBadge = styled.div`
   width: 230px;
   height: 230px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.06);
+  border: 3px solid rgba(240, 165, 0, 0.4);
+  background: rgba(24, 28, 34, 0.75);
   backdrop-filter: blur(12px);
+  box-shadow: var(--glow-resin), var(--shadow-dk-md);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
   position: relative;
-  animation: ${pulseGlow} 3s ease-in-out infinite;
 
   &::before {
     content: '';
     position: absolute;
     inset: -14px;
     border-radius: 50%;
-    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border: 2px dashed rgba(240, 165, 0, 0.22);
     animation: ${spin} 18s linear infinite;
   }
 
@@ -186,13 +175,13 @@ const BadgeWord = styled.span`
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-dim);
 `;
 
 const BadgeBig = styled.span`
   font-size: 1.6rem;
   font-weight: 800;
-  color: white;
+  color: var(--text-hi);
   text-align: center;
   line-height: 1.15;
 `;
@@ -203,13 +192,12 @@ const BadgeStar = styled.span`
 `;
 
 const QuoteBox = styled.div`
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 28px 28px;
   width: 100%;
   text-align: center;
-  backdrop-filter: blur(8px);
   position: relative;
 
   &::before {
@@ -218,7 +206,7 @@ const QuoteBox = styled.div`
     top: 12px;
     left: 18px;
     font-size: 3rem;
-    color: rgba(255, 255, 255, 0.1);
+    color: rgba(240, 165, 0, 0.18);
     font-family: Georgia, serif;
     line-height: 1;
   }
@@ -227,21 +215,21 @@ const QuoteBox = styled.div`
 const QuoteText = styled.p`
   font-size: 0.95rem;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-body);
   line-height: 1.65;
 `;
 
 const QuoteAuthor = styled.p`
   font-size: 0.82rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-dim);
   margin-top: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 `;
 
 const Asterisk = styled.sup`
-  color: rgba(250, 204, 21, 0.9);
+  color: var(--resin-hot);
   font-weight: 700;
   margin-left: 1px;
 `;
@@ -249,12 +237,12 @@ const Asterisk = styled.sup`
 const FootnoteText = styled.p`
   font-size: 0.82rem;
   line-height: 1.65;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-dim);
   padding-left: 14px;
-  border-left: 2px solid rgba(250, 204, 21, 0.4);
+  border-left: 2px solid rgba(240, 165, 0, 0.45);
 
   strong {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-body);
     font-weight: 600;
   }
 `;
@@ -264,12 +252,12 @@ const SlipDisclaimer = styled.p`
   margin: 56px auto 0;
   font-size: 0.75rem;
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-dim);
   text-align: center;
   padding: 0 16px;
 
   strong {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-body);
     font-weight: 600;
   }
 `;
@@ -289,6 +277,8 @@ const Warranty = () => {
 
   return (
     <Section>
+      <ConcreteTexture opacity={0.04} />
+      <BgRing size={520} aria-hidden="true" />
       <Inner>
         <div ref={headerRef} className={`reveal ${headerVisible ? 'visible' : ''}`}>
           <SectionLabel>Our Promise</SectionLabel>
@@ -299,7 +289,7 @@ const Warranty = () => {
           <TextSide ref={textRef}>
             <div className={`reveal ${textVisible ? 'visible' : ''}`}>
               <WarrantyText>
-                We're so confident in the quality and durability of our epoxy flooring system that we offer a <strong style={{ color: 'white' }}>lifetime warranty</strong> on every floor we install<Asterisk>*</Asterisk>. When you choose Next Level, you're not just getting a beautiful floor — you're getting complete peace of mind.
+                We're so confident in the quality and durability of our epoxy flooring system that we offer a <strong style={{ color: 'var(--text-hi)' }}>lifetime warranty</strong> on every floor we install<Asterisk>*</Asterisk>. When you choose Next Level, you're not just getting a beautiful floor — you're getting complete peace of mind.
               </WarrantyText>
             </div>
             <div className={`reveal ${textVisible ? 'visible' : ''}`} style={{ transitionDelay: '0.15s' }}>
@@ -318,10 +308,11 @@ const Warranty = () => {
 
           <BadgeSide ref={badgeRef} className={`reveal-scale ${badgeVisible ? 'visible' : ''}`}>
             <WarrantyBadge>
+              <GlossSweep active={badgeVisible} />
               <BadgeWord>Next Level</BadgeWord>
               <BadgeBig>Lifetime<br />Warranty</BadgeBig>
               <BadgeStar>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#facc15" stroke="#facc15" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--resin-hot)" stroke="var(--resin-hot)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </BadgeStar>
               <BadgeWord>Guaranteed</BadgeWord>
             </WarrantyBadge>

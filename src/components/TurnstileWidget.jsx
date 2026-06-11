@@ -33,7 +33,7 @@ function loadTurnstileScript() {
   return p;
 }
 
-const TurnstileWidget = ({ onToken }) => {
+const TurnstileWidget = ({ onToken, theme = 'dark' }) => {
   const ref = useRef(null);
   const widgetIdRef = useRef(null);
   const siteKey = process.env.REACT_APP_TURNSTILE_SITE_KEY;
@@ -50,7 +50,7 @@ const TurnstileWidget = ({ onToken }) => {
           callback: (token) => onToken && onToken(token),
           'error-callback': () => onToken && onToken(''),
           'expired-callback': () => onToken && onToken(''),
-          theme: 'light',
+          theme,
         });
       })
       .catch((err) => console.error('TurnstileWidget:', err));
@@ -61,7 +61,7 @@ const TurnstileWidget = ({ onToken }) => {
         try { window.turnstile.remove(widgetIdRef.current); } catch (e) { /* ignore */ }
       }
     };
-  }, [siteKey, onToken]);
+  }, [siteKey, onToken, theme]);
 
   // Without a site key, render nothing — forms work as they always did.
   if (!siteKey) return null;

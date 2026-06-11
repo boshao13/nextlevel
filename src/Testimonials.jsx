@@ -1,12 +1,6 @@
 import React from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import useScrollReveal from './useScrollReveal';
-
-/* ── Keyframes ────────────────────────────────────────────────────── */
-const float = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
-`;
 
 /* ── Data ─────────────────────────────────────────────────────────── */
 const testimonials = [
@@ -32,8 +26,8 @@ const testimonials = [
 
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
-  padding: 64px 24px;
-  background: white;
+  padding: var(--section-pad) 24px;
+  background: var(--bg0);
   overflow: hidden;
 `;
 
@@ -44,28 +38,29 @@ const Inner = styled.div`
 
 const SectionLabel = styled.p`
   text-align: center;
-  font-size: 0.78rem;
+  font-size: var(--fs-eyebrow);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--resin);
   margin-bottom: 14px;
 `;
 
 const SectionTitle = styled.h2`
   text-align: center;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-size: var(--fs-h2);
   font-weight: 800;
-  color: var(--text);
+  letter-spacing: -0.02em;
+  color: var(--text-hi);
   margin-bottom: 16px;
 `;
 
 const SectionSubtitle = styled.p`
   text-align: center;
   font-size: 1.05rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   max-width: 480px;
-  margin: 0 auto 36px;
+  margin: 0 auto 44px;
   line-height: 1.7;
 `;
 
@@ -82,19 +77,18 @@ const Grid = styled.div`
 `;
 
 const TestimonialCard = styled.div`
-  background: var(--bg);
+  background: var(--surface);
   border-radius: var(--radius-md);
   padding: 24px 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   position: relative;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 
   /* Stagger reveal */
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
               box-shadow 0.35s ease;
   transition-delay: ${({ $delay }) => $delay || '0s'};
 
@@ -105,7 +99,8 @@ const TestimonialCard = styled.div`
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    border-color: rgba(240, 165, 0, 0.3);
+    box-shadow: var(--shadow-dk-md);
   }
 
   &::before {
@@ -115,8 +110,8 @@ const TestimonialCard = styled.div`
     right: 28px;
     font-size: 4rem;
     font-family: Georgia, serif;
-    color: var(--primary);
-    opacity: 0.08;
+    color: var(--resin);
+    opacity: 0.14;
     line-height: 1;
     pointer-events: none;
   }
@@ -129,13 +124,13 @@ const Stars = styled.div`
 `;
 
 const Star = styled.span`
-  color: #f59e0b;
+  color: var(--resin-hot);
   font-size: 1rem;
 `;
 
 const QuoteText = styled.p`
   font-size: 0.85rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   line-height: 1.6;
   margin-bottom: 16px;
   font-style: italic;
@@ -151,11 +146,11 @@ const Avatar = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  background: var(--resin-grad);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #14110a;
   font-size: 1rem;
   font-weight: 700;
   flex-shrink: 0;
@@ -166,19 +161,18 @@ const AuthorInfo = styled.div``;
 const AuthorName = styled.p`
   font-size: 0.92rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-hi);
 `;
 
 const AuthorLocation = styled.p`
   font-size: 0.78rem;
-  color: var(--text-light);
+  color: var(--text-dim);
 `;
 
 /* ── Bottom CTA ──────────────────────────────────────────────────── */
 const CtaRow = styled.div`
-  margin-top: 36px;
+  margin-top: 44px;
   text-align: center;
-  animation: ${float} 4s ease-in-out infinite;
 
   /* Reveal */
   opacity: 0;
@@ -194,25 +188,26 @@ const CtaRow = styled.div`
 const CtaText = styled.p`
   font-size: 1.15rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 16px;
 `;
 
 const CtaButton = styled.button`
   padding: 16px 36px;
-  background: var(--primary);
-  color: white;
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 1rem;
   font-weight: 700;
   border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 4px 22px rgba(240, 165, 0, 0.3);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 
   &:hover {
-    background: var(--primary-dark);
+    filter: brightness(1.07);
     transform: translateY(-3px);
-    box-shadow: 0 8px 28px rgba(15, 76, 129, 0.35);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.42);
   }
 `;
 
@@ -240,14 +235,14 @@ const Testimonials = () => {
         <Grid ref={gridRef}>
           {testimonials.map((t, i) => (
             <TestimonialCard key={i} $visible={gridVisible} $delay={`${i * 0.15}s`}>
-              <Stars>
+              <Stars aria-label={`${t.rating} out of 5 stars`}>
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j}>★</Star>
+                  <Star key={j} aria-hidden="true">★</Star>
                 ))}
               </Stars>
               <QuoteText>{t.text}</QuoteText>
               <Author>
-                <Avatar>{t.name.charAt(0)}</Avatar>
+                <Avatar aria-hidden="true">{t.name.charAt(0)}</Avatar>
                 <AuthorInfo>
                   <AuthorName>{t.name}</AuthorName>
                   <AuthorLocation>{t.location}</AuthorLocation>

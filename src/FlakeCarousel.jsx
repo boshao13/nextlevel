@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import useScrollReveal from './useScrollReveal';
+import { FlakeField } from './accents';
 
 import coyote from './images/flakes/coyote.jpg';
 import creekbed from './images/flakes/creekbed.jpg';
@@ -26,8 +27,8 @@ const flakes = [
 
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
-  padding: 70px 24px 110px;
-  background: white;
+  padding: var(--section-pad) 24px;
+  background: var(--bg0);
 `;
 
 const Inner = styled.div`
@@ -37,29 +38,37 @@ const Inner = styled.div`
 
 const SectionLabel = styled.p`
   text-align: center;
-  font-size: 0.78rem;
+  font-size: var(--fs-eyebrow);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--resin);
   margin-bottom: 14px;
 `;
 
 const SectionTitle = styled.h2`
   text-align: center;
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-size: var(--fs-h2);
   font-weight: 800;
-  color: var(--text);
+  letter-spacing: -0.02em;
+  color: var(--text-hi);
   margin-bottom: 16px;
 `;
 
 const SectionSubtitle = styled.p`
   text-align: center;
   font-size: 1.05rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   max-width: 540px;
-  margin: 0 auto 60px;
+  margin: 0 auto 16px;
   line-height: 1.7;
+`;
+
+/* Flakes scattering down and settling onto the swatch grid */
+const SettleStrip = styled(FlakeField)`
+  width: 100%;
+  height: 64px;
+  margin-bottom: 8px;
 `;
 
 const Grid = styled.div`
@@ -80,12 +89,15 @@ const Grid = styled.div`
 const Card = styled.div`
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-dk-sm);
   cursor: default;
   opacity: 0;
   transform: translateY(24px) scale(0.97);
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
               box-shadow 0.35s ease;
   transition-delay: ${({ $delay }) => $delay || '0s'};
 
@@ -96,7 +108,8 @@ const Card = styled.div`
 
   &:hover {
     transform: translateY(-6px) scale(1.02);
-    box-shadow: var(--shadow-md);
+    border-color: rgba(240, 165, 0, 0.4);
+    box-shadow: var(--shadow-dk-md), var(--glow-resin);
   }
 `;
 
@@ -113,7 +126,8 @@ const SwatchImg = styled.img`
 
 const CardBody = styled.div`
   padding: 12px 16px 14px;
-  background: white;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -122,14 +136,14 @@ const CardBody = styled.div`
 const ColorName = styled.p`
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-hi);
 `;
 
 const PopularBadge = styled.span`
   display: inline-block;
   padding: 2px 10px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  color: white;
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 0.62rem;
   font-weight: 700;
   border-radius: var(--radius-full);
@@ -147,21 +161,21 @@ const ViewAllBtn = styled(Link)`
   align-items: center;
   gap: 8px;
   padding: 16px 36px;
-  background: var(--primary);
-  color: white;
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 1rem;
   font-weight: 700;
   border: none;
   border-radius: var(--radius-full);
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(15, 76, 129, 0.3);
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 4px 22px rgba(240, 165, 0, 0.3);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 
   &:hover {
-    background: var(--primary-dark);
+    filter: brightness(1.07);
     transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(15, 76, 129, 0.4);
+    box-shadow: 0 8px 32px rgba(240, 165, 0, 0.42);
   }
 
   svg {
@@ -185,6 +199,15 @@ const FlakeCarousel = () => {
           </SectionSubtitle>
         </div>
 
+        <SettleStrip
+          palette="coyote"
+          count={56}
+          seed={13}
+          area={[1100, 64]}
+          settle
+          visible={gridVisible}
+        />
+
         <Grid ref={gridRef}>
           {flakes.map((f, i) => (
             <Card
@@ -204,7 +227,7 @@ const FlakeCarousel = () => {
         <ButtonWrap className={`reveal ${gridVisible ? 'visible' : ''}`}>
           <ViewAllBtn to="/colors" onClick={() => window.scrollTo(0, 0)}>
             View All Colors
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </ViewAllBtn>
