@@ -9,7 +9,7 @@ const Section = styled.section`
   align-items: center;
   justify-content: center;
   padding: 80px 24px;
-  background: var(--bg);
+  background: var(--bg0);
 `;
 
 const Inner = styled.div`
@@ -17,8 +17,9 @@ const Inner = styled.div`
   text-align: center;
 `;
 
-// Decorative gold flake accent — a small scatter of flecks nodding to the
-// flake-epoxy work. Purely visual; hidden from assistive tech.
+// Decorative flake accent — a small scatter of flecks nodding to the
+// flake-epoxy work, in the flake-blend palette. Purely visual; hidden
+// from assistive tech.
 const Flakes = styled.div`
   display: flex;
   gap: 8px;
@@ -28,13 +29,12 @@ const Flakes = styled.div`
   span {
     display: block;
     border-radius: 50%;
-    background: var(--accent);
   }
-  span:nth-child(1) { width: 8px;  height: 8px;  opacity: 0.55; }
-  span:nth-child(2) { width: 14px; height: 14px; }
-  span:nth-child(3) { width: 6px;  height: 6px;  opacity: 0.7; }
-  span:nth-child(4) { width: 11px; height: 11px; opacity: 0.85; }
-  span:nth-child(5) { width: 7px;  height: 7px;  opacity: 0.5; }
+  span:nth-child(1) { width: 8px;  height: 8px;  background: #b99a6b; opacity: 0.75; }
+  span:nth-child(2) { width: 14px; height: 14px; background: #f0a500; }
+  span:nth-child(3) { width: 6px;  height: 6px;  background: #8f9dab; opacity: 0.8; }
+  span:nth-child(4) { width: 11px; height: 11px; background: #46618a; opacity: 0.9; }
+  span:nth-child(5) { width: 7px;  height: 7px;  background: #71767c; opacity: 0.7; }
 `;
 
 const BigCode = styled.div`
@@ -42,20 +42,23 @@ const BigCode = styled.div`
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--primary);
+  /* Graphite fill with a subtle amber outline — falls back to solid
+     graphite where text-stroke is unsupported. */
+  color: var(--surface-2);
+  -webkit-text-stroke: 2px rgba(240, 165, 0, 0.5);
 `;
 
 const Headline = styled.h1`
   font-size: clamp(1.5rem, 4vw, 2.1rem);
   font-weight: 800;
-  color: var(--text);
+  color: var(--text-hi);
   margin: 18px 0 10px;
 `;
 
 const Subtext = styled.p`
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--text-mid);
+  color: var(--text-body);
   margin: 0 auto 32px;
   max-width: 420px;
 `;
@@ -75,33 +78,36 @@ const ButtonRow = styled.div`
 const PrimaryBtn = styled(Link)`
   display: inline-block;
   padding: 14px 30px;
-  background: var(--accent);
-  color: var(--primary-dark);
+  background: var(--resin-grad);
+  color: #14110a;
   font-weight: 700;
   text-decoration: none;
   border-radius: var(--radius-full);
-  transition: transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 4px 22px rgba(240, 165, 0, 0.3);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 
   &:hover {
+    filter: brightness(1.07);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.42);
   }
 `;
 
 const SecondaryBtn = styled(Link)`
   display: inline-block;
   padding: 14px 30px;
-  background: transparent;
-  color: var(--primary);
+  background: rgba(18, 21, 26, 0.35);
+  color: var(--text-hi);
   font-weight: 700;
   text-decoration: none;
-  border: 2px solid var(--primary);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-full);
-  transition: background var(--transition), color var(--transition);
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
 
   &:hover {
-    background: var(--primary);
-    color: var(--white);
+    background: var(--surface);
+    border-color: rgba(240, 165, 0, 0.4);
+    transform: translateY(-2px);
   }
 `;
 

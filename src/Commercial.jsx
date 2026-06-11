@@ -16,14 +16,9 @@ const fadeIn = keyframes`
 `;
 
 const pulse = keyframes`
-  0%   { box-shadow: 0 4px 20px rgba(15, 76, 129, 0.3); }
-  50%  { box-shadow: 0 4px 40px rgba(15, 76, 129, 0.5), 0 0 0 6px rgba(15, 76, 129, 0.1); }
-  100% { box-shadow: 0 4px 20px rgba(15, 76, 129, 0.3); }
-`;
-
-const shimmer = keyframes`
-  0%   { left: -100%; }
-  100% { left: 100%; }
+  0%   { box-shadow: 0 4px 20px rgba(240, 165, 0, 0.25); }
+  50%  { box-shadow: 0 4px 40px rgba(240, 165, 0, 0.4), 0 0 0 6px rgba(240, 165, 0, 0.08); }
+  100% { box-shadow: 0 4px 20px rgba(240, 165, 0, 0.25); }
 `;
 
 const scaleIn = keyframes`
@@ -68,10 +63,10 @@ const HeroOverlay = styled.div`
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgba(5, 15, 35, 0.55) 0%,
-    rgba(5, 15, 35, 0.35) 50%,
-    rgba(5, 15, 35, 0.6) 75%,
-    #ffffff 100%
+    rgba(12, 14, 17, 0.55) 0%,
+    rgba(12, 14, 17, 0.35) 50%,
+    rgba(12, 14, 17, 0.6) 75%,
+    var(--bg0) 100%
   );
   display: flex;
   flex-direction: column;
@@ -95,8 +90,8 @@ const HeroBadge = styled.span`
   align-items: center;
   gap: 8px;
   padding: 8px 22px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(18, 21, 26, 0.55);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-full);
   font-size: 0.78rem;
   font-weight: 700;
@@ -111,8 +106,8 @@ const HeroBadge = styled.span`
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #4ade80;
-    box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+    background: var(--resin-hot);
+    box-shadow: 0 0 10px rgba(240, 165, 0, 0.8);
   }
 `;
 
@@ -136,20 +131,20 @@ const HeroSub = styled.p`
 
 const HeroCTA = styled.button`
   padding: 18px 48px;
-  background: var(--accent);
-  color: #1a1a2e;
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 1.1rem;
   font-weight: 700;
   border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
   box-shadow: 0 4px 24px rgba(240, 165, 0, 0.4);
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  transition: filter var(--transition), transform var(--transition), box-shadow var(--transition);
 
   &:hover {
-    background: var(--accent-light);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(240, 165, 0, 0.5);
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
   }
 `;
 
@@ -157,7 +152,7 @@ const HeroCTA = styled.button`
 /* ── Section Shared ────────────────────────────────────────────────── */
 const SectionContainer = styled.section`
   padding: 80px 24px;
-  background: ${({ $bg }) => $bg || 'white'};
+  background: ${({ $bg }) => $bg || 'var(--bg0)'};
 `;
 
 const SectionInner = styled.div`
@@ -166,11 +161,11 @@ const SectionInner = styled.div`
 `;
 
 const SectionLabel = styled.p`
-  font-size: 0.78rem;
+  font-size: var(--fs-eyebrow);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--resin);
   margin-bottom: 10px;
   text-align: center;
 `;
@@ -178,7 +173,8 @@ const SectionLabel = styled.p`
 const SectionHeading = styled.h2`
   font-size: clamp(1.8rem, 3.5vw, 2.6rem);
   font-weight: 800;
-  color: var(--text);
+  letter-spacing: -0.02em;
+  color: var(--text-hi);
   text-align: center;
   margin-bottom: 14px;
   line-height: 1.15;
@@ -186,7 +182,7 @@ const SectionHeading = styled.h2`
 
 const SectionSub = styled.p`
   font-size: 1.05rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   text-align: center;
   max-width: 620px;
   margin: 0 auto 50px;
@@ -209,16 +205,17 @@ const SystemsGrid = styled.div`
 `;
 
 const SystemCard = styled.div`
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-md);
   padding: 32px 24px;
-  border: 1px solid var(--border);
-  transition: transform var(--transition), box-shadow var(--transition);
+  border: 1px solid var(--line);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
   text-align: left;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    border-color: rgba(240, 165, 0, 0.35);
+    box-shadow: var(--shadow-dk-md);
   }
 `;
 
@@ -226,24 +223,26 @@ const SystemIcon = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: ${({ $color }) => $color || 'rgba(15, 76, 129, 0.08)'};
+  background: rgba(240, 165, 0, 0.12);
+  border: 1px solid rgba(240, 165, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
   font-size: 1.4rem;
+  color: var(--resin-hot);
 `;
 
 const SystemTitle = styled.h3`
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 8px;
 `;
 
 const SystemDesc = styled.p`
   font-size: 0.9rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   line-height: 1.55;
 `;
 
@@ -267,13 +266,14 @@ const IndustryItem = styled.div`
   align-items: center;
   gap: 14px;
   padding: 20px;
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  transition: box-shadow var(--transition);
+  border: 1px solid var(--line);
+  transition: box-shadow var(--transition), border-color var(--transition);
 
   &:hover {
-    box-shadow: var(--shadow-sm);
+    border-color: rgba(240, 165, 0, 0.35);
+    box-shadow: var(--shadow-dk-sm);
   }
 `;
 
@@ -281,18 +281,18 @@ const IndustryIcon = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(15, 76, 129, 0.06);
+  background: rgba(240, 165, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--primary);
+  color: var(--resin-hot);
 `;
 
 const IndustryName = styled.span`
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-hi);
 `;
 
 /* ── Process ───────────────────────────────────────────────────────── */
@@ -325,8 +325,8 @@ const ProcessStep = styled.div`
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--primary);
-    color: white;
+    background: var(--resin-grad);
+    color: #14110a;
     font-size: 1.1rem;
     font-weight: 800;
     margin: 0 auto 16px;
@@ -336,13 +336,13 @@ const ProcessStep = styled.div`
 const ProcessTitle = styled.h4`
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 8px;
 `;
 
 const ProcessDesc = styled.p`
   font-size: 0.88rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   line-height: 1.5;
 `;
 
@@ -358,16 +358,17 @@ const WhyUsGrid = styled.div`
 `;
 
 const WhyUsCard = styled.div`
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-md);
   padding: 36px 28px;
   text-align: center;
-  border: 1px solid var(--border);
-  transition: transform var(--transition), box-shadow var(--transition);
+  border: 1px solid var(--line);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    border-color: rgba(240, 165, 0, 0.35);
+    box-shadow: var(--shadow-dk-md);
   }
 `;
 
@@ -375,24 +376,24 @@ const WhyUsIcon = styled.div`
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(15, 76, 129, 0.08);
+  background: rgba(240, 165, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 16px;
-  color: var(--primary);
+  color: var(--resin-hot);
 `;
 
 const WhyUsTitle = styled.h4`
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 8px;
 `;
 
 const WhyUsDesc = styled.p`
   font-size: 0.9rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   line-height: 1.55;
 `;
 
@@ -419,14 +420,16 @@ const VideoGrid = styled.div`
 const VideoCard = styled.div`
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
-  background: #111;
+  box-shadow: var(--shadow-dk-md);
+  border: 1px solid var(--line);
+  background: #0a0b0e;
   position: relative;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    border-color: rgba(240, 165, 0, 0.35);
+    box-shadow: var(--shadow-dk-lg);
   }
 
   video {
@@ -440,7 +443,7 @@ const VideoCard = styled.div`
 const VideoLabel = styled.p`
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-body);
   text-align: center;
   margin-top: 12px;
   line-height: 1.4;
@@ -450,7 +453,7 @@ const VideoLabel = styled.p`
   }
 `;
 
-const LazyVideo = React.memo(({ webm, mp4 }) => {
+const LazyVideo = React.memo(({ webm, mp4, poster }) => {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -468,7 +471,7 @@ const LazyVideo = React.memo(({ webm, mp4 }) => {
   }, []);
 
   return (
-    <video ref={ref} loop muted playsInline preload="metadata">
+    <video ref={ref} loop muted playsInline preload="metadata" poster={poster}>
       {webm && <source src={webm} type="video/webm" />}
       {mp4  && <source src={mp4}  type="video/mp4" />}
     </video>
@@ -478,7 +481,7 @@ const LazyVideo = React.memo(({ webm, mp4 }) => {
 /* ── Contact CTA Section ───────────────────────────────────────────── */
 const CTASection = styled.section`
   padding: 64px 24px;
-  background: linear-gradient(160deg, #0a3356 0%, var(--primary) 40%, #0d3f6e 100%);
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
   position: relative;
   overflow: hidden;
 
@@ -490,7 +493,7 @@ const CTASection = styled.section`
     width: 500px;
     height: 500px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.02);
     pointer-events: none;
   }
 `;
@@ -506,14 +509,15 @@ const CTAInner = styled.div`
 const CTAHeading = styled.h2`
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 800;
-  color: white;
+  letter-spacing: -0.02em;
+  color: var(--text-hi);
   margin-bottom: 10px;
   line-height: 1.2;
 `;
 
 const CTASub = styled.p`
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-body);
   margin-bottom: 6px;
 `;
 
@@ -521,10 +525,10 @@ const PhoneLink = styled.a`
   display: inline-block;
   font-size: 1.35rem;
   font-weight: 700;
-  color: white;
+  color: var(--resin-hot);
   margin-bottom: 12px;
   transition: opacity var(--transition);
-  &:hover { opacity: 0.75; }
+  &:hover { opacity: 0.8; }
 `;
 
 const TrustBadges = styled.div`
@@ -540,25 +544,26 @@ const TrustBadge = styled.div`
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(24, 28, 34, 0.6);
+  border: 1px solid var(--line);
   border-radius: var(--radius-full);
   backdrop-filter: blur(4px);
 
-  svg { flex-shrink: 0; color: #4ade80; }
+  svg { flex-shrink: 0; color: var(--resin); }
   span {
     font-size: 0.82rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-body);
     white-space: nowrap;
   }
 `;
 
 const Card = styled.div`
-  background: white;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
   padding: 32px 40px;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-dk-lg);
   text-align: left;
   position: relative;
   overflow: hidden;
@@ -576,13 +581,13 @@ const CardHeader = styled.div`
 const CardTitle = styled.h3`
   font-size: 1.35rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 6px;
 `;
 
 const CardSubtitle = styled.p`
   font-size: 0.92rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   line-height: 1.5;
 `;
 
@@ -595,7 +600,7 @@ const FormLabel = styled.label`
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-hi);
   margin-bottom: 7px;
   letter-spacing: 0.03em;
 `;
@@ -605,21 +610,24 @@ const inputBase = `
   padding: 12px 14px;
   font-size: 0.92rem;
   font-family: inherit;
-  color: var(--text);
-  background: var(--bg);
-  border: 1.5px solid #e2e8f0;
+  color: var(--text-hi);
+  background: var(--bg0);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius-sm);
   outline: none;
   transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   box-sizing: border-box;
 
   &:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(15, 76, 129, 0.1);
-    background: white;
+    border-color: var(--resin);
+    box-shadow: 0 0 0 4px rgba(240, 165, 0, 0.14);
+    background: #0e1014;
   }
 
-  &::placeholder { color: #b0bac6; }
+  &::placeholder {
+    color: var(--text-dim);
+    opacity: 0.8;
+  }
 `;
 
 const Input = styled.input`${inputBase}`;
@@ -643,14 +651,14 @@ const Row = styled.div`
 const SubmitBtn = styled.button`
   width: 100%;
   padding: 14px 32px;
-  background: ${({ disabled }) => (disabled ? '#c5d5e8' : 'var(--primary)')};
-  color: white;
+  background: ${({ disabled }) => (disabled ? 'var(--surface-2)' : 'var(--resin-grad)')};
+  color: ${({ disabled }) => (disabled ? 'var(--text-dim)' : '#14110a')};
   font-size: 1.05rem;
   font-weight: 700;
-  border: none;
+  border: ${({ disabled }) => (disabled ? '1px solid var(--line)' : 'none')};
   border-radius: var(--radius-full);
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  transition: background var(--transition), transform var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
   margin-top: 8px;
   position: relative;
   overflow: hidden;
@@ -659,42 +667,31 @@ const SubmitBtn = styled.button`
     animation: ${pulse} 3s ease-in-out infinite;
   `}
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
-    animation: ${shimmer} 3s ease-in-out infinite;
-  }
-
   &:hover:not(:disabled) {
-    background: var(--primary-dark);
+    filter: brightness(1.07);
     transform: translateY(-2px);
     animation: none;
-    box-shadow: 0 8px 28px rgba(15, 76, 129, 0.4);
-    &::after { animation: none; opacity: 0; }
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
   }
 `;
 
 const Note = styled.p`
   font-size: 0.8rem;
-  color: var(--text-light);
+  color: var(--text-dim);
   text-align: center;
   margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  svg { flex-shrink: 0; color: #4ade80; }
+  svg { flex-shrink: 0; color: var(--resin); }
 `;
 
 const ErrorMsg = styled.p`
   font-size: 0.85rem;
-  color: #c62828;
-  background: #fde8e8;
-  border: 1px solid #f5c2c2;
+  color: #ffb4ab;
+  background: rgba(147, 0, 10, 0.22);
+  border: 1px solid rgba(255, 100, 90, 0.4);
   border-radius: 8px;
   padding: 10px 14px;
   margin-top: 12px;
@@ -715,7 +712,8 @@ const CheckCircle = styled.div`
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(15, 76, 129, 0.1));
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -740,52 +738,50 @@ const CheckCircle = styled.div`
 const SuccessTitle = styled.h3`
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--text-hi);
 `;
 
 const SuccessText = styled.p`
   font-size: 0.95rem;
-  color: var(--text-mid);
+  color: var(--text-body);
   text-align: center;
   line-height: 1.6;
   max-width: 400px;
+
+  strong {
+    color: var(--text-hi);
+  }
 `;
 
 /* ── Data ──────────────────────────────────────────────────────────── */
 const FLOORING_SYSTEMS = [
   {
     icon: '◆',
-    color: 'rgba(15, 76, 129, 0.08)',
     title: 'Quartz Sand Broadcast',
     desc: 'Ultra-durable surfaces ideal for high-traffic commercial areas. Withstands heavy machinery and chemical exposure.',
   },
   {
     icon: '✦',
-    color: 'rgba(240, 165, 0, 0.1)',
     title: 'Decorative Flake',
     desc: 'Full-broadcast vinyl flake systems that hide imperfections while delivering a professional, high-end look for any facility.',
   },
   {
     icon: '▣',
-    color: 'rgba(74, 222, 128, 0.1)',
     title: 'Urethane Cement',
     desc: 'The gold standard for food & beverage facilities. Thermal-shock resistant, handles extreme temps and aggressive washdowns.',
   },
   {
     icon: '◈',
-    color: 'rgba(139, 92, 246, 0.1)',
     title: 'Metallic Epoxy',
     desc: 'Stunning, one-of-a-kind finishes for showrooms, lobbies, and retail. Each floor is a unique work of art.',
   },
   {
     icon: '▤',
-    color: 'rgba(236, 72, 153, 0.08)',
     title: 'Self-Leveling Epoxy',
     desc: 'Seamless, high-gloss surfaces perfect for cleanrooms, labs, and pharmaceutical environments requiring easy sanitation.',
   },
   {
     icon: '◉',
-    color: 'rgba(59, 130, 246, 0.08)',
     title: 'Polyaspartic Coatings',
     desc: 'Fast-cure systems that minimize downtime. Full installation in as little as one day — perfect for businesses that can\'t afford to stop.',
   },
@@ -810,9 +806,9 @@ const PROCESS_STEPS = [
 ];
 
 const COMMERCIAL_VIDEOS = [
-  { webm: '/videos/commercial1.webm', mp4: '/videos/commercial1.mp4', label: '8,500 sqft — National Guard Base, Santa Fe' },
-  { webm: '/videos/commercial4.webm', mp4: '/videos/commercial4.mp4', label: '9,000 sqft — Kirtland AFB' },
-  { webm: '/videos/commercial3.webm', mp4: '/videos/commercial3.mp4', label: '6,000 sqft Hangar — City of Grants' },
+  { webm: '/videos/commercial1.webm', mp4: '/videos/commercial1.mp4', poster: '/videos/posters/commercial1.jpg', label: '8,500 sqft — National Guard Base, Santa Fe' },
+  { webm: '/videos/commercial4.webm', mp4: '/videos/commercial4.mp4', poster: '/videos/posters/commercial4.jpg', label: '9,000 sqft — Kirtland AFB' },
+  { webm: '/videos/commercial3.webm', mp4: '/videos/commercial3.mp4', poster: '/videos/posters/commercial3.jpg', label: '6,000 sqft Hangar — City of Grants' },
 ];
 
 /* ── Component ─────────────────────────────────────────────────────── */
@@ -923,7 +919,7 @@ const Commercial = () => {
       </Helmet>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <HeroSection>
-        <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="metadata">
+        <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="metadata" poster={isMobile ? '/videos/posters/commercial-mobile.jpg' : '/videos/posters/commercial-desktop.jpg'}>
           {(() => {
             const src = isMobile ? commercialMobileSrc : commercialDesktopSrc;
             return (
@@ -952,7 +948,7 @@ const Commercial = () => {
 
 
       {/* ── Flooring Systems ──────────────────────────────────────────── */}
-      <SectionContainer $bg="white" style={{ paddingTop: '100px' }}>
+      <SectionContainer $bg="var(--bg0)" style={{ paddingTop: '100px' }}>
         <SectionInner ref={systemsRef} className={`reveal ${systemsVisible ? 'visible' : ''}`}>
           <SectionLabel>Our Capabilities</SectionLabel>
           <SectionHeading>Every Commercial Flooring System</SectionHeading>
@@ -963,7 +959,7 @@ const Commercial = () => {
           <SystemsGrid className="stagger">
             {FLOORING_SYSTEMS.map((s) => (
               <SystemCard key={s.title}>
-                <SystemIcon $color={s.color}>{s.icon}</SystemIcon>
+                <SystemIcon>{s.icon}</SystemIcon>
                 <SystemTitle>{s.title}</SystemTitle>
                 <SystemDesc>{s.desc}</SystemDesc>
               </SystemCard>
@@ -973,7 +969,7 @@ const Commercial = () => {
       </SectionContainer>
 
       {/* ── Industries ────────────────────────────────────────────────── */}
-      <SectionContainer $bg="var(--bg)">
+      <SectionContainer $bg="var(--bg1)">
         <SectionInner ref={industriesRef} className={`reveal ${industriesVisible ? 'visible' : ''}`}>
           <SectionLabel>Industries We Serve</SectionLabel>
           <SectionHeading>Trusted Across Every Sector</SectionHeading>
@@ -985,7 +981,7 @@ const Commercial = () => {
             {INDUSTRIES.map((ind) => (
               <IndustryItem key={ind.name}>
                 <IndustryIcon>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
@@ -998,7 +994,7 @@ const Commercial = () => {
       </SectionContainer>
 
       {/* ── Why Us ────────────────────────────────────────────────────── */}
-      <SectionContainer $bg="white">
+      <SectionContainer $bg="var(--bg0)">
         <SectionInner ref={whyRef} className={`reveal ${whyVisible ? 'visible' : ''}`}>
           <SectionLabel>Why Next Level</SectionLabel>
           <SectionHeading>What Sets Us Apart</SectionHeading>
@@ -1009,21 +1005,21 @@ const Commercial = () => {
           <WhyUsGrid className="stagger">
             <WhyUsCard>
               <WhyUsIcon>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </WhyUsIcon>
               <WhyUsTitle>Commercial Warranty</WhyUsTitle>
               <WhyUsDesc>We stand behind every installation with a comprehensive warranty that covers materials and labor.</WhyUsDesc>
             </WhyUsCard>
             <WhyUsCard>
               <WhyUsIcon>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </WhyUsIcon>
               <WhyUsTitle>Minimal Downtime</WhyUsTitle>
               <WhyUsDesc>Night, weekend, and phased installs available. We work around your operations so you don't lose a single day of business.</WhyUsDesc>
             </WhyUsCard>
             <WhyUsCard>
               <WhyUsIcon>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
               </WhyUsIcon>
               <WhyUsTitle>Deep Expertise</WhyUsTitle>
               <WhyUsDesc>From USDA-compliant urethane cement to decorative metallic lobbies — our team knows every system inside and out.</WhyUsDesc>
@@ -1033,7 +1029,7 @@ const Commercial = () => {
       </SectionContainer>
 
       {/* ── Gallery ────────────────────────────────────────────────────── */}
-      <SectionContainer $bg="var(--bg)">
+      <SectionContainer $bg="var(--bg1)">
         <SectionInner ref={galleryRef} className={`reveal ${galleryVisible ? 'visible' : ''}`}>
           <SectionLabel>Our Work</SectionLabel>
           <SectionHeading>Commercial Projects</SectionHeading>
@@ -1044,7 +1040,7 @@ const Commercial = () => {
             {COMMERCIAL_VIDEOS.map((v, i) => (
               <div key={i}>
                 <VideoCard>
-                  <LazyVideo webm={v.webm} mp4={v.mp4} />
+                  <LazyVideo webm={v.webm} mp4={v.mp4} poster={v.poster} />
                 </VideoCard>
                 <VideoLabel>{v.label}</VideoLabel>
               </div>
@@ -1054,7 +1050,7 @@ const Commercial = () => {
       </SectionContainer>
 
       {/* ── Process ───────────────────────────────────────────────────── */}
-      <SectionContainer $bg="white">
+      <SectionContainer $bg="var(--bg0)">
         <SectionInner ref={processRef} className={`reveal ${processVisible ? 'visible' : ''}`}>
           <SectionLabel>How It Works</SectionLabel>
           <SectionHeading>Simple Process, Serious Results</SectionHeading>
@@ -1075,22 +1071,22 @@ const Commercial = () => {
       {/* ── Contact CTA ───────────────────────────────────────────────── */}
       <CTASection id="commercial-contact">
         <CTAInner ref={ctaRef} className={`reveal ${ctaVisible ? 'visible' : ''}`}>
-          <SectionLabel style={{ color: 'rgba(255,255,255,0.5)' }}>Free Commercial Estimate</SectionLabel>
+          <SectionLabel>Free Commercial Estimate</SectionLabel>
           <CTAHeading>Let's Talk About Your Project</CTAHeading>
           <CTASub>Or call us directly:</CTASub>
           <PhoneLink href="tel:5053524674" onClick={() => trackPhoneClick('commercial_contact_section')}>505-352-4674</PhoneLink>
 
           <TrustBadges>
             <TrustBadge>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <span>Commercial Warranty</span>
             </TrustBadge>
             <TrustBadge>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               <span>85,000+ Sqft Projects</span>
             </TrustBadge>
             <TrustBadge>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               <span>100% Free — No Obligation</span>
             </TrustBadge>
           </TrustBadges>
@@ -1099,7 +1095,7 @@ const Commercial = () => {
             {submitted ? (
               <SuccessBox>
                 <CheckCircle>
-                  <svg viewBox="0 0 24 24">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
                     <polyline points="6 12 10 16 18 8" />
                   </svg>
                 </CheckCircle>
@@ -1222,7 +1218,7 @@ const Commercial = () => {
                   {sending ? 'Sending...' : 'Get My Commercial Quote →'}
                 </SubmitBtn>
                 <Note>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   We respond within 24 hours. Your info stays private — no spam, ever.
                 </Note>
               </form>

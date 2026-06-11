@@ -4,19 +4,21 @@ import { Helmet } from 'react-helmet';
 import { trackFormSubmission } from './lib/analytics';
 import TurnstileWidget from './components/TurnstileWidget';
 
-// Styled components for the Careers Page
+// Styled components for the Careers Page — dark showroom system
 const CareersContainer = styled.section`
   padding: 40px 20px;
-  background-color: #f9f9f9;
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
   text-align: center;
-  color: #0f4c81;
+  color: var(--text-body);
 `;
 
 const CareersHeading = styled.h1`
   font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin-bottom: 20px;
   margin-top: 60px;
-  color: #0f4c81;
+  color: var(--text-hi);
 `;
 
 const CareersSubheading = styled.p`
@@ -25,53 +27,58 @@ const CareersSubheading = styled.p`
   max-width: 800px;
   margin: 0 auto;
   line-height: 1.6;
+  color: var(--text-body);
 `;
 
 const Form = styled.form`
   max-width: 600px;
   margin: 0 auto;
-  background-color: white;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dk-lg);
   text-align: left;
 `;
 
-const InputField = styled.input`
+const inputBase = `
   width: 100%;
-  padding: 12px;
+  padding: 12px 14px;
   margin-bottom: 12px;
   font-size: 1rem;
   font-family: inherit;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  color: var(--text-hi);
+  background: var(--bg0);
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   box-sizing: border-box;
-  transition: border-color 0.3s ease;
+
   &:focus {
-    border-color: #0f4c81;
+    border-color: var(--resin);
+    box-shadow: 0 0 0 4px rgba(240, 165, 0, 0.14);
+    background: #0e1014;
+  }
+
+  &::placeholder {
+    color: var(--text-dim);
+    opacity: 0.8;
   }
 `;
 
+const InputField = styled.input`${inputBase}`;
+
 const TextArea = styled.textarea`
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  font-size: 1rem;
-  font-family: inherit;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-  transition: border-color 0.3s ease;
-  &:focus {
-    border-color: #0f4c81;
-  }
+  ${inputBase}
+  resize: vertical;
 `;
 
 const ErrorMsg = styled.p`
   font-size: 0.85rem;
-  color: #c62828;
-  background: #fde8e8;
-  border: 1px solid #f5c2c2;
+  color: #ffb4ab;
+  background: rgba(147, 0, 10, 0.22);
+  border: 1px solid rgba(255, 100, 90, 0.4);
   border-radius: 8px;
   padding: 10px 14px;
   margin-top: 8px;
@@ -80,18 +87,21 @@ const ErrorMsg = styled.p`
 `;
 
 const SubmitButton = styled.button`
-  background-color: ${({ disabled }) => (disabled ? '#ccc' : '#0f4c81')};
-  color: white;
+  background: ${({ disabled }) => (disabled ? 'var(--surface-2)' : 'var(--resin-grad)')};
+  color: ${({ disabled }) => (disabled ? 'var(--text-dim)' : '#14110a')};
   padding: 12px 25px;
   font-size: 1.1rem;
-  border: none;
-  border-radius: 5px;
+  font-weight: 700;
+  border: ${({ disabled }) => (disabled ? '1px solid var(--line)' : 'none')};
+  border-radius: var(--radius-full);
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
-  transition: background-color 0.3s ease;
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
   display: block;
   margin: 20px auto;
-  &:hover {
-    background-color: ${({ disabled }) => (disabled ? '#ccc' : '#0a3356')};
+  &:hover:not(:disabled) {
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
   }
 `;
 

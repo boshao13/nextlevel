@@ -84,11 +84,9 @@ const Hero = styled.section`
   justify-content: center;
   padding: 140px 24px 80px;
   text-align: center;
-  background:
-    radial-gradient(ellipse at 20% 30%, rgba(255, 196, 100, 0.25) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 70%, rgba(220, 120, 70, 0.22) 0%, transparent 55%),
-    linear-gradient(160deg, #0f4c81 0%, #143358 50%, #0a1f3a 100%);
-  color: white;
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
+  border-bottom: 1px solid var(--line);
+  color: var(--text-hi);
   overflow: hidden;
 
   &::before {
@@ -96,7 +94,7 @@ const Hero = styled.section`
     position: absolute;
     inset: 0;
     background-image:
-      radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
     background-size: 22px 22px;
     pointer-events: none;
   }
@@ -113,13 +111,14 @@ const HeroBadge = styled.span`
   align-items: center;
   gap: 8px;
   padding: 8px 22px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(240, 165, 0, 0.1);
+  border: 1px solid rgba(240, 165, 0, 0.25);
   border-radius: var(--radius-full);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  color: var(--resin);
   backdrop-filter: blur(12px);
   margin-bottom: 22px;
 
@@ -128,8 +127,8 @@ const HeroBadge = styled.span`
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #fbbf24;
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+    background: var(--resin-hot);
+    box-shadow: 0 0 10px rgba(240, 165, 0, 0.6);
   }
 
   @media (max-width: 768px) {
@@ -148,7 +147,7 @@ const HeroHeadline = styled.h1`
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
 
   span {
-    background: linear-gradient(120deg, #fbbf24, #f97316);
+    background: var(--resin-grad);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -163,7 +162,7 @@ const HeroSub = styled.p`
   position: relative;
   font-size: clamp(1.05rem, 2.2vw, 1.3rem);
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-body);
   max-width: 620px;
   margin-top: 22px;
   line-height: 1.6;
@@ -177,19 +176,20 @@ const HeroCTA = styled.button`
   position: relative;
   margin-top: 32px;
   padding: 18px 42px;
-  background: linear-gradient(120deg, #fbbf24, #f97316);
-  color: #0a1f3a;
+  background: var(--resin-grad);
+  color: #14110a;
   font-size: 1.05rem;
   font-weight: 800;
   border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  box-shadow: 0 6px 28px rgba(249, 115, 22, 0.45);
-  transition: transform var(--transition), box-shadow var(--transition);
+  box-shadow: 0 6px 24px rgba(240, 165, 0, 0.25);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 36px rgba(249, 115, 22, 0.6);
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
   }
 
   @media (max-width: 768px) {
@@ -202,7 +202,7 @@ const HeroCTA = styled.button`
 
 const Section = styled.section`
   padding: 90px 24px;
-  background: ${({ $alt }) => ($alt ? '#f4f7fb' : '#fefefe')};
+  background: ${({ $alt }) => ($alt ? 'var(--bg1)' : 'var(--bg0)')};
 
   @media (max-width: 768px) {
     padding: 60px 20px;
@@ -218,9 +218,9 @@ const SectionEyebrow = styled.div`
   text-align: center;
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #f97316;
+  color: var(--resin);
   margin-bottom: 14px;
 `;
 
@@ -230,7 +230,7 @@ const SectionTitle = styled.h2`
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #0f4c81;
+  color: var(--text-hi);
   max-width: 800px;
   margin: 0 auto;
 `;
@@ -238,7 +238,7 @@ const SectionTitle = styled.h2`
 const SectionLead = styled.p`
   text-align: center;
   font-size: 1.1rem;
-  color: #4a5468;
+  color: var(--text-body);
   max-width: 720px;
   margin: 18px auto 0;
   line-height: 1.7;
@@ -258,27 +258,27 @@ const BenefitGrid = styled.div`
 const BenefitCard = styled.article`
   position: relative;
   padding: 32px 26px;
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(15, 76, 129, 0.08);
-  box-shadow: 0 4px 24px rgba(15, 76, 129, 0.06);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-dk-sm);
   text-align: left;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 36px rgba(15, 76, 129, 0.12);
+    border-color: rgba(240, 165, 0, 0.35);
+    box-shadow: var(--shadow-dk-md);
   }
 
   ${({ $featured }) =>
     $featured &&
     `
-    background: linear-gradient(140deg, #0f4c81, #143358);
-    color: white;
-    border: none;
+    background: linear-gradient(140deg, var(--surface-2), var(--surface));
+    border-color: rgba(240, 165, 0, 0.25);
 
-    h3 { color: white; }
-    p  { color: rgba(255,255,255,0.82); }
+    h3 { color: var(--text-hi); }
+    p  { color: var(--text-body); }
   `}
 `;
 
@@ -289,22 +289,22 @@ const BenefitIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${({ $featured }) =>
-    $featured ? 'rgba(251, 191, 36, 0.2)' : 'rgba(15, 76, 129, 0.08)'};
-  color: ${({ $featured }) => ($featured ? '#fbbf24' : '#0f4c81')};
+  background: rgba(240, 165, 0, 0.12);
+  border: 1px solid rgba(240, 165, 0, 0.25);
+  color: var(--resin-hot);
   margin-bottom: 18px;
 `;
 
 const BenefitTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f4c81;
+  color: var(--text-hi);
   margin: 0 0 8px;
 `;
 
 const BenefitText = styled.p`
   font-size: 0.95rem;
-  color: #4a5468;
+  color: var(--text-body);
   line-height: 1.6;
   margin: 0;
 `;
@@ -321,7 +321,9 @@ const VideoDuo = styled.div`
     aspect-ratio: 9 / 16;
     border-radius: 16px;
     object-fit: cover;
-    box-shadow: 0 12px 32px rgba(15, 76, 129, 0.18);
+    background: #0a0b0e;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-dk-md);
   }
 
   @media (max-width: 768px) {
@@ -336,7 +338,7 @@ const FlakeCategoryHeading = styled.h3`
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #0f4c81;
+  color: var(--text-hi);
   text-transform: uppercase;
 
   &::after {
@@ -346,7 +348,7 @@ const FlakeCategoryHeading = styled.h3`
     width: 60px;
     height: 3px;
     border-radius: 2px;
-    background: linear-gradient(90deg, #fbbf24, #f97316);
+    background: var(--resin);
   }
 `;
 
@@ -374,16 +376,17 @@ const FlakeCard = styled.figure`
   position: relative;
   margin: 0;
   aspect-ratio: 1;
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(15, 76, 129, 0.06);
-  box-shadow: 0 2px 10px rgba(15, 76, 129, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-dk-sm);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 22px rgba(15, 76, 129, 0.14);
+    transform: translateY(-4px);
+    border-color: rgba(240, 165, 0, 0.35);
+    box-shadow: var(--shadow-dk-md);
   }
 
   img {
@@ -402,7 +405,7 @@ const FlakeName = styled.figcaption`
   text-align: center;
   font-size: 0.8rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-hi);
   letter-spacing: 0.02em;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 `;
@@ -412,20 +415,26 @@ const ColorsNote = styled.p`
   max-width: 680px;
   text-align: center;
   font-size: 0.95rem;
-  color: #4a5468;
+  color: var(--text-dim);
   line-height: 1.65;
 
   a {
-    color: #0f4c81;
+    color: var(--resin);
     font-weight: 600;
     border-bottom: 1px solid currentColor;
+    transition: color var(--transition);
+
+    &:hover {
+      color: var(--resin-hot);
+    }
   }
 `;
 
 const FinalCta = styled.section`
   padding: 80px 24px;
-  background: linear-gradient(140deg, #0f4c81, #0a1f3a);
-  color: white;
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
+  border-top: 1px solid var(--line);
+  color: var(--text-hi);
   text-align: center;
 
   @media (max-width: 768px) {
@@ -443,7 +452,7 @@ const FinalCtaTitle = styled.h2`
 
 const FinalCtaSub = styled.p`
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-body);
   max-width: 620px;
   margin: 0 auto 30px;
   line-height: 1.6;
@@ -451,24 +460,24 @@ const FinalCtaSub = styled.p`
 
 /* ── Inline SVG icons ─────────────────────────────────────────────── */
 const SunIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
     <circle cx="12" cy="12" r="4" />
     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
   </svg>
 );
 const DropIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
     <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
   </svg>
 );
 const FlameIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.93 0 3.5-1.57 3.5-3.5 0-1.45-.66-2.21-1.5-3-.51-.48-1-.96-1.46-1.85a.96.96 0 0 0-1.66.07c-.51 1.02-1.02 1.43-1.59 1.78A2.5 2.5 0 0 0 8.5 14.5z" />
     <path d="M14.42 4c1.86 1.6 3.08 4.13 3.08 7 0 4.69-3.81 8.5-8.5 8.5S.5 15.69.5 11C.5 7.32 2.36 4.05 5.18 2.13c.43-.29.95.15.81.66C5.06 5.95 6.86 9.5 9 9.5c1.78 0 3.18-.59 4.06-1.92.34-.51 1.13-.18 1.36.42z" />
   </svg>
 );
 const ShieldIcon = (props) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     <polyline points="9 12 11 14 15 10" />
   </svg>
@@ -518,14 +527,14 @@ const Patios = () => {
           <BenefitGrid>
             <BenefitCard $featured>
               <BenefitIcon $featured><SunIcon /></BenefitIcon>
-              <BenefitTitle style={{ color: 'white' }}>UV-Stable, Zero Fade</BenefitTitle>
+              <BenefitTitle style={{ color: 'var(--text-hi)' }}>UV-Stable, Zero Fade</BenefitTitle>
               <BenefitText>
                 Torginol UV+ flake under a polyaspartic topcoat &mdash; engineered for direct sun. The color you choose today is the color you'll have a decade from now.
               </BenefitText>
             </BenefitCard>
             <BenefitCard $featured>
               <BenefitIcon $featured><DropIcon /></BenefitIcon>
-              <BenefitTitle style={{ color: 'white' }}>Stains Wipe Right Off</BenefitTitle>
+              <BenefitTitle style={{ color: 'var(--text-hi)' }}>Stains Wipe Right Off</BenefitTitle>
               <BenefitText>
                 Wine, BBQ grease, fertilizer, sunscreen, dog accidents &mdash; nothing penetrates a sealed polyaspartic surface. A garden hose is your only maintenance.
               </BenefitText>
@@ -547,11 +556,11 @@ const Patios = () => {
           </BenefitGrid>
 
           <VideoDuo>
-            <video ref={videoARef} autoPlay muted loop playsInline preload="metadata" aria-label="Patio epoxy coating installation in Albuquerque">
+            <video ref={videoARef} autoPlay muted loop playsInline preload="metadata" poster="/videos/posters/patio1.jpg" aria-label="Patio epoxy coating installation in Albuquerque">
               <source src="/videos/patio1.webm" type="video/webm" />
               <source src="/videos/patio1.mp4" type="video/mp4" />
             </video>
-            <video ref={videoBRef} autoPlay muted loop playsInline preload="metadata" aria-label="Finished UV-resistant patio coating in New Mexico">
+            <video ref={videoBRef} autoPlay muted loop playsInline preload="metadata" poster="/videos/posters/patio2.jpg" aria-label="Finished UV-resistant patio coating in New Mexico">
               <source src="/videos/patio2.webm" type="video/webm" />
               <source src="/videos/patio2.mp4" type="video/mp4" />
             </video>

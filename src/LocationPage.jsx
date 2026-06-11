@@ -10,7 +10,7 @@ import { trackPhoneClick } from './lib/analytics';
 
 const Section = styled.section`
   padding: 120px 24px 80px;
-  background: linear-gradient(180deg, #f5f8fc 0%, #ffffff 100%);
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
 
   @media (max-width: 768px) {
     padding: 100px 16px 60px;
@@ -24,25 +24,23 @@ const Inner = styled.div`
 
 const Crumbs = styled.nav`
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-body);
   margin-bottom: 16px;
 
-  a { color: #888; text-decoration: none; }
-  a:hover { color: var(--primary); }
+  a { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+  a:hover { color: var(--resin-hot); }
+  span { color: var(--text-dim); }
 `;
 
 const Eyebrow = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(15, 76, 129, 0.08);
-  color: var(--primary);
+  color: var(--resin);
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  padding: 6px 14px;
-  border-radius: 20px;
   margin-bottom: 16px;
 `;
 
@@ -51,14 +49,14 @@ const H1 = styled.h1`
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  color: var(--text);
+  color: var(--text-hi);
   margin: 0 0 18px;
 `;
 
 const Lede = styled.p`
   font-size: 1.1rem;
   line-height: 1.7;
-  color: #444;
+  color: var(--text-body);
   max-width: 720px;
   margin: 0 0 28px;
 `;
@@ -74,33 +72,40 @@ const PrimaryBtn = styled.a`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--primary);
-  color: white;
+  background: var(--resin-grad);
+  color: #14110a;
   padding: 14px 24px;
   border-radius: 9999px;
   font-weight: 700;
   text-decoration: none;
-  transition: background 0.2s, transform 0.1s;
+  transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
 
-  &:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  &:hover {
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
+  }
 `;
 
 const SecondaryBtn = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: white;
-  color: var(--primary);
+  background: rgba(18, 21, 26, 0.35);
+  color: var(--text-hi);
   padding: 14px 24px;
   border-radius: 9999px;
   font-weight: 700;
   font-family: inherit;
   font-size: 0.95rem;
-  border: 2px solid var(--primary);
+  border: 1px solid var(--line-strong);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 
-  &:hover { background: rgba(15, 76, 129, 0.06); }
+  &:hover {
+    border-color: rgba(240, 165, 0, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+  }
 `;
 
 const Grid = styled.div`
@@ -119,14 +124,14 @@ const Body = styled.div`
   h2 {
     font-size: 1.6rem;
     font-weight: 800;
-    color: var(--text);
+    color: var(--text-hi);
     margin: 32px 0 14px;
     letter-spacing: -0.01em;
   }
   p {
     font-size: 1rem;
     line-height: 1.75;
-    color: #444;
+    color: var(--text-body);
     margin: 0 0 16px;
   }
   ul {
@@ -140,21 +145,21 @@ const Body = styled.div`
     gap: 10px;
     margin-bottom: 10px;
     font-size: 1rem;
-    color: #333;
+    color: var(--text-body);
   }
   li svg {
     flex-shrink: 0;
-    color: var(--primary);
+    color: var(--resin-hot);
     margin-top: 4px;
   }
 `;
 
 const InfoCard = styled.aside`
-  background: white;
-  border: 1px solid #eef2f6;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 12px 36px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-dk-md);
   position: sticky;
   top: 100px;
 
@@ -166,7 +171,7 @@ const InfoCard = styled.aside`
 const InfoTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--text-hi);
   margin: 0 0 14px;
 `;
 
@@ -176,16 +181,16 @@ const InfoRow = styled.div`
   align-items: flex-start;
   font-size: 0.95rem;
   margin-bottom: 12px;
-  color: #444;
+  color: var(--text-body);
 
-  svg { flex-shrink: 0; color: var(--primary); margin-top: 3px; }
+  svg { flex-shrink: 0; color: var(--resin-hot); margin-top: 3px; }
 `;
 
 const MapWrap = styled.div`
   margin-top: 16px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #eef2f6;
+  border: 1px solid var(--line);
 `;
 
 const MapIframe = styled.iframe`
@@ -198,13 +203,13 @@ const MapIframe = styled.iframe`
 const RelatedRow = styled.div`
   margin-top: 56px;
   padding-top: 32px;
-  border-top: 1px solid #eef2f6;
+  border-top: 1px solid var(--line);
 `;
 
 const RelatedTitle = styled.h2`
   font-size: 1.2rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--text-hi);
   margin: 0 0 16px;
 `;
 
@@ -215,24 +220,25 @@ const RelatedGrid = styled.div`
 `;
 
 const RelatedCard = styled(Link)`
-  background: white;
-  border: 1px solid #eef2f6;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 18px 20px;
   text-decoration: none;
-  color: var(--text);
+  color: var(--text-hi);
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: border-color 0.2s, transform 0.1s;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 
   &:hover {
-    border-color: var(--primary);
-    transform: translateY(-2px);
+    border-color: rgba(240, 165, 0, 0.35);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-dk-md);
   }
 
-  svg { color: var(--primary); }
+  svg { color: var(--resin-hot); }
 `;
 
 /* ── Component ────────────────────────────────────────────────────── */
@@ -346,7 +352,7 @@ const LocationPage = ({ city }) => {
               <InfoTitle>Get a Free {city.name} Quote</InfoTitle>
               <InfoRow>
                 <FiPhone size={16} />
-                <a href="tel:5053524674" onClick={() => trackPhoneClick(`location_${city.slug}_card`)} style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
+                <a href="tel:5053524674" onClick={() => trackPhoneClick(`location_${city.slug}_card`)} style={{ color: 'var(--resin-hot)', fontWeight: 700, textDecoration: 'none' }}>
                   505-352-4674
                 </a>
               </InfoRow>

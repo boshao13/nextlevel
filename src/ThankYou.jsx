@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 
 const PageWrapper = styled.div`
-  background: linear-gradient(145deg, #eef3f9, #ffffff);
+  background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
   min-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -19,10 +19,11 @@ const ContentWrapper = styled.div`
 `;
 
 const Card = styled.div`
-  background-color: white;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   padding: 40px 30px;
   border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-dk-lg);
   max-width: 600px;
   margin-top: 50px;
   width: 100%;
@@ -31,7 +32,7 @@ const Card = styled.div`
 
 const Heading = styled.h1`
   font-size: 2.6rem;
-  color: #0f4c81;
+  color: var(--text-hi);
   margin-bottom: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -45,8 +46,12 @@ const Heading = styled.h1`
 const Message = styled.p`
   font-size: 1.15rem;
   line-height: 1.75;
-  color: #333;
+  color: var(--text-body);
   margin-bottom: 28px;
+
+  strong {
+    color: var(--text-hi);
+  }
 
   @media (max-width: 600px) {
     font-size: 1rem;
@@ -54,12 +59,12 @@ const Message = styled.p`
 `;
 
 const PhoneLink = styled.a`
-  color: #0f4c81;
+  color: var(--resin-hot);
   font-weight: 700;
   text-decoration: none;
-  border-bottom: 2px solid rgba(15, 76, 129, 0.25);
+  border-bottom: 2px solid rgba(240, 165, 0, 0.35);
 
-  &:hover { border-bottom-color: #0f4c81; }
+  &:hover { border-bottom-color: var(--resin); }
 `;
 
 const ButtonRow = styled.div`
@@ -73,36 +78,43 @@ const PrimaryBtn = styled(Link)`
   display: inline-block;
   padding: 12px 22px;
   font-size: 1rem;
-  background-color: #0f4c81;
-  color: white;
+  background: var(--resin-grad);
+  color: #14110a;
   border-radius: 8px;
   text-decoration: none;
   font-weight: 700;
-  transition: background 0.2s;
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
 
-  &:hover { background-color: #0c3c66; }
+  &:hover {
+    filter: brightness(1.07);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.4);
+  }
 `;
 
 const SecondaryBtn = styled(Link)`
   display: inline-block;
   padding: 12px 22px;
   font-size: 1rem;
-  background-color: white;
-  color: #0f4c81;
-  border: 2px solid #0f4c81;
+  background: rgba(18, 21, 26, 0.35);
+  color: var(--text-hi);
+  border: 1px solid var(--line-strong);
   border-radius: 8px;
   text-decoration: none;
   font-weight: 700;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 
-  &:hover { background-color: rgba(15, 76, 129, 0.06); }
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.28);
+  }
 `;
 
 const FooterNote = styled.footer`
   padding: 20px;
   text-align: center;
   font-size: 0.85rem;
-  color: #888;
+  color: var(--text-dim);
 `;
 
 const ThankYou = () => {

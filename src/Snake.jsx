@@ -8,13 +8,20 @@ const GameContainer = styled.div`
   display: flex;
   justify-content: space-between;
   flex-direction: column;
-  padding: 20px;
+  /* Dark-showroom page shell: top padding = old 80px margin + 20px padding,
+     so content sits exactly where it did but the dark bg reaches the header. */
+  padding: 100px 20px 20px;
   box-sizing: border-box;
-  margin-top: 80px;
+  min-height: 100vh;
+  background: var(--bg0);
   align-items: center;
 
+  h1 {
+    color: var(--text-hi);
+  }
+
   @media (max-width: 768px) {
-    padding: 10px;
+    padding: 90px 10px 10px;
   }
 `;
 
