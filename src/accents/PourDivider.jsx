@@ -18,25 +18,25 @@ const Band = styled.div`
   }
 
   .liquid {
-    transform: translateX(-104%);
-    transition: transform 1.7s var(--ease-out);
+    transform: translateY(-103%);
+    transition: transform 1.5s var(--ease-out);
     will-change: transform;
   }
 
   &.visible .liquid {
-    transform: translateX(0);
+    transform: translateY(0);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .liquid {
-      transform: translateX(0);
+      transform: translateY(0);
     }
   }
 `;
 
 /**
- * Section divider: a glossy epoxy pour that flows across the band as it
- * enters the viewport (transform-only, fires once).
+ * Section divider: a glossy epoxy pour that spills down out of the section
+ * above as it enters the viewport (transform-only, fires once).
  * Props:
  *  - color: fill for the liquid ('resin' gradient | any CSS color)
  *  - height: band height in px (default 96)
@@ -44,6 +44,7 @@ const Band = styled.div`
 const PourDivider = ({ color = 'resin', height = 96, ...rest }) => {
   const [ref, visible] = useScrollReveal({ threshold: 0.4, rootMargin: '0px' });
   const useGrad = color === 'resin';
+  const fill = useGrad ? 'url(#pour-resin)' : color;
 
   return (
     <Band ref={ref} $height={height} className={visible ? 'visible' : ''} aria-hidden="true" {...rest}>
@@ -58,38 +59,30 @@ const PourDivider = ({ color = 'resin', height = 96, ...rest }) => {
           </defs>
         )}
         <g className="liquid">
-          {/* Liquid body with a wavy, drippy bottom edge */}
+          {/* Liquid body with a smooth, rounded leveling edge — no spikes */}
           <path
-            fill={useGrad ? 'url(#pour-resin)' : color}
-            d="M0,0 H1448 V46
-               C1396,62 1372,40 1318,52
-               C1290,58 1278,76 1252,70
-               C1226,64 1222,44 1186,48
-               C1138,54 1124,72 1082,64
-               C1040,56 1030,38 986,44
-               C942,50 936,68 894,66
-               C852,64 842,42 798,46
-               C754,50 748,70 706,68
-               C664,66 656,44 612,46
-               C568,48 562,66 520,64
-               C478,62 470,40 426,44
-               C382,48 376,64 334,62
-               C292,60 284,42 240,46
-               C196,50 190,66 148,62
-               C106,58 98,44 54,48
-               C28,50 14,58 0,54 Z"
+            fill={fill}
+            d="M0,-8 H1440 V48
+               C1392,60 1344,66 1296,61
+               C1248,56 1224,44 1176,45
+               C1128,46 1104,62 1056,66
+               C1008,70 984,56 936,51
+               C888,46 864,52 816,58
+               C768,64 744,68 696,63
+               C648,58 624,46 576,47
+               C528,48 504,62 456,66
+               C408,70 384,60 336,54
+               C288,48 264,46 216,50
+               C168,54 144,64 96,62
+               C48,60 24,52 0,49 Z"
           />
-          {/* Hanging drips */}
-          <path fill={useGrad ? 'url(#pour-resin)' : color} d="M312,58 c0,14 -4,24 -9,30 c-5,-6 -9,-16 -9,-30 c6,3 12,3 18,0 Z" />
-          <path fill={useGrad ? 'url(#pour-resin)' : color} d="M737,64 c0,11 -3,19 -7,24 c-4,-5 -7,-13 -7,-24 c5,2 9,2 14,0 Z" />
-          <path fill={useGrad ? 'url(#pour-resin)' : color} d="M1102,60 c0,16 -5,26 -10,33 c-5,-7 -10,-17 -10,-33 c7,3 13,3 20,0 Z" />
           {/* Gloss highlight along the surface */}
           <path
             fill="none"
             stroke="rgba(255,255,255,0.35)"
             strokeWidth="3"
             strokeLinecap="round"
-            d="M28,18 C320,12 760,24 1180,16 C1270,14 1352,18 1414,16"
+            d="M28,16 C320,10 760,22 1180,14 C1270,12 1352,16 1414,14"
           />
         </g>
       </svg>

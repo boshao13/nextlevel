@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import useScrollReveal from './useScrollReveal';
-import { FlakeField } from './accents';
 
 import coyote from './images/flakes/coyote.jpg';
 import creekbed from './images/flakes/creekbed.jpg';
@@ -60,15 +59,8 @@ const SectionSubtitle = styled.p`
   font-size: 1.05rem;
   color: var(--text-body);
   max-width: 540px;
-  margin: 0 auto 16px;
+  margin: 0 auto 56px;
   line-height: 1.7;
-`;
-
-/* Flakes scattering down and settling onto the swatch grid */
-const SettleStrip = styled(FlakeField)`
-  width: 100%;
-  height: 64px;
-  margin-bottom: 8px;
 `;
 
 const Grid = styled.div`
@@ -198,15 +190,6 @@ const FlakeCarousel = () => {
             Pick your favorite flake color from our most popular selection. Not sure? We bring samples to every consultation.
           </SectionSubtitle>
         </div>
-
-        <SettleStrip
-          palette="coyote"
-          count={56}
-          seed={13}
-          area={[1100, 64]}
-          settle
-          visible={gridVisible}
-        />
 
         <Grid ref={gridRef}>
           {flakes.map((f, i) => (

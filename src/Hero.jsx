@@ -122,11 +122,7 @@ const Headline = styled.h1`
 
   em {
     font-style: normal;
-    background: var(--resin-grad);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: var(--resin); /* fallback for non-clip browsers */
+    color: var(--resin-hot);
   }
 
   @media (max-width: 768px) {
