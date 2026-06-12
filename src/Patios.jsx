@@ -5,6 +5,8 @@ import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 
 import ContactForm from './ContactForm';
+import SwatchModal from './components/SwatchModal';
+import UV_SKUS from './uvFlakeSkus';
 
 const SEO = () => (
   <Helmet>
@@ -60,6 +62,7 @@ const allUvFlakes = uvFlakeContext.keys().map((key) => {
     name,
     filename,
     img: uvFlakeContext(key),
+    sku: UV_SKUS[filename] || '',
     kind: STANDARD_NAMES.has(filename) ? 'standard' : 'hybrid',
   };
 }).sort((a, b) => a.name.localeCompare(b.name));
@@ -372,9 +375,14 @@ const FlakeGrid = styled.div`
   }
 `;
 
-const FlakeCard = styled.figure`
+const FlakeCard = styled.button`
   position: relative;
   margin: 0;
+  padding: 0;
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  cursor: pointer;
   aspect-ratio: 1;
   background: var(--surface);
   border-radius: 12px;
@@ -397,7 +405,8 @@ const FlakeCard = styled.figure`
   }
 `;
 
-const FlakeName = styled.figcaption`
+const FlakeName = styled.span`
+  display: block;
   position: absolute;
   inset: auto 0 0 0;
   padding: 22px 8px 10px;
@@ -487,6 +496,7 @@ const ShieldIcon = (props) => (
 const Patios = () => {
   const videoARef = useRef(null);
   const videoBRef = useRef(null);
+  const [selectedFlake, setSelectedFlake] = useState(null);
   // Just ensures the videos start playing on mount inside any iframe contexts.
   useEffect(() => {
     [videoARef, videoBRef].forEach((r) => {
@@ -580,7 +590,12 @@ const Patios = () => {
           <FlakeCategoryHeading>Standard 1/4" Flake</FlakeCategoryHeading>
           <FlakeGrid>
             {standardFlakes.map((f) => (
-              <FlakeCard key={f.filename}>
+              <FlakeCard
+                key={f.filename}
+                type="button"
+                aria-label={`View ${f.name}`}
+                onClick={() => setSelectedFlake({ ...f, collection: 'UV+ Standard 1/4" Flake' })}
+              >
                 <img src={f.img} alt={`${f.name} UV-resistant epoxy patio flake blend`} loading="lazy" width="400" height="400" />
                 <FlakeName>{f.name}</FlakeName>
               </FlakeCard>
@@ -590,7 +605,12 @@ const Patios = () => {
           <FlakeCategoryHeading>Hybrid Flake</FlakeCategoryHeading>
           <FlakeGrid>
             {hybridFlakes.map((f) => (
-              <FlakeCard key={f.filename}>
+              <FlakeCard
+                key={f.filename}
+                type="button"
+                aria-label={`View ${f.name}`}
+                onClick={() => setSelectedFlake({ ...f, collection: 'UV+ Hybrid Flake' })}
+              >
                 <img src={f.img} alt={`${f.name} UV-resistant hybrid epoxy patio flake blend`} loading="lazy" width="400" height="400" />
                 <FlakeName>{f.name}</FlakeName>
               </FlakeCard>
@@ -611,6 +631,14 @@ const Patios = () => {
         </FinalCtaSub>
         <ContactForm />
       </FinalCta>
+
+      {selectedFlake && (
+        <SwatchModal
+          item={selectedFlake}
+          onClose={() => setSelectedFlake(null)}
+          onQuote={scrollToContact}
+        />
+      )}
     </PageContainer>
   );
 };
