@@ -212,6 +212,22 @@ const Copyright = styled.p`
   color: rgba(255, 255, 255, 0.25);
 `;
 
+const LegalLinks = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  a {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.3);
+    transition: color var(--transition);
+
+    &:hover {
+      color: var(--resin-hot);
+    }
+  }
+`;
+
 const MadeBy = styled.a`
   display: flex;
   align-items: center;
@@ -311,6 +327,10 @@ const Footer = () => {
 
         <BottomBar>
           <Copyright>© {new Date().getFullYear()} Next Level Epoxy Flooring. All rights reserved.</Copyright>
+          <LegalLinks>
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms of Service</Link>
+          </LegalLinks>
           <MadeBy href="https://codelabs88.com" target="_blank" rel="noopener noreferrer">
             Engineered with caffeine & code by
             <img src={codelabsLogo} alt="CodeLabs" />

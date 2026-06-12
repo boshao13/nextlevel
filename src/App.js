@@ -50,6 +50,8 @@ import Documents from "./admin/Documents";
 import DocumentEditor from "./admin/DocumentEditor";
 import SignDocument from "./public/SignDocument";
 import Signed from "./public/Signed";
+import Privacy from "./Privacy";
+import Terms from "./Terms";
 
 // Code-split: the full Torginol catalog (500+ entries + swatch wiring) stays
 // out of the main bundle; prerender still captures /colors (networkidle0
@@ -130,6 +132,8 @@ function App() {
             <Route path="/epoxy-flooring-albuquerque" element={<LocationPage city={ALBUQUERQUE} />} />
             <Route path="/epoxy-flooring-santa-fe"   element={<LocationPage city={SANTA_FE} />} />
             <Route path="/epoxy-flooring-rio-rancho" element={<LocationPage city={RIO_RANCHO} />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Route>

@@ -29,7 +29,14 @@ const app = express();
 // throw ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
 app.set('trust proxy', 1);
 
-app.use(cors());
+app.disable('x-powered-by');
+
+// The API is same-origin behind nginx (/api on the site domain), so browsers
+// never need cross-origin access. Lock CORS to our own origins instead of the
+// previous wildcard — cross-site pages can no longer read API responses.
+app.use(cors({
+  origin: ['https://www.nextlevelepoxynm.com', 'https://nextlevelepoxynm.com'],
+}));
 app.use(bodyParser.json());
 
 // Lead submissions are public + expensive (DB write + 2 outbound Resend emails).

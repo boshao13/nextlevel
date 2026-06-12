@@ -48,6 +48,8 @@ const ROUTES = [
   '/epoxy-flooring-albuquerque',
   '/epoxy-flooring-santa-fe',
   '/epoxy-flooring-rio-rancho',
+  '/privacy',
+  '/terms',
 ];
 
 async function startServer(shellHtml) {
