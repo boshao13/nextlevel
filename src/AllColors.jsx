@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
@@ -106,85 +106,22 @@ const Content = styled.div`
   padding: 40px 24px 100px;
 `;
 
-/* Sticky toolbar: search + jump chips */
-const Toolbar = styled.div`
-  position: sticky;
-  top: 76px;
-  z-index: 20;
-  background: rgba(12, 14, 17, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
+/* Category jump nav (non-floating) */
+const CategoryNav = styled.nav`
   margin-bottom: 40px;
-
-  @media (max-width: 768px) {
-    top: 64px;
-  }
-`;
-
-const ToolbarRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-
-  @media (max-width: 600px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`;
-
-const SearchInput = styled.input`
-  padding: 11px 18px;
-  border: 1.5px solid var(--line-strong);
-  border-radius: var(--radius-full);
-  font-size: 0.95rem;
-  font-family: inherit;
-  width: 280px;
-  background: var(--bg0);
-  color: var(--text-hi);
-  transition: border-color var(--transition), box-shadow var(--transition);
-
-  &:focus {
-    outline: none;
-    border-color: var(--resin);
-    box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.14);
-  }
-
-  &::placeholder {
-    color: var(--text-dim);
-  }
-
-  @media (max-width: 600px) {
-    width: 100%;
-  }
 `;
 
 const Count = styled.p`
   font-size: 0.88rem;
   color: var(--text-dim);
   font-weight: 500;
-  white-space: nowrap;
+  margin-bottom: 14px;
 `;
 
 const ChipRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 12px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: var(--line-strong);
-    border-radius: 2px;
-  }
 `;
 
 const Chip = styled.a`
@@ -208,7 +145,7 @@ const Chip = styled.a`
 
 const Section = styled.section`
   margin-bottom: 56px;
-  scroll-margin-top: 170px;
+  scroll-margin-top: 96px;
 `;
 
 const SectionHeader = styled.div`
@@ -335,36 +272,11 @@ const UvNote = styled.p`
   }
 `;
 
-const NoResults = styled.p`
-  text-align: center;
-  font-size: 1.05rem;
-  color: var(--text-dim);
-  padding: 60px 0;
-`;
-
 /* ── Component ────────────────────────────────────────────────────── */
 const AllColors = () => {
-  const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
 
   const close = useCallback(() => setSelected(null), []);
-
-  const q = search.trim().toLowerCase();
-
-  const filteredCatalog = useMemo(() => {
-    if (!q) return CATALOG;
-    return CATALOG.map((c) => ({
-      ...c,
-      items: c.items.filter((it) => it.name.toLowerCase().includes(q) || (it.sku || '').toLowerCase().includes(q)),
-    })).filter((c) => c.items.length > 0);
-  }, [q]);
-
-  const filteredInStock = useMemo(() => {
-    if (!q) return inStockItems;
-    return inStockItems.filter((it) => it.name.toLowerCase().includes(q));
-  }, [q]);
-
-  const shownCount = filteredCatalog.reduce((n, c) => n + c.items.length, 0);
 
   return (
     <Page>
@@ -388,24 +300,16 @@ const AllColors = () => {
       </HeroBanner>
 
       <Content>
-        <Toolbar>
-          <ToolbarRow>
-            <SearchInput
-              type="text"
-              placeholder="Search colors or SKU…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Count>{q ? `${shownCount} of ${TOTAL_COUNT}` : TOTAL_COUNT} colors</Count>
-          </ToolbarRow>
+        <CategoryNav aria-label="Flake collections">
+          <Count>{TOTAL_COUNT} colors across {CATALOG.length} collections</Count>
           <ChipRow>
             {CATALOG.map((c) => (
               <Chip key={c.key} href={`#${c.key}`}>{c.title}</Chip>
             ))}
           </ChipRow>
-        </Toolbar>
+        </CategoryNav>
 
-        {filteredInStock.length > 0 && (
+        {inStockItems.length > 0 && (
           <Section id="in-stock">
             <SectionHeader>
               <SectionTitle>Our Signature Colors</SectionTitle>
@@ -416,7 +320,7 @@ const AllColors = () => {
               All other colors are available to order and subject to shipping times.
             </SectionNote>
             <Grid>
-              {filteredInStock.map((it) => (
+              {inStockItems.map((it) => (
                 <Card key={`stock-${it.file}`} onClick={() => setSelected(it)} aria-label={`View ${it.name}`}>
                   <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
                   <CardLabel><span aria-hidden="true" />{it.name}</CardLabel>
@@ -431,34 +335,30 @@ const AllColors = () => {
           <Link to="/patios">Patios page</Link>.
         </UvNote>
 
-        {filteredCatalog.length === 0 ? (
-          <NoResults>No colors match "{search}"</NoResults>
-        ) : (
-          filteredCatalog.map((c) => (
-            <Section key={c.key} id={c.key}>
-              <SectionHeader>
-                <SectionTitle>{c.title}</SectionTitle>
-                <SectionCount>{c.items.length} color{c.items.length !== 1 ? 's' : ''}</SectionCount>
-              </SectionHeader>
-              <SectionNote>{c.blurb}</SectionNote>
-              <Grid>
-                {c.items.map((it) => (
-                  <Card
-                    key={`${c.key}-${it.file}`}
-                    onClick={() => setSelected({ ...it, collection: c.title })}
-                    aria-label={`View ${it.name}`}
-                  >
-                    <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
-                    <CardLabel>
-                      {it.inStock && <span aria-hidden="true" />}
-                      {it.name}
-                    </CardLabel>
-                  </Card>
-                ))}
-              </Grid>
-            </Section>
-          ))
-        )}
+        {CATALOG.map((c) => (
+          <Section key={c.key} id={c.key}>
+            <SectionHeader>
+              <SectionTitle>{c.title}</SectionTitle>
+              <SectionCount>{c.items.length} color{c.items.length !== 1 ? 's' : ''}</SectionCount>
+            </SectionHeader>
+            <SectionNote>{c.blurb}</SectionNote>
+            <Grid>
+              {c.items.map((it) => (
+                <Card
+                  key={`${c.key}-${it.file}`}
+                  onClick={() => setSelected({ ...it, collection: c.title })}
+                  aria-label={`View ${it.name}`}
+                >
+                  <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
+                  <CardLabel>
+                    {it.inStock && <span aria-hidden="true" />}
+                    {it.name}
+                  </CardLabel>
+                </Card>
+              ))}
+            </Grid>
+          </Section>
+        ))}
       </Content>
 
       {selected && <SwatchModal item={selected} onClose={close} />}
