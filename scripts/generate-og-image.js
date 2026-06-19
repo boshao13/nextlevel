@@ -49,7 +49,9 @@ const html = `<!doctype html><html><head><meta charset="utf-8">
     position: absolute; left: 72px; top: 60px; bottom: 60px; width: 700px;
     display: flex; flex-direction: column; z-index: 2;
   }
-  .logo { height: 76px; width: auto; filter: brightness(0) invert(1); }
+  /* align-self:flex-start stops the column-flex from stretching the wordmark
+     to the full content width (which squashed its 2.5:1 ratio). */
+  .logo { align-self: flex-start; height: 72px; width: auto; filter: brightness(0) invert(1); }
   .eyebrow {
     margin-top: 46px;
     color: #f0a500; font-weight: 800; font-size: 19px;
