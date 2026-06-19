@@ -32,4 +32,8 @@ src/images/
 # media assets (scp to server directly)
 public/videos/
 public/img/
-public/images/
+public/images/*
+# …but keep the social/link-preview cards in version control
+# (regenerate with: node scripts/generate-og-image.js)
+!public/images/og-image.jpg
+!public/images/twitter-image.jpg

@@ -10,6 +10,7 @@ const Privacy = () => (
       <meta name="description" content="How Next Level Epoxy Flooring collects, uses, and protects your information when you request a quote or browse nextlevelepoxynm.com." />
       <link rel="canonical" href="https://www.nextlevelepoxynm.com/privacy" />
       <meta property="og:title" content="Privacy Policy | Next Level Epoxy Flooring" />
+      <meta property="og:description" content="How Next Level Epoxy Flooring collects, uses, and protects your information." />
       <meta property="og:url" content="https://www.nextlevelepoxynm.com/privacy" />
     </Helmet>
     <LegalLayout title="Privacy Policy" effectiveDate="June 11, 2026">

@@ -10,6 +10,7 @@ const Terms = () => (
       <meta name="description" content="Terms of service for nextlevelepoxynm.com and Next Level Epoxy Flooring's epoxy and concrete coating services in New Mexico." />
       <link rel="canonical" href="https://www.nextlevelepoxynm.com/terms" />
       <meta property="og:title" content="Terms of Service | Next Level Epoxy Flooring" />
+      <meta property="og:description" content="Terms of service for nextlevelepoxynm.com and Next Level Epoxy Flooring's New Mexico coating services." />
       <meta property="og:url" content="https://www.nextlevelepoxynm.com/terms" />
     </Helmet>
     <LegalLayout title="Terms of Service" effectiveDate="June 11, 2026">

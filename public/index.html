@@ -10,42 +10,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0c0e11" />
 
-    <!-- SEO Meta Description (≤160 chars, leads with geo + service, ends with CTA) -->
-    <meta
-      name="description"
-      content="Epoxy flooring in Albuquerque, Santa Fe & Rio Rancho NM. Lifetime garage floors & concrete coatings. 560+ installed. Free quote: 505-352-4674."
-    />
-
+    <!-- Per-page <title>, description, canonical, and og/twitter title+description
+         are set by react-helmet on every route and baked in at prerender, so each
+         page is the single source of truth (no duplicate/ambiguous tags). index.html
+         keeps only the fields that are identical site-wide: the social card image,
+         keywords, author, and the static og/twitter scaffolding. -->
     <meta
       name="keywords"
       content="epoxy flooring Albuquerque, epoxy flooring Santa Fe, epoxy flooring Rio Rancho, garage floor coating Albuquerque, concrete coatings New Mexico, polyaspartic flooring NM, commercial epoxy Albuquerque, residential epoxy Santa Fe"
     />
     <meta name="author" content="Next Level Epoxy Flooring" />
-    <link rel="canonical" href="https://www.nextlevelepoxynm.com/" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="Epoxy Flooring Albuquerque, Santa Fe & Rio Rancho NM | Next Level Epoxy" />
-    <meta
-      property="og:description"
-      content="Lifetime-warranty epoxy garage floors & concrete coatings in Albuquerque, Santa Fe & Rio Rancho NM. 560+ floors installed. Free quote: 505-352-4674."
-    />
+    <!-- Open Graph / Twitter — shared brand link-preview card + static fields only.
+         og:title / og:description / og:url come from react-helmet per page. -->
     <meta property="og:image" content="https://www.nextlevelepoxynm.com/images/og-image.jpg" />
-    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Glossy decorative-flake epoxy garage floor installed by Next Level Epoxy in Albuquerque, NM" />
-    <meta property="og:url" content="https://www.nextlevelepoxynm.com" />
+    <meta property="og:image:alt" content="Next Level Epoxy Flooring — lifetime-warranty epoxy floors in Albuquerque, Santa Fe & Rio Rancho, NM" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
-
-    <!-- Twitter Card -->
+    <meta property="og:site_name" content="Next Level Epoxy Flooring" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Epoxy Flooring Albuquerque, Santa Fe & Rio Rancho NM | Next Level" />
-    <meta
-      name="twitter:description"
-      content="Lifetime-warranty epoxy garage floors & concrete coatings across New Mexico. 560+ floors installed. Free quote: 505-352-4674."
-    />
     <meta name="twitter:image" content="https://www.nextlevelepoxynm.com/images/twitter-image.jpg" />
 
     <!-- SEO-optimized title: "Epoxy Flooring Albuquerque" in first 30 chars -->
