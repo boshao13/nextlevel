@@ -27,7 +27,9 @@ const PdfPreview = ({ src, onPagesLoaded }) => {
     let cancelled = false;
 
     (async () => {
-      const loadingTask = pdfjs.getDocument(src);
+      // isEvalSupported:false neutralizes CVE-2024-4367 (arbitrary JS via a
+      // crafted FontMatrix) in pdfjs-dist 3.x. src is an object-URL string.
+      const loadingTask = pdfjs.getDocument({ url: src, isEvalSupported: false });
       const pdf = await loadingTask.promise;
       if (cancelled) return;
       const newPages = [];

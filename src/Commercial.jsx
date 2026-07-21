@@ -3,7 +3,6 @@ import styled, { css, keyframes } from 'styled-components';
 import { Helmet } from 'react-helmet';
 import useScrollReveal from './useScrollReveal';
 import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
-import TurnstileWidget from './components/TurnstileWidget';
 
 const MOBILE_MQ = '(max-width: 768px)';
 const commercialMobileSrc  = { webm: '/videos/commercial-mobile.webm',  mp4: '/videos/commercial-mobile.mp4' };
@@ -824,7 +823,6 @@ const Commercial = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const [isMobile, setIsMobile] = useState(
@@ -862,12 +860,6 @@ const Commercial = () => {
     e.preventDefault();
     if (!isValid) return;
     setErrorMsg('');
-
-    if (!turnstileToken) {
-      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
-      return;
-    }
-
     setSending(true);
 
     try {
@@ -881,15 +873,14 @@ const Commercial = () => {
           area_desired: form.area_desired,
           source: 'commercial_form',
           notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
-          turnstile_token: turnstileToken,
         }),
       });
-      if (res.status === 403) {
-        setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
-        return;
-      }
       if (!res.ok) {
-        setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
+        // 400 (fixable input) and 429 (rate limit) carry actionable messages;
+        // anything else gets the friendly fallback with the phone number.
+        const body = await res.json().catch(() => null);
+        const actionable = (res.status === 400 || res.status === 429) && body?.error;
+        setErrorMsg(actionable ? body.error : 'We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
         return;
       }
       trackFormSubmission('commercial');
@@ -1212,7 +1203,6 @@ const Commercial = () => {
                   />
                 </FieldGroup>
 
-                <TurnstileWidget onToken={setTurnstileToken} />
                 {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
                 <SubmitBtn type="submit" disabled={!isValid || sending}>
                   {sending ? 'Sending...' : 'Get My Commercial Quote →'}

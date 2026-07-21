@@ -331,6 +331,71 @@ async function sendCustomerConfirmation(lead) {
 }
 
 // ---------------------------------------------------------------------------
+// Lead-pipeline failure alert (to LEAD_TO_EMAIL)
+// ---------------------------------------------------------------------------
+// Fired when a form submission errors. The email carries the FULL submitted
+// payload — when the DB insert failed, this alert is the only surviving copy
+// of the customer's contact info, so Bo can still call them.
+async function sendLeadFailureAlert(attempt, reason) {
+  const r = client();
+  if (!r || !process.env.LEAD_FROM_EMAIL || !process.env.LEAD_TO_EMAIL) {
+    console.warn('[email] failure alert skipped — Resend not configured');
+    return { sent: false, reason: 'not_configured' };
+  }
+
+  const a = attempt || {};
+  const safe = (v) => escapeHtml(typeof v === 'string' ? v.slice(0, 1000) : (v ?? '—'));
+  const rows = [
+    ['Name', a.name], ['Email', a.email], ['Phone', a.phone],
+    ['Area / Project', a.area_desired], ['Source', a.source], ['Notes', a.notes],
+  ];
+
+  const html = `
+<!doctype html>
+<html><body style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:${BRAND.bg};margin:0;padding:32px 16px;color:${BRAND.text};">
+  <div style="max-width:600px;margin:0 auto;background:${BRAND.card};border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+    <div style="background:#b91c1c;color:#fff;padding:18px 28px;">
+      <div style="font-size:.72rem;font-weight:700;letter-spacing:.16em;opacity:.9;">FORM SUBMISSION FAILED</div>
+      <div style="font-size:1.35rem;font-weight:800;margin-top:4px;">${safe(a.name || 'Unknown customer')} hit an error — call them</div>
+    </div>
+    <div style="padding:24px 28px;">
+      <table style="width:100%;border-collapse:collapse;">
+        ${rows.map(([k, v]) => `<tr><td style="padding:7px 0;color:${BRAND.muted};font-size:.85rem;width:130px;vertical-align:top;">${k}</td><td style="padding:7px 0;font-weight:600;white-space:pre-wrap;">${safe(v)}</td></tr>`).join('')}
+      </table>
+      <div style="margin-top:20px;padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;font-size:.85rem;color:#7f1d1d;white-space:pre-wrap;">${safe(String(reason || 'unknown error'))}</div>
+    </div>
+    ${footerHtml()}
+  </div>
+</body></html>`.trim();
+
+  const text = [
+    'FORM SUBMISSION FAILED — customer saw an error. Their submitted info:',
+    ...rows.map(([k, v]) => `${k}: ${v || '—'}`),
+    '',
+    `Error: ${reason || 'unknown'}`,
+  ].join('\n');
+
+  try {
+    const { data, error } = await r.emails.send({
+      from: `Next Level Epoxy <${process.env.LEAD_FROM_EMAIL}>`,
+      to: process.env.LEAD_TO_EMAIL,
+      subject: `⚠️ Lead form FAILED — ${(a.name && String(a.name).slice(0, 60)) || 'unknown customer'} — info inside`,
+      html,
+      text,
+    });
+    if (error) {
+      console.error('[email] Resend (failure alert) error:', error);
+      return { sent: false, reason: 'resend_error', error };
+    }
+    console.log('[email] failure alert sent id=' + (data?.id || '?') + ' to=' + process.env.LEAD_TO_EMAIL);
+    return { sent: true, id: data?.id };
+  } catch (err) {
+    console.error('[email] Failure alert send failed:', err);
+    return { sent: false, reason: 'exception', error: String(err) };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // E-signature signing invitation (to recipient)
 // ---------------------------------------------------------------------------
 function buildSigningEmail({ doc, signUrl }) {
@@ -415,4 +480,4 @@ async function sendSigningInvitation({ doc, signUrl }) {
   }
 }
 
-module.exports = { sendLeadNotification, sendCustomerConfirmation, buildSigningEmail, sendSigningInvitation };
+module.exports = { sendLeadNotification, sendCustomerConfirmation, sendLeadFailureAlert, buildSigningEmail, sendSigningInvitation };

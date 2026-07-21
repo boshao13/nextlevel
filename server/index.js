@@ -4,6 +4,12 @@ const bodyParser = require('body-parser');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Last-resort safety net: a stray rejected promise or thrown async error must
+// not take down the single API process that serves lead intake + admin CRM +
+// e-sign. Log and stay up rather than crash-loop under PM2.
+process.on('unhandledRejection', (err) => console.error('[fatal] unhandledRejection:', err));
+process.on('uncaughtException', (err) => console.error('[fatal] uncaughtException:', err));
+
 const authenticate = require('./middleware/auth');
 const requireRole = require('./middleware/requireRole');
 
@@ -37,7 +43,21 @@ app.disable('x-powered-by');
 app.use(cors({
   origin: ['https://www.nextlevelepoxynm.com', 'https://nextlevelepoxynm.com'],
 }));
-app.use(bodyParser.json());
+// Cap request bodies. The largest legitimate payload is a signature image
+// (validated to 200KB inside sign.js); 256KB covers it with margin and blunts
+// oversized-body memory-pressure attempts on the public routes.
+app.use(bodyParser.json({ limit: '256kb' }));
+
+// Login is the single unauthenticated gate to the whole CRM. Cap attempts per
+// IP to blunt credential stuffing AND the bcrypt-CPU DoS on the single Node
+// thread. 10 / 15 min is generous for 3 real staff, punishing for a script.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Lead submissions are public + expensive (DB write + 2 outbound Resend emails).
 // Real humans fill at most one form per minute; bots try to fan out across
@@ -51,6 +71,7 @@ const leadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+app.use('/api/login', loginLimiter);
 app.use('/api', authRoutes);
 
 // Public lead creation stays open (leads router handles its own auth for GET/PUT/DELETE)
@@ -73,6 +94,17 @@ app.use('/api/documents', authenticate, documentRoutes);
 app.use('/api/sign', signRoutes); // PUBLIC: no auth, rate-limited inside the router
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Terminal error handler — keeps stack traces (server paths, deploy dir, dep
+// tree) out of responses regardless of NODE_ENV. body-parser's JSON
+// SyntaxError on a malformed body is routed here instead of Express's default
+// finalhandler, which would otherwise serialize the stack to the client.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('[error]', err);
+  if (res.headersSent) return next(err);
+  res.status(err.status || 500).json({ error: 'Internal server error' });
+});
 
 const PORT = process.env.PORT || 4242;
 // Bind to loopback only — Nginx is the public face. Defense-in-depth:

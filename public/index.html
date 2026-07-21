@@ -117,16 +117,26 @@
     />
 
 
-    <!-- Google Analytics (GA4) + Google Ads (AW) — gtag.js is loaded once and
-         routes to both destinations via separate config calls. -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NZ6KRRHCG0"></script>
+    <!-- Google Analytics (GA4) + Google Ads (AW). Loaded ONLY on public
+         marketing routes. Skipped on /sign|/signed (the secret e-sign token in
+         the URL would leak to Google via page_location) and /admin (keep
+         third-party JS off the origin that holds the admin JWT). gtag() stays
+         defined everywhere so no code throws. -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
       gtag('js', new Date());
-
-      gtag('config', 'G-NZ6KRRHCG0');
-      gtag('config', 'AW-11478525428');
+      (function () {
+        var p = window.location.pathname;
+        if (p.indexOf('/sign') === 0 || p.indexOf('/admin') === 0) return;
+        gtag('config', 'G-NZ6KRRHCG0');
+        gtag('config', 'AW-11478525428');
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-NZ6KRRHCG0';
+        document.head.appendChild(s);
+      })();
     </script>
 
     <style>

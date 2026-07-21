@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 import useScrollReveal from './useScrollReveal';
 import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
-import TurnstileWidget from './components/TurnstileWidget';
 import { ConcreteTexture } from './accents';
 
 /* ── Keyframes ────────────────────────────────────────────────────── */
@@ -324,7 +323,6 @@ const ContactForm = ({ source = 'contact_form' }) => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [sectionRef, sectionVisible] = useScrollReveal({ threshold: 0.1 });
 
@@ -339,12 +337,6 @@ const ContactForm = ({ source = 'contact_form' }) => {
     e.preventDefault();
     if (!isValid) return;
     setErrorMsg('');
-
-    if (!turnstileToken) {
-      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
-      return;
-    }
-
     setSending(true);
 
     try {
@@ -357,15 +349,14 @@ const ContactForm = ({ source = 'contact_form' }) => {
           phone: form.user_number,
           area_desired: form.area_desired,
           source,
-          turnstile_token: turnstileToken,
         }),
       });
-      if (res.status === 403) {
-        setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
-        return;
-      }
       if (!res.ok) {
-        setErrorMsg('We couldn\'t submit your request. Please try again or call 505-352-4674.');
+        // 400 (fixable input) and 429 (rate limit) carry actionable messages;
+        // anything else gets the friendly fallback with the phone number.
+        const body = await res.json().catch(() => null);
+        const actionable = (res.status === 400 || res.status === 429) && body?.error;
+        setErrorMsg(actionable ? body.error : 'We couldn\'t submit your request. Please try again or call 505-352-4674.');
         return;
       }
       trackFormSubmission('residential');
@@ -476,8 +467,6 @@ const ContactForm = ({ source = 'contact_form' }) => {
                   required
                 />
               </FieldGroup>
-
-              <TurnstileWidget onToken={setTurnstileToken} />
 
               {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
 

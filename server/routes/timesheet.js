@@ -220,7 +220,9 @@ router.post('/approve-all', canApprove, async (req, res) => {
 });
 
 // GET /api/timesheet/summary?period=2026-04-1
-router.get('/summary', async (req, res) => {
+// Exposes per-worker rates and gross/approved pay — admin/payroll only
+// (managers, who can enter time, must not see pay figures).
+router.get('/summary', canApprove, async (req, res) => {
   try {
     const { period } = req.query;
     if (!period) return res.status(400).json({ error: 'period is required (e.g., 2026-04-1)' });
@@ -259,7 +261,8 @@ router.get('/summary', async (req, res) => {
   }
 });
 
-router.get('/workers', (req, res) => {
+// WORKERS includes hourly rates — admin/payroll only.
+router.get('/workers', canApprove, (req, res) => {
   res.json(WORKERS);
 });
 

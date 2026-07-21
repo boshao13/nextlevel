@@ -32,7 +32,6 @@ const Privacy = () => (
       <ul>
         <li><strong>Analytics:</strong> we use Google Analytics to understand how visitors use the site (pages viewed, approximate location, device type). Google Analytics uses cookies.</li>
         <li><strong>Advertising measurement:</strong> we use Google Ads conversion tracking to measure whether our ads lead to quote requests or calls. This also uses cookies.</li>
-        <li><strong>Spam protection:</strong> our forms use Cloudflare Turnstile, which processes technical signals from your browser to tell humans apart from bots. Turnstile is operated by Cloudflare under its own privacy policy.</li>
       </ul>
 
       <h2>How We Use Your Information</h2>

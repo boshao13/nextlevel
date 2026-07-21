@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
 import { trackFormSubmission } from './lib/analytics';
-import TurnstileWidget from './components/TurnstileWidget';
 
 // Styled components for the Careers Page — dark showroom system
 const CareersContainer = styled.section`
@@ -116,7 +115,6 @@ const Careers = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = (e) => {
@@ -127,12 +125,6 @@ const Careers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-
-    if (!turnstileToken) {
-      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -145,15 +137,14 @@ const Careers = () => {
           phone: formData.phone_number,
           source: 'career_form',
           notes: `Age: ${formData.age}\nExperience: ${formData.relevant_experience}`,
-          turnstile_token: turnstileToken,
         }),
       });
-      if (res.status === 403) {
-        setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
-        return;
-      }
       if (!res.ok) {
-        setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
+        // 400 (fixable input) and 429 (rate limit) carry actionable messages;
+        // anything else gets the friendly fallback with the phone number.
+        const body = await res.json().catch(() => null);
+        const actionable = (res.status === 400 || res.status === 429) && body?.error;
+        setErrorMsg(actionable ? body.error : 'We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
         return;
       }
       trackFormSubmission('career');
@@ -223,7 +214,6 @@ const Careers = () => {
             onChange={handleChange}
             required
           />
-          <TurnstileWidget onToken={setTurnstileToken} />
           {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
           <SubmitButton type="submit" disabled={isLoading}>
             {isLoading ? 'Sending...' : 'Send Inquiry'}
