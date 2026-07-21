@@ -45,6 +45,8 @@ test('decodeEntities handles named and numeric entities', () => {
   expect(decodeEntities('Fe &amp; Rio &#x27;x&#39; &quot;q&quot;')).toBe('Fe & Rio \'x\' "q"');
 });
 
+test('decodeEntities passes through out-of-range numeric entities', () => { expect(decodeEntities('&#x110000;')).toBe('&#x110000;'); });
+
 test('extractTitle returns the first <title>, entity-decoded', () => {
   expect(extractTitle(PAGE)).toBe(
     'Epoxy Patio Coatings Albuquerque, Santa Fe & Rio Rancho NM | Next Level'

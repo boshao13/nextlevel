@@ -16,7 +16,7 @@ function decodeEntities(str) {
       const n = code[1] === 'x' || code[1] === 'X'
         ? parseInt(code.slice(2), 16)
         : parseInt(code.slice(1), 10);
-      return Number.isNaN(n) ? m : String.fromCodePoint(n);
+      return Number.isNaN(n) || n > 0x10FFFF ? m : String.fromCodePoint(n);
     }
     return Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, code) ? NAMED_ENTITIES[code] : m;
   });
