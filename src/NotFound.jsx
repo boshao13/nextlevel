@@ -119,7 +119,9 @@ const SecondaryBtn = styled(Link)`
  */
 const NotFound = () => (
   <Section>
-    <title>Page Not Found | Next Level Epoxy</title>
+    {/* Title comes ONLY from app/not-found.js metadata — one source, no
+        duplicate head tags. The robots meta stays here deliberately to
+        preserve today's exact `noindex,follow` string. */}
     <meta name="robots" content="noindex,follow" />
     <Inner>
       <Flakes aria-hidden="true">

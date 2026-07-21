@@ -1,7 +1,7 @@
 import StyledComponentsRegistry from '../lib/StyledComponentsRegistry';
 import GlobalStyle from '../src/GlobalStyle';
-import GtagLoader from '../src/GtagLoader';
-import { BUSINESS_GRAPH } from '../src/structuredData';
+import { GTAG_SNIPPET } from '../src/gtagSnippet';
+import { BUSINESS_GRAPH, jsonLdString } from '../src/structuredData';
 
 export const metadata = {
   metadataBase: new URL('https://www.nextlevelepoxynm.com'),
@@ -90,7 +90,7 @@ export default function RootLayout({ children }) {
         {/* Site-wide LocalBusiness + Service @graph (was public/index.html:42-105) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(BUSINESS_GRAPH) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdString(BUSINESS_GRAPH) }}
         />
 
         <StyledComponentsRegistry>
@@ -98,7 +98,10 @@ export default function RootLayout({ children }) {
           {children}
         </StyledComponentsRegistry>
 
-        <GtagLoader />
+        {/* Parse-time GA4/Ads snippet (src/gtagSnippet.js) — inline so it
+            executes before hydration, preserving pre-hydration bounce
+            visibility exactly as the CRA site's head IIFE did. */}
+        <script dangerouslySetInnerHTML={{ __html: GTAG_SNIPPET }} />
       </body>
     </html>
   );

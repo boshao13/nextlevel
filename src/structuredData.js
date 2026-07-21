@@ -1,3 +1,7 @@
+// Serialize JSON-LD for a <script> tag, escaping '<' so content can never
+// terminate the tag early (`</script>` breakout) if a value ever gains a '<'.
+export const jsonLdString = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c');
+
 /**
  * Site-wide LocalBusiness + Service JSON-LD @graph (public/index.html:42-105),
  * rendered once in app/layout.js. The `#business` @id is referenced by the
