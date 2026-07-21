@@ -1,0 +1,12 @@
+{
+  "/404": {
+    "status": true,
+    "title": true,
+    "robots": true
+  },
+  "/sign/dummy-token-parity": {
+    "noindex": true,
+    "h1": true,
+    "jsonLd": true
+  }
+}

@@ -47,7 +47,7 @@
     "build": "react-scripts build",
     "postbuild": "node scripts/prerender.js",
     "test": "react-scripts test",
-    "test:server": "jest --rootDir=. --testMatch \"**/server/**/*.test.js\" --watchAll=false",
+    "test:server": "jest --rootDir=. --testMatch \"**/{server,scripts}/**/*.test.js\" --watchAll=false",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
