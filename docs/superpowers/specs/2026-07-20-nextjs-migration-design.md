@@ -6,7 +6,7 @@
 
 ## 1. Goals
 
-1. Replace CRA + react-helmet + `scripts/prerender.js` (puppeteer) with Next.js 15 App Router, server-rendered under PM2.
+1. Replace CRA + react-helmet + `scripts/prerender.js` (puppeteer) with Next.js App Router (see version note in §4), server-rendered under PM2.
 2. Preserve SEO byte-for-byte where it matters: identical URLs, titles, meta descriptions, canonicals, H1s, JSON-LD, robots/noindex behavior. No URL changes; no 301s needed.
 3. Leave the Express API, MySQL, CRM/admin functionality, and nginx's security/canonical behavior untouched.
 4. End state enables the phase-2 blog: new pages renderable at runtime (ISR) with no build/deploy.
@@ -48,7 +48,7 @@ nginx (unchanged: www-canonical, security headers, X-Robots map, cache rules)
  └─ /*      → Next.js 127.0.0.1:3000   (PM2 "nextlevel-web", `next start`)
 ```
 
-- Next.js 15, App Router, JavaScript (matching the repo; no TypeScript conversion).
+- Next.js App Router, JavaScript (matching the repo; no TypeScript conversion). **Version note (2026-07-20, planning):** pinned at `next@^16.2.10` + React 19 — supersedes the "Next.js 15" wording elsewhere in this spec; requires Node ≥ 20.9 (laptop on Node 24; EC2 upgraded to Node 20 LTS during cutover step 2, before any Next process runs there).
 - `next.config.js`: `compiler.styledComponents: true`, `output: 'standalone'`, `poweredByHeader: false`.
 - Two PM2 apps on the box. Express is not modified, restarted only by deploys as today.
 - MySQL, `.env` handling, Resend email: unchanged.
