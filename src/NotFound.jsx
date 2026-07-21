@@ -1,7 +1,8 @@
+'use client';
+
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
+import Link from 'next/link';
 
 const Section = styled.section`
   min-height: 60vh;
@@ -118,10 +119,8 @@ const SecondaryBtn = styled(Link)`
  */
 const NotFound = () => (
   <Section>
-    <Helmet>
-      <title>Page Not Found | Next Level Epoxy</title>
-      <meta name="robots" content="noindex,follow" />
-    </Helmet>
+    <title>Page Not Found | Next Level Epoxy</title>
+    <meta name="robots" content="noindex,follow" />
     <Inner>
       <Flakes aria-hidden="true">
         <span /><span /><span /><span /><span />
@@ -133,10 +132,10 @@ const NotFound = () => (
         get you back on solid ground.
       </Subtext>
       <ButtonRow>
-        <PrimaryBtn to="/" state={{ scrollToContact: true }}>
+        <PrimaryBtn href="/#contact">
           Get a Free Quote
         </PrimaryBtn>
-        <SecondaryBtn to="/">Back to Home</SecondaryBtn>
+        <SecondaryBtn href="/">Back to Home</SecondaryBtn>
       </ButtonRow>
     </Inner>
   </Section>
