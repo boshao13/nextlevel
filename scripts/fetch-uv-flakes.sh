@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-OUT_DIR="/Users/boshao/projects/nextlevel/src/images/uv-flakes"
+# Write straight to the served copy: the site reads /images/uv-flakes from
+# public/ (the old src/images/uv-flakes webpack copy is vestigial).
+OUT_DIR="/Users/boshao/projects/nextlevel/public/images/uv-flakes"
 mkdir -p "$OUT_DIR"
 
 # format: filename|original_120_url

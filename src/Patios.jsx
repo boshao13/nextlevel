@@ -22,7 +22,7 @@ const STANDARD_NAMES = new Set([
   'tudor','brownstone',
 ]);
 
-const allUvFlakes = Object.keys(UV_SKUS).map((filename) => {
+const allUvFlakes = Object.keys(UV_SKUS).sort().map((filename) => {
   const name = filename
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
