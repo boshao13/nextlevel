@@ -1,50 +1,20 @@
+'use client';
+
 // src/Patios.jsx — UV-resistant epoxy patio coatings
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 import ContactForm from './ContactForm';
 import SwatchModal from './components/SwatchModal';
 import UV_SKUS from './uvFlakeSkus';
 
-const SEO = () => (
-  <Helmet>
-    <title>Epoxy Patio Coatings Albuquerque, Santa Fe &amp; Rio Rancho NM | Next Level</title>
-    <meta name="description" content="UV-resistant epoxy patio coatings in Albuquerque, Santa Fe & Rio Rancho NM. Won't fade in NM sun. Stain-proof, slip-safe, lifetime warranty. Free quote: 505-352-4674." />
-    <meta name="keywords" content="epoxy patio Albuquerque, patio coating Santa Fe, UV resistant patio flooring Rio Rancho, outdoor concrete coating New Mexico, polyaspartic patio floor, patio resurfacing Albuquerque, backyard concrete coating, pool deck epoxy NM, concrete patio refinishing" />
-    <link rel="canonical" href="https://www.nextlevelepoxynm.com/patios" />
-    <meta property="og:title" content="Epoxy Patio Coatings Albuquerque, Santa Fe & Rio Rancho NM | Next Level" />
-    <meta property="og:description" content="UV-stable polyaspartic patio coatings that don't fade, stain, or crack in the NM sun. Lifetime warranty. Free quote." />
-    <meta property="og:url" content="https://www.nextlevelepoxynm.com/patios" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://www.nextlevelepoxynm.com/images/og-image.jpg" />
-    <script type="application/ld+json">{`
-      {
-        "@context": "https://schema.org",
-        "@type": "Service",
-        "name": "Epoxy & Polyaspartic Patio Coatings",
-        "serviceType": ["Patio Coating", "Outdoor Concrete Coating", "UV-Resistant Floor Coating"],
-        "description": "UV-stable polyaspartic patio coatings for outdoor concrete in Albuquerque, Santa Fe, and Rio Rancho, New Mexico. Won't fade, stain, or crack. Lifetime warranty on prepared concrete.",
-        "provider": {
-          "@type": "LocalBusiness",
-          "name": "Next Level Epoxy Flooring",
-          "url": "https://www.nextlevelepoxynm.com",
-          "telephone": "+1-505-352-4674",
-          "areaServed": [
-            { "@type": "City", "name": "Albuquerque", "addressRegion": "NM" },
-            { "@type": "City", "name": "Santa Fe",   "addressRegion": "NM" },
-            { "@type": "City", "name": "Rio Rancho", "addressRegion": "NM" }
-          ],
-          "priceRange": "$$"
-        }
-      }
-    `}</script>
-  </Helmet>
-);
 
-/* ── UV+ flake catalog (Torginol UV+ line) ─────────────────────────── */
-const uvFlakeContext = require.context('./images/uv-flakes', false, /\.jpg$/);
+/* ── UV+ flake catalog (Torginol UV+ line) ─────────────────────────
+   Images serve from /public/images/uv-flakes (copied from src/images/
+   uv-flakes). The 36 jpg filenames there are exactly the keys of UV_SKUS
+   (verified 2026-07-20), so the list derives from UV_SKUS — no webpack
+   require.context, which does not exist under Next. */
 const STANDARD_NAMES = new Set([
   'veranda','courtyard','chalet','saltbox','rooftop','homestead','cottage',
   'townhome','villa','pueblo','beach-house','loft','ranch','bower','chateau',
@@ -52,8 +22,7 @@ const STANDARD_NAMES = new Set([
   'tudor','brownstone',
 ]);
 
-const allUvFlakes = uvFlakeContext.keys().map((key) => {
-  const filename = key.replace('./', '').replace('.jpg', '');
+const allUvFlakes = Object.keys(UV_SKUS).map((filename) => {
   const name = filename
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -61,7 +30,7 @@ const allUvFlakes = uvFlakeContext.keys().map((key) => {
   return {
     name,
     filename,
-    img: uvFlakeContext(key),
+    img: `/images/uv-flakes/${filename}.jpg`,
     sku: UV_SKUS[filename] || '',
     kind: STANDARD_NAMES.has(filename) ? 'standard' : 'hybrid',
   };
@@ -511,8 +480,6 @@ const Patios = () => {
 
   return (
     <PageContainer>
-      <SEO />
-
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <Hero>
         <HeroBadge>UV-Resistant Patio Coatings</HeroBadge>
@@ -618,7 +585,7 @@ const Patios = () => {
           </FlakeGrid>
 
           <ColorsNote>
-            Looking at indoor garage colors instead? Check our full <Link to="/colors">flake catalog</Link>. For patios, we recommend sticking with the UV+ line above &mdash; it's the only flake rated for permanent outdoor exposure.
+            Looking at indoor garage colors instead? Check our full <Link href="/colors">flake catalog</Link>. For patios, we recommend sticking with the UV+ line above &mdash; it's the only flake rated for permanent outdoor exposure.
           </ColorsNote>
         </SectionInner>
       </Section>
