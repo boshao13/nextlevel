@@ -1,6 +1,8 @@
+'use client';
+
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 /* Shared layout + typography for the legal pages (/privacy, /terms). */
 
@@ -109,7 +111,7 @@ const BackLink = styled(Link)`
 const LegalLayout = ({ title, effectiveDate, children }) => (
   <Page>
     <Banner>
-      <BackLink to="/">
+      <BackLink href="/">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
         Back to Home
       </BackLink>

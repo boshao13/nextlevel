@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
+import { usePathname } from 'next/navigation';
 import { FiPhone } from 'react-icons/fi';
 import { trackPhoneClick } from './lib/analytics';
 
@@ -44,16 +47,11 @@ const FloatingBtn = styled.a`
   }
 `;
 
-// Hide on admin routes by setting body data attribute from the layout. Until
-// then we just check window.location at render time. Re-renders on each route
-// change because parent re-renders.
-function isAdminRoute() {
-  if (typeof window === 'undefined') return false;
-  return window.location.pathname.startsWith('/admin');
-}
-
+// Belt-and-braces: the button only renders inside PublicChrome (never on
+// /admin routes), but keep the guard SSR-safe via usePathname.
 const StickyCallButton = () => {
-  if (isAdminRoute()) return null;
+  const pathname = usePathname();
+  if (pathname && pathname.startsWith('/admin')) return null;
   return (
     <FloatingBtn
       href="tel:5053524674"

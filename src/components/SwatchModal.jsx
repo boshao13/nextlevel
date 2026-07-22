@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 /* Shared flake-swatch modal (used by /colors and /patios).
    item: { name, sku, collection, img, inStock } */
@@ -135,12 +137,12 @@ const InStockBadge = styled.span`
  * Props:
  *  - item: { name, sku, collection, img, inStock }
  *  - onClose: () => void
- *  - onQuote: optional () => void — defaults to navigating home and
- *    scrolling to the contact form (Header listens for scrollToContact).
+ *  - onQuote: optional () => void — defaults to navigating home via the
+ *    /#contact hash.
  */
 const SwatchModal = ({ item, onClose, onQuote }) => {
   const closeRef = useRef(null);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -158,7 +160,7 @@ const SwatchModal = ({ item, onClose, onQuote }) => {
     if (onQuote) {
       onQuote();
     } else {
-      navigate('/', { state: { scrollToContact: true } });
+      router.push('/#contact');
     }
   };
 

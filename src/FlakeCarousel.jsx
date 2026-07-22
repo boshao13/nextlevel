@@ -1,27 +1,23 @@
+'use client';
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import styled from 'styled-components';
 import useScrollReveal from './useScrollReveal';
 
-import coyote from './images/flakes/coyote.jpg';
-import creekbed from './images/flakes/creekbed.jpg';
-import gravel from './images/flakes/gravel.jpg';
-import loon from './images/flakes/loon.jpg';
-import nightfall from './images/flakes/nightfall.jpg';
-import tidalWave from './images/flakes/tidal-wave.jpg';
-import thyme from './images/flakes/thyme.jpg';
-import wombat from './images/flakes/wombat.jpg';
-
 /* ── Data ─────────────────────────────────────────────────────────── */
+/* Swatch jpgs are served from public/images/flakes (gitignored but required
+   locally; deploy rsyncs public/). Task 13 builds the full /colors manifest
+   from the same tree. */
 const flakes = [
-  { name: 'Coyote', img: coyote, popular: true },
-  { name: 'Creekbed', img: creekbed },
-  { name: 'Gravel', img: gravel },
-  { name: 'Loon', img: loon },
-  { name: 'Nightfall', img: nightfall, popular: true },
-  { name: 'Tidal Wave', img: tidalWave },
-  { name: 'Thyme', img: thyme },
-  { name: 'Wombat', img: wombat },
+  { name: 'Coyote', img: '/images/flakes/coyote.jpg', popular: true },
+  { name: 'Creekbed', img: '/images/flakes/creekbed.jpg' },
+  { name: 'Gravel', img: '/images/flakes/gravel.jpg' },
+  { name: 'Loon', img: '/images/flakes/loon.jpg' },
+  { name: 'Nightfall', img: '/images/flakes/nightfall.jpg', popular: true },
+  { name: 'Tidal Wave', img: '/images/flakes/tidal-wave.jpg' },
+  { name: 'Thyme', img: '/images/flakes/thyme.jpg' },
+  { name: 'Wombat', img: '/images/flakes/wombat.jpg' },
 ];
 
 /* ── Styled Components ────────────────────────────────────────────── */
@@ -208,7 +204,7 @@ const FlakeCarousel = () => {
         </Grid>
 
         <ButtonWrap className={`reveal ${gridVisible ? 'visible' : ''}`}>
-          <ViewAllBtn to="/colors" onClick={() => window.scrollTo(0, 0)}>
+          <ViewAllBtn href="/colors" onClick={() => window.scrollTo(0, 0)}>
             View All Colors
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <polyline points="9 18 15 12 9 6" />

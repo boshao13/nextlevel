@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useMemo } from 'react';
 import styled from 'styled-components';
 import { FLAKE_PALETTES, DEFAULT_PALETTE, mulberry32 } from './flakePalettes';

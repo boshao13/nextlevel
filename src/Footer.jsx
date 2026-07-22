@@ -1,8 +1,9 @@
+'use client';
+
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { FaInstagram } from 'react-icons/fa';
-import codelabsLogo from './images/codelabslogo.png';
 import { FiPhone, FiMapPin } from 'react-icons/fi';
 import { trackPhoneClick } from './lib/analytics';
 
@@ -265,7 +266,7 @@ const Footer = () => {
         <TopGrid>
           <Brand>
             <FooterLogo
-              src={`${process.env.PUBLIC_URL}/nextlevellogo.png`}
+              src="/nextlevellogo.png"
               alt="Next Level Epoxy Flooring"
             />
             <Tagline>
@@ -286,21 +287,21 @@ const Footer = () => {
           <Column>
             <ColTitle>Services</ColTitle>
             <NavList>
-              <NavItem><NavLink to="/">Residential</NavLink></NavItem>
-              <NavItem><NavLink to="/commercial">Commercial</NavLink></NavItem>
-              <NavItem><NavLink to="/garagemakeover">Garage Makeover</NavLink></NavItem>
-              <NavItem><NavLink to="/patios">Patio Coatings</NavLink></NavItem>
-              <NavItem><NavLink to="/radon">Radon Mitigation</NavLink></NavItem>
-              <NavItem><NavLink to="/careers">Careers</NavLink></NavItem>
+              <NavItem><NavLink href="/">Residential</NavLink></NavItem>
+              <NavItem><NavLink href="/commercial">Commercial</NavLink></NavItem>
+              <NavItem><NavLink href="/garagemakeover">Garage Makeover</NavLink></NavItem>
+              <NavItem><NavLink href="/patios">Patio Coatings</NavLink></NavItem>
+              <NavItem><NavLink href="/radon">Radon Mitigation</NavLink></NavItem>
+              <NavItem><NavLink href="/careers">Careers</NavLink></NavItem>
             </NavList>
           </Column>
 
           <Column>
             <ColTitle>Service Areas</ColTitle>
             <NavList>
-              <NavItem><NavLink to="/epoxy-flooring-albuquerque">Albuquerque Garage &amp; Concrete Coatings</NavLink></NavItem>
-              <NavItem><NavLink to="/epoxy-flooring-santa-fe">Santa Fe Epoxy Floor Installers</NavLink></NavItem>
-              <NavItem><NavLink to="/epoxy-flooring-rio-rancho">Rio Rancho Garage Floor Coatings</NavLink></NavItem>
+              <NavItem><NavLink href="/epoxy-flooring-albuquerque">Albuquerque Garage &amp; Concrete Coatings</NavLink></NavItem>
+              <NavItem><NavLink href="/epoxy-flooring-santa-fe">Santa Fe Epoxy Floor Installers</NavLink></NavItem>
+              <NavItem><NavLink href="/epoxy-flooring-rio-rancho">Rio Rancho Garage Floor Coatings</NavLink></NavItem>
             </NavList>
           </Column>
 
@@ -328,12 +329,12 @@ const Footer = () => {
         <BottomBar>
           <Copyright>© {new Date().getFullYear()} Next Level Epoxy Flooring. All rights reserved.</Copyright>
           <LegalLinks>
-            <Link to="/privacy">Privacy Policy</Link>
-            <Link to="/terms">Terms of Service</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
           </LegalLinks>
           <MadeBy href="https://codelabs88.com" target="_blank" rel="noopener noreferrer">
             Engineered with caffeine & code by
-            <img src={codelabsLogo} alt="CodeLabs" />
+            <img src="/images/codelabslogo.png" alt="CodeLabs" />
           </MadeBy>
         </BottomBar>
       </Inner>

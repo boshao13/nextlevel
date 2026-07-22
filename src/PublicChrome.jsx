@@ -3,11 +3,12 @@
 // Port of PublicLayout (src/App.js:62-81): the public marketing chrome.
 // Used by app/(public)/layout.js AND app/not-found.js (the branded 404 keeps
 // Header/Footer, matching today's PublicLayout-wrapped catch-all route).
-// Task 8 wires in Header / Footer / StickyCallButton once they are ported
-// off react-router.
 
 import React from 'react';
 import styled from 'styled-components';
+import Header from './Header';
+import Footer from './Footer';
+import StickyCallButton from './StickyCallButton';
 
 const LayoutContainer = styled.div`
   display: flex;
@@ -21,9 +22,10 @@ const MainContent = styled.main`
 
 const PublicChrome = ({ children }) => (
   <LayoutContainer>
-    {/* Task 8: <Header /> */}
+    <Header />
     <MainContent>{children}</MainContent>
-    {/* Task 8: <Footer /> and <StickyCallButton /> */}
+    <Footer />
+    <StickyCallButton />
   </LayoutContainer>
 );
 

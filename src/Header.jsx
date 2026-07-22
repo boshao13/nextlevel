@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useEffect, useState, useCallback } from 'react';
 import styled, { css } from 'styled-components';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import { FiPhone, FiHome, FiBriefcase, FiTool, FiMail, FiDroplet } from 'react-icons/fi';
 import { trackPhoneClick } from './lib/analytics';
 
@@ -350,10 +353,10 @@ const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/patios', '/rad
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const isSubpage = SUBPAGES.includes(location.pathname);
+  const isSubpage = SUBPAGES.includes(pathname);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -365,7 +368,7 @@ const Header = () => {
   useEffect(() => {
     // Close menu on route change
     setIsOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
@@ -385,35 +388,33 @@ const Header = () => {
   const handleContactClick = (e) => {
     e.preventDefault();
     setIsOpen(false);
-    if (location.pathname !== '/') {
-      navigate('/', { state: { scrollToContact: true } });
+    if (pathname !== '/') {
+      // Cross-page contact: hash navigation — Next scrolls to #contact on
+      // arrival; html { scroll-behavior: smooth } animates it.
+      router.push('/#contact');
     } else {
       scrollToContact();
     }
   };
 
-  useEffect(() => {
-    if (location.state?.scrollToContact) scrollToContact();
-  }, [location, scrollToContact]);
-
   return (
     <>
       <HeaderContainer $scrolled={scrolled} $subpage={isSubpage}>
-        <LogoLink to="/">
+        <LogoLink href="/">
           <LogoImg
-            src={`${process.env.PUBLIC_URL}/nextlevellogo.png`}
+            src="/nextlevellogo.png"
             alt="Next Level Epoxy Flooring"
           />
         </LogoLink>
 
         <Nav>
-          <NavLink to="/" onClick={handleNavClick}>Home</NavLink>
-          <NavLink to="/commercial" onClick={handleNavClick}>Commercial</NavLink>
-          <NavLink to="/garagemakeover" onClick={handleNavClick}>Garage Makeover</NavLink>
-          <NavLink to="/patios" onClick={handleNavClick}>Patios</NavLink>
-          <NavLink to="/colors" onClick={handleNavClick}>Colors</NavLink>
-          <NavLink to="/polished-concrete" onClick={handleNavClick}>Polished Concrete</NavLink>
-          <NavLink to="/careers" onClick={handleNavClick}>Careers</NavLink>
+          <NavLink href="/" onClick={handleNavClick}>Home</NavLink>
+          <NavLink href="/commercial" onClick={handleNavClick}>Commercial</NavLink>
+          <NavLink href="/garagemakeover" onClick={handleNavClick}>Garage Makeover</NavLink>
+          <NavLink href="/patios" onClick={handleNavClick}>Patios</NavLink>
+          <NavLink href="/colors" onClick={handleNavClick}>Colors</NavLink>
+          <NavLink href="/polished-concrete" onClick={handleNavClick}>Polished Concrete</NavLink>
+          <NavLink href="/careers" onClick={handleNavClick}>Careers</NavLink>
           <NavAnchor href="#contact" onClick={handleContactClick}>Contact</NavAnchor>
           <PhoneButton href="tel:5053524674" onClick={() => trackPhoneClick('header_desktop')}>
             <FiPhone size={14} />
@@ -431,18 +432,18 @@ const Header = () => {
       <MobileOverlay $open={isOpen} onClick={() => setIsOpen(false)} />
 
       <MobileMenu $open={isOpen}>
-        <MobileNavLink to="/" onClick={handleNavClick}>Home</MobileNavLink>
-        <MobileNavLink to="/commercial" onClick={handleNavClick}>Commercial</MobileNavLink>
-        <MobileNavLink to="/garagemakeover" onClick={handleNavClick}>Garage Makeover</MobileNavLink>
-        <MobileNavLink to="/patios" onClick={handleNavClick}>Patios</MobileNavLink>
-        <MobileNavLink to="/colors" onClick={handleNavClick}>Colors</MobileNavLink>
-        <MobileNavLink to="/polished-concrete" onClick={handleNavClick}>Polished Concrete</MobileNavLink>
-        <MobileNavLink to="/careers" onClick={handleNavClick}>Careers</MobileNavLink>
+        <MobileNavLink href="/" onClick={handleNavClick}>Home</MobileNavLink>
+        <MobileNavLink href="/commercial" onClick={handleNavClick}>Commercial</MobileNavLink>
+        <MobileNavLink href="/garagemakeover" onClick={handleNavClick}>Garage Makeover</MobileNavLink>
+        <MobileNavLink href="/patios" onClick={handleNavClick}>Patios</MobileNavLink>
+        <MobileNavLink href="/colors" onClick={handleNavClick}>Colors</MobileNavLink>
+        <MobileNavLink href="/polished-concrete" onClick={handleNavClick}>Polished Concrete</MobileNavLink>
+        <MobileNavLink href="/careers" onClick={handleNavClick}>Careers</MobileNavLink>
         <MobileNavAnchor href="#contact" onClick={handleContactClick}>Contact Us</MobileNavAnchor>
         <MobileSectionLabel>Service Areas</MobileSectionLabel>
-        <MobileSubLink to="/epoxy-flooring-albuquerque" onClick={handleNavClick}>Albuquerque</MobileSubLink>
-        <MobileSubLink to="/epoxy-flooring-santa-fe" onClick={handleNavClick}>Santa Fe</MobileSubLink>
-        <MobileSubLink to="/epoxy-flooring-rio-rancho" onClick={handleNavClick}>Rio Rancho</MobileSubLink>
+        <MobileSubLink href="/epoxy-flooring-albuquerque" onClick={handleNavClick}>Albuquerque</MobileSubLink>
+        <MobileSubLink href="/epoxy-flooring-santa-fe" onClick={handleNavClick}>Santa Fe</MobileSubLink>
+        <MobileSubLink href="/epoxy-flooring-rio-rancho" onClick={handleNavClick}>Rio Rancho</MobileSubLink>
         <MobilePhoneBtn href="tel:5053524674" onClick={() => trackPhoneClick('header_mobile')}>
           <FiPhone size={16} />
           505-352-4674
@@ -450,19 +451,19 @@ const Header = () => {
       </MobileMenu>
 
       <BottomTabBar>
-        <TabItem to="/" onClick={handleNavClick} $active={location.pathname === '/'}>
+        <TabItem href="/" onClick={handleNavClick} $active={pathname === '/'}>
           <FiHome size={20} />
           Home
         </TabItem>
-        <TabItem to="/commercial" onClick={handleNavClick} $active={location.pathname === '/commercial'}>
+        <TabItem href="/commercial" onClick={handleNavClick} $active={pathname === '/commercial'}>
           <FiBriefcase size={20} />
           Commercial
         </TabItem>
-        <TabItem to="/garagemakeover" onClick={handleNavClick} $active={location.pathname === '/garagemakeover'}>
+        <TabItem href="/garagemakeover" onClick={handleNavClick} $active={pathname === '/garagemakeover'}>
           <FiTool size={20} />
           Makeover
         </TabItem>
-        <TabItem to="/colors" onClick={handleNavClick} $active={location.pathname === '/colors'}>
+        <TabItem href="/colors" onClick={handleNavClick} $active={pathname === '/colors'}>
           <FiDroplet size={20} />
           Colors
         </TabItem>
