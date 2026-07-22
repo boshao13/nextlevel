@@ -1,6 +1,7 @@
 import StyledComponentsRegistry from '../lib/StyledComponentsRegistry';
 import GlobalStyle from '../src/GlobalStyle';
 import { GTAG_SNIPPET } from '../src/gtagSnippet';
+import { OG_DEFAULTS, TWITTER_DEFAULTS } from '../src/seo';
 import { BUSINESS_GRAPH, jsonLdString } from '../src/structuredData';
 
 export const metadata = {
@@ -22,30 +23,14 @@ export const metadata = {
     ],
     apple: [{ url: '/favicon-192.png', sizes: '192x192' }],
   },
-  // Site-wide social card (public/index.html:27-36). Next metadata merging is
-  // SHALLOW: any page exporting its own `openGraph`/`twitter` replaces these
-  // objects entirely — src/seo.js (Task 9) re-states these exact fields on
-  // every page that sets og:title/description/url. Pages with no openGraph
-  // export (/thank-you, /snake, 404) inherit them from here. Keep this block
-  // and src/seo.js's OG_DEFAULTS in sync.
-  openGraph: {
-    siteName: 'Next Level Epoxy Flooring',
-    locale: 'en_US',
-    type: 'website',
-    images: [
-      {
-        url: 'https://www.nextlevelepoxynm.com/images/og-image.jpg',
-        type: 'image/jpeg',
-        width: 1200,
-        height: 630,
-        alt: 'Next Level Epoxy Flooring — lifetime-warranty epoxy floors in Albuquerque, Santa Fe & Rio Rancho, NM',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    images: ['https://www.nextlevelepoxynm.com/images/twitter-image.jpg'],
-  },
+  // Site-wide social card (public/index.html:27-36), single-sourced from
+  // src/seo.js. Next metadata merging is SHALLOW: any page exporting its own
+  // `openGraph`/`twitter` replaces these objects entirely — pageMetadata()
+  // re-spreads OG_DEFAULTS on every page that sets og:title/description/url.
+  // Pages with no openGraph export (/thank-you, /snake, 404) inherit them
+  // from here.
+  openGraph: OG_DEFAULTS,
+  twitter: TWITTER_DEFAULTS,
 };
 
 export const viewport = {

@@ -25,7 +25,15 @@ export const OG_DEFAULTS = {
   ],
 };
 
+// Site-wide twitter card + image (single source — imported by app/layout.js;
+// the home page spreads this and adds its own title/description).
+export const TWITTER_DEFAULTS = {
+  card: 'summary_large_image',
+  images: [`${SITE}/images/twitter-image.jpg`],
+};
+
 export function pageMetadata({ title, description, path, ogTitle, ogDescription }) {
+  if (!path || !path.startsWith('/')) throw new Error('pageMetadata: path must start with "/" — got ' + JSON.stringify(path));
   const url = `${SITE}${path}`;
   return {
     title,
