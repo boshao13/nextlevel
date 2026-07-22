@@ -1,26 +1,11 @@
+'use client';
+
 // src/PolishedConcreteDivision.jsx — bridge page to our sister company, Next Level Polished Concrete
 import React from 'react';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 const PC_SITE = 'https://nextlevelpolishedconcrete.com';
-
-const SEO = () => (
-  <Helmet>
-    <title>Polished Concrete Floors — Next Level Polished Concrete (Our Sister Company)</title>
-    <meta
-      name="description"
-      content="Want polished, dyed, stained, or grind-and-seal concrete instead of an epoxy coating? Our sister company, Next Level Polished Concrete, delivers extremely high-quality polished concrete across Albuquerque, Santa Fe & Rio Rancho NM."
-    />
-    <meta name="keywords" content="polished concrete Albuquerque, dyed concrete Santa Fe, stained concrete Rio Rancho, grind and seal NM, Next Level Polished Concrete" />
-    <link rel="canonical" href="https://www.nextlevelepoxynm.com/polished-concrete" />
-    <meta property="og:title" content="Polished Concrete Floors — Next Level Polished Concrete" />
-    <meta property="og:description" content="Our sister company delivers polished, dyed, stained & grind-and-seal concrete across New Mexico." />
-    <meta property="og:url" content="https://www.nextlevelepoxynm.com/polished-concrete" />
-    <meta property="og:type" content="website" />
-  </Helmet>
-);
 
 const Wrap = styled.section`
   min-height: 70vh;
@@ -102,7 +87,6 @@ const Back = styled(Link)`
 
 const PolishedConcreteDivision = () => (
   <>
-    <SEO />
     <Wrap>
       <Card>
         <Kicker>A Next Level Company</Kicker>
@@ -119,7 +103,7 @@ const PolishedConcreteDivision = () => (
           Visit Next Level Polished Concrete →
         </CTA>
         <div>
-          <Back to="/">← Back to Next Level Epoxy</Back>
+          <Back href="/">← Back to Next Level Epoxy</Back>
         </div>
       </Card>
     </Wrap>

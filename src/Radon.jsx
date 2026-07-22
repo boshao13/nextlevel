@@ -1,6 +1,7 @@
+'use client';
+
 import React from 'react';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
 
 
 // Styled Components
@@ -96,15 +97,6 @@ const ContactInfo = styled.p`
 const Radon = () => {
   return (
     <RadonContainer>
-      <Helmet>
-        <title>Radon Mitigation & Epoxy Floor Sealing Albuquerque NM | Next Level</title>
-        <meta name="description" content="Protect your home from radon with Next Level's 4-layer epoxy floor sealing system. Serving Albuquerque, Santa Fe & Rio Rancho NM. Free quote: 505-352-4674." />
-        <link rel="canonical" href="https://www.nextlevelepoxynm.com/radon" />
-        <meta property="og:title" content="Radon Mitigation & Epoxy Floor Sealing Albuquerque NM | Next Level" />
-        <meta property="og:description" content="Seal foundation cracks against radon with our 4-layer epoxy system. Serving Albuquerque & Santa Fe NM." />
-        <meta property="og:url" content="https://www.nextlevelepoxynm.com/radon" />
-      </Helmet>
-
       <RadonHeading>Eliminate Radon with Our Advanced Epoxy Flooring</RadonHeading>
       <RadonSubheading>
         Protect your home and family from radon exposure. Our four-layer epoxy system effectively seals foundation cracks, preventing radon infiltration.

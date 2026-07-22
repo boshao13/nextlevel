@@ -1,6 +1,7 @@
+'use client';
+
 import React, { useEffect, useRef, useState } from 'react';
 import styled, { css, keyframes } from 'styled-components';
-import { Helmet } from 'react-helmet';
 import useScrollReveal from './useScrollReveal';
 import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
 
@@ -900,14 +901,6 @@ const Commercial = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Commercial Epoxy Flooring Albuquerque & Santa Fe NM | Next Level</title>
-        <meta name="description" content="Heavy-duty commercial epoxy & polyaspartic floor coatings for warehouses, restaurants, auto shops, and industrial facilities in NM. Lifetime warranty. 505-352-4674." />
-        <link rel="canonical" href="https://www.nextlevelepoxynm.com/commercial" />
-        <meta property="og:title" content="Commercial Epoxy Flooring Albuquerque & Santa Fe NM | Next Level" />
-        <meta property="og:description" content="Heavy-duty commercial epoxy & polyaspartic floor coatings for warehouses, restaurants, auto shops, and industrial facilities in NM." />
-        <meta property="og:url" content="https://www.nextlevelepoxynm.com/commercial" />
-      </Helmet>
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <HeroSection>
         <HeroVideo ref={heroVideoRef} autoPlay muted loop playsInline preload="metadata" poster="/videos/posters/commercial.jpg">

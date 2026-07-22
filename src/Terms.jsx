@@ -1,18 +1,11 @@
+'use client';
+
 import React from 'react';
-import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import LegalLayout from './components/LegalLayout';
 
 const Terms = () => (
   <>
-    <Helmet>
-      <title>Terms of Service | Next Level Epoxy Flooring</title>
-      <meta name="description" content="Terms of service for nextlevelepoxynm.com and Next Level Epoxy Flooring's epoxy and concrete coating services in New Mexico." />
-      <link rel="canonical" href="https://www.nextlevelepoxynm.com/terms" />
-      <meta property="og:title" content="Terms of Service | Next Level Epoxy Flooring" />
-      <meta property="og:description" content="Terms of service for nextlevelepoxynm.com and Next Level Epoxy Flooring's New Mexico coating services." />
-      <meta property="og:url" content="https://www.nextlevelepoxynm.com/terms" />
-    </Helmet>
     <LegalLayout title="Terms of Service" effectiveDate="June 11, 2026">
       <p>
         Welcome to nextlevelepoxynm.com, operated by Next Level Epoxy Flooring ("we,"
@@ -95,7 +88,7 @@ const Terms = () => (
       </p>
 
       <p>
-        See also our <Link to="/privacy">Privacy Policy</Link>.
+        See also our <Link href="/privacy">Privacy Policy</Link>.
       </p>
     </LegalLayout>
   </>

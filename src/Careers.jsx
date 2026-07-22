@@ -1,6 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
 import { trackFormSubmission } from './lib/analytics';
 
 // Styled components for the Careers Page — dark showroom system
@@ -160,14 +161,6 @@ const Careers = () => {
 
   return (
     <CareersContainer>
-      <Helmet>
-        <title>Careers at Next Level Epoxy | Hiring Floor Installers in Albuquerque NM</title>
-        <meta name="description" content="Join the Next Level Epoxy team — we're hiring floor installers and crew in Albuquerque & Santa Fe, NM. Apply online for current openings." />
-        <link rel="canonical" href="https://www.nextlevelepoxynm.com/careers" />
-        <meta property="og:title" content="Careers at Next Level Epoxy | Hiring in Albuquerque NM" />
-        <meta property="og:description" content="Join the Next Level Epoxy team — floor installer and crew roles in Albuquerque & Santa Fe, NM." />
-        <meta property="og:url" content="https://www.nextlevelepoxynm.com/careers" />
-      </Helmet>
       <CareersHeading>Work With Us</CareersHeading>
       <CareersSubheading>
         We hire installers and crew year-round across Albuquerque and Santa Fe. Send us a quick note about yourself and we'll keep your info on file — even when we're not actively hiring, we revisit every inquiry when openings come up.

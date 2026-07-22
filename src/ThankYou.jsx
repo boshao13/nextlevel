@@ -1,7 +1,8 @@
+'use client';
+
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
+import Link from 'next/link';
 
 const PageWrapper = styled.div`
   background: linear-gradient(160deg, #101318 0%, var(--bg1) 45%, #0e1116 100%);
@@ -135,10 +136,6 @@ const ThankYou = () => {
 
   return (
     <PageWrapper>
-      <Helmet>
-        <title>Thanks — Next Level Epoxy</title>
-        <meta name="robots" content="noindex,follow" />
-      </Helmet>
       <ContentWrapper>
         <Card>
           <Heading>Thanks — we got your request!</Heading>
@@ -148,8 +145,8 @@ const ThankYou = () => {
             <PhoneLink href="tel:5053524674">(505) 352-4674</PhoneLink>.
           </Message>
           <ButtonRow>
-            <PrimaryBtn to="/garagemakeover">View Garage Makeover</PrimaryBtn>
-            <SecondaryBtn to="/">Back to Home</SecondaryBtn>
+            <PrimaryBtn href="/garagemakeover">View Garage Makeover</PrimaryBtn>
+            <SecondaryBtn href="/">Back to Home</SecondaryBtn>
           </ButtonRow>
         </Card>
       </ContentWrapper>

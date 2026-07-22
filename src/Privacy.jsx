@@ -1,18 +1,11 @@
+'use client';
+
 import React from 'react';
-import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import LegalLayout from './components/LegalLayout';
 
 const Privacy = () => (
   <>
-    <Helmet>
-      <title>Privacy Policy | Next Level Epoxy Flooring</title>
-      <meta name="description" content="How Next Level Epoxy Flooring collects, uses, and protects your information when you request a quote or browse nextlevelepoxynm.com." />
-      <link rel="canonical" href="https://www.nextlevelepoxynm.com/privacy" />
-      <meta property="og:title" content="Privacy Policy | Next Level Epoxy Flooring" />
-      <meta property="og:description" content="How Next Level Epoxy Flooring collects, uses, and protects your information." />
-      <meta property="og:url" content="https://www.nextlevelepoxynm.com/privacy" />
-    </Helmet>
     <LegalLayout title="Privacy Policy" effectiveDate="June 11, 2026">
       <p>
         Next Level Epoxy Flooring ("we," "us") operates nextlevelepoxynm.com and provides
@@ -94,7 +87,7 @@ const Privacy = () => (
       </p>
 
       <p>
-        See also our <Link to="/terms">Terms of Service</Link>.
+        See also our <Link href="/terms">Terms of Service</Link>.
       </p>
     </LegalLayout>
   </>
