@@ -3,7 +3,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import useScrollReveal from './useScrollReveal';
-import epoxyDiagram from './images/epoxydiagram.jpg';
 
 /* ── Styled Components ────────────────────────────────────────────── */
 const Section = styled.section`
@@ -240,7 +239,7 @@ const EpoxyInfo = () => {
         <ContentLayout ref={contentRef}>
           <DiagramSide className={`reveal-left ${contentVisible ? 'visible' : ''}`}>
             <img
-              src={epoxyDiagram}
+              src="/images/epoxydiagram.jpg"
               alt="Epoxy flooring system layers — concrete, 100% solids cycloaliphatic epoxy base, flake broadcast, and polyaspartic topcoat"
               loading="lazy"
             />

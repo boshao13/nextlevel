@@ -415,7 +415,7 @@ const Header = () => {
           <NavLink href="/colors" onClick={handleNavClick}>Colors</NavLink>
           <NavLink href="/polished-concrete" onClick={handleNavClick}>Polished Concrete</NavLink>
           <NavLink href="/careers" onClick={handleNavClick}>Careers</NavLink>
-          <NavAnchor href="#contact" onClick={handleContactClick}>Contact</NavAnchor>
+          <NavAnchor href="/#contact" onClick={handleContactClick}>Contact</NavAnchor>
           <PhoneButton href="tel:5053524674" onClick={() => trackPhoneClick('header_desktop')}>
             <FiPhone size={14} />
             505-352-4674
@@ -439,7 +439,7 @@ const Header = () => {
         <MobileNavLink href="/colors" onClick={handleNavClick}>Colors</MobileNavLink>
         <MobileNavLink href="/polished-concrete" onClick={handleNavClick}>Polished Concrete</MobileNavLink>
         <MobileNavLink href="/careers" onClick={handleNavClick}>Careers</MobileNavLink>
-        <MobileNavAnchor href="#contact" onClick={handleContactClick}>Contact Us</MobileNavAnchor>
+        <MobileNavAnchor href="/#contact" onClick={handleContactClick}>Contact Us</MobileNavAnchor>
         <MobileSectionLabel>Service Areas</MobileSectionLabel>
         <MobileSubLink href="/epoxy-flooring-albuquerque" onClick={handleNavClick}>Albuquerque</MobileSubLink>
         <MobileSubLink href="/epoxy-flooring-santa-fe" onClick={handleNavClick}>Santa Fe</MobileSubLink>
@@ -467,7 +467,7 @@ const Header = () => {
           <FiDroplet size={20} />
           Colors
         </TabItem>
-        <TabAnchor href="#contact" onClick={handleContactClick}>
+        <TabAnchor href="/#contact" onClick={handleContactClick}>
           <FiMail size={20} />
           Contact
         </TabAnchor>
