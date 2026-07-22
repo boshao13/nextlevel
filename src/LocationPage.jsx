@@ -1,7 +1,8 @@
+'use client';
+
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
 import { FiPhone, FiMapPin, FiCheck, FiArrowRight } from 'react-icons/fi';
 import ContactForm from './ContactForm';
 import { trackPhoneClick } from './lib/analytics';
@@ -247,54 +248,12 @@ const LocationPage = ({ city }) => {
   // Restore scroll on each route change
   useEffect(() => { window.scrollTo(0, 0); }, [city.slug]);
 
-  const url = `https://www.nextlevelepoxynm.com/${city.slug}`;
-  const title = `Epoxy Flooring ${city.name}, NM | Garage & Concrete Coatings`;
-  const description = `Lifetime-warranty epoxy floors & coatings in ${city.name}, NM. ${city.lede.short} Free quote: 505-352-4674.`;
-
-  // Page-specific JSON-LD: a Service offered in this city, plus a BreadcrumbList.
-  const schema = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Service',
-        '@id': `${url}#service`,
-        serviceType: `Epoxy Flooring in ${city.name}, NM`,
-        provider: { '@id': 'https://www.nextlevelepoxynm.com/#business' },
-        areaServed: {
-          '@type': 'City',
-          name: city.name,
-          containedInPlace: { '@type': 'State', name: 'New Mexico' }
-        },
-        url,
-        description: `Epoxy garage floors, polyaspartic coatings, and commercial concrete floor systems for ${city.name}, NM. Lifetime-warranty installs.`
-      },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.nextlevelepoxynm.com/' },
-          { '@type': 'ListItem', position: 2, name: `${city.name} Epoxy Flooring`, item: url }
-        ]
-      }
-    ]
-  };
-
   return (
     <>
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={url} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:url" content={url} />
-        <meta property="og:type" content="website" />
-        <script type="application/ld+json">{JSON.stringify(schema)}</script>
-      </Helmet>
-
       <Section>
         <Inner>
           <Crumbs>
-            <Link to="/">Home</Link> <span>›</span> Epoxy Flooring {city.name}
+            <Link href="/">Home</Link> <span>›</span> Epoxy Flooring {city.name}
           </Crumbs>
 
           <Eyebrow>
@@ -375,7 +334,7 @@ const LocationPage = ({ city }) => {
             <RelatedTitle>Also serving</RelatedTitle>
             <RelatedGrid>
               {city.related.map((r) => (
-                <RelatedCard key={r.slug} to={`/${r.slug}`}>
+                <RelatedCard key={r.slug} href={`/${r.slug}`}>
                   <span>Epoxy Flooring {r.name}</span>
                   <FiArrowRight size={16} />
                 </RelatedCard>
