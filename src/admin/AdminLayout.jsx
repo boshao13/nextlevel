@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FiHome,
@@ -138,7 +138,7 @@ const TopBarRight = styled.div`
   gap: 16px;
 `;
 
-const BackLink = styled(Link)`
+const BackLink = styled.a`
   font-size: 0.85rem;
   color: var(--primary);
   display: flex;
@@ -243,7 +243,7 @@ const AdminLayout = () => {
             </Hamburger>
           </TopBarLeft>
           <TopBarRight>
-            <BackLink to="/">
+            <BackLink href="/">
               <FiArrowLeft size={14} />
               Back to Site
             </BackLink>
