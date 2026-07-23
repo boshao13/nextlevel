@@ -80,7 +80,11 @@ function extractCanonical(html) {
 function extractFirstH1(html) {
   const m = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
   if (!m) return null;
-  return collapseWs(decodeEntities(m[1].replace(/<[^>]+>/g, ' ')));
+  // Comments vanish with NO whitespace (DOM textContent semantics) — React
+  // SSR emits `<!-- -->` text separators between adjacent text nodes, e.g.
+  // `Epoxy Flooring <!-- -->Albuquerque<!-- -->, NM`; element tags still
+  // become a space so `<br/>` line breaks keep words apart.
+  return collapseWs(decodeEntities(m[1].replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ')));
 }
 
 function extractHtmlLang(html) {

@@ -90,6 +90,14 @@ test('extractFirstH1 takes first h1 only, strips inner tags, decodes entities', 
   expect(extractFirstH1(PAGE)).toBe('UV-Stable Patio Coatings');
 });
 
+test('extractFirstH1 drops React SSR text-separator comments without inserting whitespace', () => {
+  // Next.js SSR renders `{city.name}` between literal text as
+  // `Epoxy Flooring <!-- -->Albuquerque<!-- -->, NM`; DOM textContent
+  // ignores comments, so the extractor must too (no phantom space).
+  expect(extractFirstH1('<h1>Epoxy Flooring <!-- -->Albuquerque<!-- -->, NM</h1>'))
+    .toBe('Epoxy Flooring Albuquerque, NM');
+});
+
 test('extractHtmlLang reads the html lang attribute', () => {
   expect(extractHtmlLang(PAGE)).toBe('en');
 });

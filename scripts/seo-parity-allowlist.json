@@ -1,12 +1,97 @@
 {
+  "_comment": "Fields allowlisted per route for the SEO parity compare (Task 18). '_comment' keys are ignored by diffRoute (only `field: true` allowlists). Default stance: baseline is truth — every entry below is a provably semantics-preserving diff, justified inline. The twitterTitle/twitterDescription/ogTitle entries share one root cause: Next 16 postProcessMetadata (node_modules/next/dist/lib/metadata/resolve-metadata.js) UNCONDITIONALLY autofills twitter title/description from openGraph (and og/twitter title from the page title) whenever any openGraph exists — there is no metadata-API off switch. The autofilled values byte-match each page's own og:title/description, so the tags are additive and correct; the CRA site simply never emitted them.",
+  "/commercial": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/garagemakeover": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/patios": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/colors": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/polished-concrete": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/careers": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/radon": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/thank-you": {
+    "ogTitle": true,
+    "twitterTitle": true,
+    "_comment": "Page sets no og/twitter title today (baseline null); Next 16 autofills both from the page <title>. No description autofill fires because the page has no meta description."
+  },
+  "/snake": {
+    "ogTitle": true,
+    "twitterTitle": true,
+    "_comment": "Page sets no og/twitter title today (baseline null); Next 16 autofills both from the inherited site <title>."
+  },
   "/404": {
     "status": true,
     "title": true,
-    "robots": true
+    "robots": true,
+    "ogTitle": true,
+    "twitterTitle": true,
+    "_comment": "status 200->404: the literal /404 URL is intentionally a real 404 under Next (title/robots listed defensively per Task 5). robots: Next injects an unremovable second <meta name=robots content=noindex> on not-found renders — 'noindex, follow | noindex' is semantically identical to the baseline 'noindex, follow'. ogTitle/twitterTitle: Next 16 autofill from the not-found page <title>."
+  },
+  "/epoxy-flooring-albuquerque": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/epoxy-flooring-santa-fe": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/epoxy-flooring-rio-rancho": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/privacy": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/terms": {
+    "twitterTitle": true,
+    "twitterDescription": true,
+    "_comment": "Next 16 twitter autofill from openGraph; values equal this page's own og:title/og:description."
+  },
+  "/garage-makeover": {
+    "status": true,
+    "_comment": "301->308: Next redirects() with permanent:true emits 308; the live 301 is owned by nginx, which stays in front after cutover. Status ONLY — redirectLocation must still match /garagemakeover exactly. Expect 308 in Task 23 (direct :3000) and 301 in Task 25 (through nginx)."
+  },
+  "/definitely-not-a-page-xyz": {
+    "robots": true,
+    "ogTitle": true,
+    "twitterTitle": true,
+    "_comment": "Not-found probe: same three framework-forced not-found diffs as /404 (Next's injected noindex robots meta + title autofill into og/twitter). Status 404 and all other fields still compare strictly."
   },
   "/sign/dummy-token-parity": {
     "noindex": true,
     "h1": true,
-    "jsonLd": true
+    "jsonLd": true,
+    "_comment": "noindex false->true is an intentional improvement: today's nginx noindex header for /sign/* is broken by the try_files internal redirect; Next emits a real robots meta. h1/jsonLd listed defensively per Task 5 (probe only compares status/redirectLocation/noindex)."
   }
 }
