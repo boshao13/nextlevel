@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Refresh the Torginol flake catalog: crawl torginol.com, download missing
-swatches into src/images/torginol/<collection>/, and regenerate
+swatches into public/images/torginol/<collection>/ (the served copy — Next
+serves and the manifest indexes public/, not src/), and regenerate
 src/flakeCatalog.js.
 
 Pipeline (one-time sweep done 2026-06-11; rerun this to pick up new colors):
@@ -27,7 +28,7 @@ import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FLAKES_DIR = os.path.join(ROOT, 'src', 'images', 'flakes')
-TORG_DIR = os.path.join(ROOT, 'src', 'images', 'torginol')
+TORG_DIR = os.path.join(ROOT, 'public', 'images', 'torginol')
 CATALOG_JS = os.path.join(ROOT, 'src', 'flakeCatalog.js')
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
 SIZES = ['_600x600_crop_center-center_none_ns', '_400x400_crop_center-center_none_ns', '_1200x630_crop_center-center_82_none_ns']
@@ -151,7 +152,7 @@ def main():
 
     # Regenerate catalog module
     js = ['// AUTO-GENERATED from the torginol.com product catalog by scripts/fetch-torginol-catalog.py.',
-          '// Images live in src/images/flakes/ (legacy) and src/images/torginol/<collection>/ (gitignored, exist locally).',
+          '// Images live in src/images/flakes/ (legacy) and public/images/torginol/<collection>/ (gitignored, exist locally).',
           'const COLLECTIONS = [']
     total = 0
     for cat_flag, cslug, title, blurb in ORDER:
