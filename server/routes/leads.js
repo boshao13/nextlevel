@@ -3,19 +3,28 @@ const pool = require('../db/pool');
 const authenticate = require('../middleware/auth');
 const requireRole = require('../middleware/requireRole');
 const { sendLeadNotification, sendCustomerConfirmation, sendLeadFailureAlert } = require('../services/email');
+const { verifyTurnstile } = require('../services/turnstile');
 
 module.exports = function (leadLimiter) {
   const router = express.Router();
 
-  // POST / — public, rate-limited, input validation only.
-  // Honeypot / timing / email-cooldown layers were removed 2026-06-03, and the
-  // Cloudflare Turnstile gate was removed 2026-07-18 (owner decision: never
-  // reject a real customer — a consumed single-use token was 403-looping
-  // retries after unrelated failures). Every submission that passes basic
-  // validation is accepted; the per-IP rate limit is the only bot brake.
+  // POST / — public, rate-limited, Cloudflare Turnstile + input validation.
+  // Honeypot / timing / email-cooldown layers were removed 2026-06-03 (autofill
+  // false positives). Turnstile was removed 2026-07-18 after a consumed
+  // single-use token 403-looped retries, then RE-ENABLED 2026-07-22 after a
+  // spam wave. The 403-loop cause is fixed client-side: the widget auto-resets
+  // on every failed submit, so retries always carry a fresh token.
   router.post('/', leadLimiter, async (req, res) => {
     try {
       const { name, email, phone, area_desired, source, notes } = req.body;
+
+      // Cloudflare Turnstile — single source of truth for "is this a human".
+      // verifyTurnstile() short-circuits to true if TURNSTILE_SECRET_KEY is
+      // unset (boot-time warning logged once), so dev/local still works.
+      const captchaOk = await verifyTurnstile(req.body.turnstile_token, req.ip);
+      if (!captchaOk) {
+        return res.status(403).json({ error: 'CAPTCHA verification failed. Please reload and try again.' });
+      }
 
       // Input validation
       const clean = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');

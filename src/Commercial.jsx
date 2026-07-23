@@ -3,6 +3,11 @@ import styled, { css, keyframes } from 'styled-components';
 import { Helmet } from 'react-helmet';
 import useScrollReveal from './useScrollReveal';
 import { trackFormSubmission, trackPhoneClick } from './lib/analytics';
+import TurnstileWidget from './components/TurnstileWidget';
+
+// Turnstile only gates submits when the site key is baked into the build;
+// without it the widget renders null and the form works as it always did.
+const TURNSTILE_ACTIVE = !!process.env.REACT_APP_TURNSTILE_SITE_KEY;
 
 const MOBILE_MQ = '(max-width: 768px)';
 const commercialMobileSrc  = { webm: '/videos/commercial-mobile.webm',  mp4: '/videos/commercial-mobile.mp4' };
@@ -823,6 +828,8 @@ const Commercial = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileRef = useRef(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const [isMobile, setIsMobile] = useState(
@@ -860,6 +867,12 @@ const Commercial = () => {
     e.preventDefault();
     if (!isValid) return;
     setErrorMsg('');
+
+    if (TURNSTILE_ACTIVE && !turnstileToken) {
+      setErrorMsg('Please confirm you\'re human using the Cloudflare box above, then try again.');
+      return;
+    }
+
     setSending(true);
 
     try {
@@ -873,9 +886,18 @@ const Commercial = () => {
           area_desired: form.area_desired,
           source: 'commercial_form',
           notes: `Company: ${form.company_name}\nFacility: ${form.facility_type}\nSq Footage: ${form.square_footage}`,
+          turnstile_token: turnstileToken,
         }),
       });
       if (!res.ok) {
+        // Any failed submit consumed the single-use Turnstile token — reset
+        // the widget so the retry carries a fresh one (the 2026-07-18 bug was
+        // re-POSTing a consumed token, 403-looping the customer).
+        turnstileRef.current?.reset();
+        if (res.status === 403) {
+          setErrorMsg('Verification expired — please try again.');
+          return;
+        }
         // 400 (fixable input) and 429 (rate limit) carry actionable messages;
         // anything else gets the friendly fallback with the phone number.
         const body = await res.json().catch(() => null);
@@ -887,6 +909,7 @@ const Commercial = () => {
       setSubmitted(true);
       window.location.href = '/thank-you';
     } catch (err) {
+      turnstileRef.current?.reset();
       setErrorMsg('We couldn\'t submit your inquiry. Please try again or call 505-352-4674.');
     } finally {
       setSending(false);
@@ -1203,8 +1226,9 @@ const Commercial = () => {
                   />
                 </FieldGroup>
 
+                <TurnstileWidget ref={turnstileRef} onToken={setTurnstileToken} />
                 {errorMsg && <ErrorMsg>{errorMsg}</ErrorMsg>}
-                <SubmitBtn type="submit" disabled={!isValid || sending}>
+                <SubmitBtn type="submit" disabled={!isValid || sending || (TURNSTILE_ACTIVE && !turnstileToken)}>
                   {sending ? 'Sending...' : 'Get My Commercial Quote →'}
                 </SubmitBtn>
                 <Note>
