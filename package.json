@@ -52,7 +52,7 @@
     "build": "react-scripts build",
     "postbuild": "node scripts/prerender.js",
     "test": "react-scripts test",
-    "test:server": "jest --rootDir=. --testMatch \"**/{server,scripts}/**/*.test.js\" --watchAll=false",
+    "test:node": "jest --rootDir=. --testMatch \"**/{server,scripts}/**/*.test.js\" --testMatch \"**/src/admin/**/*.test.js\" --watchAll=false",
     "test:smoke": "playwright test",
     "eject": "react-scripts eject"
   },
@@ -75,7 +75,11 @@
     ]
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-react": "^7.29.7",
     "@playwright/test": "^1.61.1",
+    "babel-jest": "^27.5.1",
     "concurrently": "^9.1.2",
     "jest": "^27.5.1",
     "puppeteer": "^24.43.1",
