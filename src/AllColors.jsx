@@ -1,9 +1,11 @@
+'use client';
+
 import React, { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import styled from 'styled-components';
-import { Helmet } from 'react-helmet';
 import COLLECTIONS from './flakeCatalog';
 import SwatchModal from './components/SwatchModal';
+import MANIFEST from './flakeImageManifest.json';
 
 /* ── Signature colors (in stock, ready to install) ───────────────── */
 const SIGNATURE_FILENAMES = new Set([
@@ -11,19 +13,11 @@ const SIGNATURE_FILENAMES = new Set([
   'nightfall', 'citrine', 'tidal-wave', 'wombat',
 ]);
 
-/* ── Image resolution (legacy flat folder + per-collection folders) ─ */
-const flakeCtx = require.context('./images/flakes', false, /\.jpg$/);
-const torginolCtx = require.context('./images/torginol', true, /\.jpg$/);
-
-const resolveImg = (file) => {
-  try {
-    if (file.startsWith('flakes/')) return flakeCtx('./' + file.slice('flakes/'.length));
-    if (file.startsWith('torginol/')) return torginolCtx('./' + file.slice('torginol/'.length));
-  } catch (e) {
-    return null;
-  }
-  return null;
-};
+/* ── Image resolution (committed manifest replaces require.context) ─
+   Keys look like 'flakes/gravel.jpg' / 'torginol/garage/bean.jpg'.
+   Missing image → null → item dropped, exactly like the old try/catch.
+   Regenerate after adding swatches: npm run flakes:manifest */
+const resolveImg = (file) => MANIFEST[file] || null;
 
 const slugOf = (file) => file.split('/').pop().replace('.jpg', '');
 const isInStock = (item) => SIGNATURE_FILENAMES.has(slugOf(item.file));
@@ -280,16 +274,8 @@ const AllColors = () => {
 
   return (
     <Page>
-      <Helmet>
-        <title>Epoxy &amp; Polyaspartic Floor Colors | Custom Flake Systems NM</title>
-        <meta name="description" content="Browse epoxy and polyaspartic floor color options for garages, basements, and commercial spaces in Albuquerque, Santa Fe, and Rio Rancho NM. Custom flake systems." />
-        <link rel="canonical" href="https://www.nextlevelepoxynm.com/colors" />
-        <meta property="og:title" content="Epoxy & Polyaspartic Floor Colors | Custom Flake Systems NM" />
-        <meta property="og:description" content="Browse epoxy and polyaspartic floor color options for garages, basements, and commercial spaces in NM." />
-        <meta property="og:url" content="https://www.nextlevelepoxynm.com/colors" />
-      </Helmet>
       <HeroBanner>
-        <BackLink to="/">
+        <BackLink href="/">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
           Back to Home
         </BackLink>
@@ -332,7 +318,7 @@ const AllColors = () => {
 
         <UvNote>
           Looking for outdoor flake? Our UV-stable patio line lives on the{' '}
-          <Link to="/patios">Patios page</Link>.
+          <Link href="/patios">Patios page</Link>.
         </UvNote>
 
         {CATALOG.map((c) => (

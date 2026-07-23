@@ -44,6 +44,7 @@
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/index.js",
+    "flakes:manifest": "node scripts/generate-flake-manifest.js",
     "client": "react-scripts start",
     "dev:next": "next dev",
     "build:next": "next build",
