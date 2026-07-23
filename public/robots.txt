@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /admin/login
-
-Sitemap: https://www.nextlevelepoxynm.com/sitemap.xml
