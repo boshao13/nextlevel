@@ -53,6 +53,7 @@
     "postbuild": "node scripts/prerender.js",
     "test": "react-scripts test",
     "test:server": "jest --rootDir=. --testMatch \"**/{server,scripts}/**/*.test.js\" --watchAll=false",
+    "test:smoke": "playwright test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -74,6 +75,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "concurrently": "^9.1.2",
     "jest": "^27.5.1",
     "puppeteer": "^24.43.1",

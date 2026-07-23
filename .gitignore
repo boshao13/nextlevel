@@ -37,3 +37,7 @@ public/images/*
 # (regenerate with: node scripts/generate-og-image.js)
 !public/images/og-image.jpg
 !public/images/twitter-image.jpg
+
+# playwright
+/test-results/
+/playwright-report/
