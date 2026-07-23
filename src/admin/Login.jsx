@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
 import api from './api';
 
 const Wrapper = styled.div`
@@ -129,13 +128,14 @@ const Login = () => {
 
   return (
     <Wrapper>
-      <Helmet>
-        <meta name="robots" content="noindex, nofollow" />
-        <title>Admin Login</title>
-      </Helmet>
+      {/* React 19 hoists bare <title> into <head>. The robots noindex meta
+          moved to the server metadata export in app/admin/[[...rest]]/page.js
+          (covers ALL admin routes) — don't re-add it here (single source of
+          truth for overridable tags, per the de-indexing incident rule). */}
+      <title>Admin Login</title>
       <Card>
         <Logo
-          src={`${process.env.PUBLIC_URL}/nextlevellogo.png`}
+          src="/nextlevellogo.png"
           alt="NextLevel"
         />
         <Title>Admin Login</Title>

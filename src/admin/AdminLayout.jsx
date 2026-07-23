@@ -222,7 +222,7 @@ const AdminLayout = () => {
       <SidebarOverlay $open={sidebarOpen} onClick={closeSidebar} />
       <Sidebar $open={sidebarOpen}>
         <SidebarLogo
-          src={`${process.env.PUBLIC_URL}/nextlevellogo.png`}
+          src="/nextlevellogo.png"
           alt="NextLevel"
         />
         <Nav>
