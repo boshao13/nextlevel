@@ -33,7 +33,8 @@ echo "🔨 Building Next.js app (standalone)..."
 npx next build
 
 echo "📦 Syncing standalone server → EC2..."
-rs .next/standalone/ "$EC2:$REMOTE/web/"
+# --exclude .env*: the standalone bundle bakes NEXT_PUBLIC_ at build; the laptop .env must not ship (secrets + laptop-values-win hazard).
+rs --exclude='.env' --exclude='.env.*' .next/standalone/ "$EC2:$REMOTE/web/"
 
 echo "📦 Syncing static assets → EC2..."
 rs .next/static/ "$EC2:$REMOTE/web/.next/static/"
