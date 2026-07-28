@@ -40,7 +40,7 @@ echo "📦 Syncing static assets → EC2..."
 rs .next/static/ "$EC2:$REMOTE/web/.next/static/"
 
 echo "📦 Syncing public/ (media + favicons) → EC2..."
-rs public/ "$EC2:$REMOTE/web/public/"
+rs --exclude 'videos.backup' public/ "$EC2:$REMOTE/web/public/"
 
 echo "📦 Syncing PM2 ecosystem config → EC2..."
 rs ecosystem.config.js "$EC2:$REMOTE/"

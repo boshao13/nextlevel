@@ -201,6 +201,30 @@ const MapIframe = styled.iframe`
   display: block;
 `;
 
+const FaqRow = styled.div`
+  margin-top: 56px;
+  max-width: 780px;
+`;
+
+const FaqItem = styled.div`
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line-strong);
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-hi);
+    margin: 0 0 10px;
+  }
+
+  p {
+    font-size: 0.98rem;
+    line-height: 1.7;
+    color: var(--text-body);
+    margin: 0;
+  }
+`;
+
 const RelatedRow = styled.div`
   margin-top: 56px;
   padding-top: 32px;
@@ -329,6 +353,18 @@ const LocationPage = ({ city }) => {
               </MapWrap>
             </InfoCard>
           </Grid>
+
+          {city.faqs?.length > 0 && (
+            <FaqRow>
+              <RelatedTitle as="h2">Epoxy Flooring in {city.name} — Common Questions</RelatedTitle>
+              {city.faqs.map((f, i) => (
+                <FaqItem key={i}>
+                  <h3>{f.q}</h3>
+                  <p>{f.a}</p>
+                </FaqItem>
+              ))}
+            </FaqRow>
+          )}
 
           <RelatedRow>
             <RelatedTitle>Also serving</RelatedTitle>

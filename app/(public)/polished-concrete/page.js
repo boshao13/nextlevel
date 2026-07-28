@@ -3,8 +3,8 @@ import { pageMetadata } from '../../../src/seo';
 
 export const metadata = {
   ...pageMetadata({
-    title: 'Polished Concrete Floors — Next Level Polished Concrete (Our Sister Company)',
-    description: 'Want polished, dyed, stained, or grind-and-seal concrete instead of an epoxy coating? Our sister company, Next Level Polished Concrete, delivers extremely high-quality polished concrete across Albuquerque, Santa Fe & Rio Rancho NM.',
+    title: 'Polished Concrete Albuquerque NM | Next Level Polished Concrete',
+    description: 'Polished, dyed, stained & grind-and-seal concrete floors in Albuquerque, Santa Fe & Rio Rancho NM from our sister company. Free quote: 505-352-4674.',
     ogTitle: 'Polished Concrete Floors — Next Level Polished Concrete',
     ogDescription: 'Our sister company delivers polished, dyed, stained & grind-and-seal concrete across New Mexico.',
     path: '/polished-concrete',

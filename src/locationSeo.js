@@ -39,6 +39,20 @@ export function locationSchema(city) {
           { '@type': 'ListItem', position: 2, name: `${city.name} Epoxy Flooring`, item: url },
         ],
       },
+      // FAQPage mirrors the visible FAQ section on the page (rich-result
+      // eligible; questions must stay in sync with city.faqs — they are
+      // generated from the same data, so they always do).
+      ...(city.faqs?.length
+        ? [{
+            '@type': 'FAQPage',
+            '@id': `${url}#faq`,
+            mainEntity: city.faqs.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+          }]
+        : []),
     ],
   };
 }

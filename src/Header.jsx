@@ -72,6 +72,53 @@ const Nav = styled.nav`
   }
 `;
 
+/* Desktop "Service Areas" hover dropdown — the three city pages were footer +
+   mobile-only before, starving them of internal links from every page. */
+const AreasItem = styled.div`
+  position: relative;
+
+  &:hover > div,
+  &:focus-within > div {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+`;
+
+const AreasPanel = styled.div`
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  min-width: 190px;
+  padding: 8px;
+  background: rgba(14, 17, 22, 0.97);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  translate: -50% 0;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  z-index: 60;
+
+  a {
+    display: block;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: var(--text-body);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: rgba(240, 165, 0, 0.08);
+      color: var(--resin-hot);
+    }
+  }
+`;
+
 const navItem = css`
   position: relative;
   padding: 8px 14px;
@@ -414,6 +461,14 @@ const Header = () => {
           <NavLink href="/patios" onClick={handleNavClick}>Patios</NavLink>
           <NavLink href="/colors" onClick={handleNavClick}>Colors</NavLink>
           <NavLink href="/polished-concrete" onClick={handleNavClick}>Polished Concrete</NavLink>
+          <AreasItem>
+            <NavLink href="/epoxy-flooring-albuquerque" onClick={handleNavClick} aria-haspopup="true">Service Areas</NavLink>
+            <AreasPanel>
+              <Link href="/epoxy-flooring-albuquerque" onClick={handleNavClick}>Epoxy Flooring Albuquerque</Link>
+              <Link href="/epoxy-flooring-rio-rancho" onClick={handleNavClick}>Epoxy Flooring Rio Rancho</Link>
+              <Link href="/epoxy-flooring-santa-fe" onClick={handleNavClick}>Epoxy Flooring Santa Fe</Link>
+            </AreasPanel>
+          </AreasItem>
           <NavLink href="/careers" onClick={handleNavClick}>Careers</NavLink>
           <NavAnchor href="/#contact" onClick={handleContactClick}>Contact</NavAnchor>
           <PhoneButton href="tel:5053524674" onClick={() => trackPhoneClick('header_desktop')}>

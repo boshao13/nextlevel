@@ -16,6 +16,8 @@ export const BUSINESS_GRAPH = {
       '@type': 'LocalBusiness',
       '@id': 'https://www.nextlevelepoxynm.com/#business',
       name: 'Next Level Epoxy Flooring',
+      // Brand-query disambiguation vs. same-name companies in other states.
+      alternateName: ['Next Level Epoxy', 'Next Level Epoxy NM', 'Next Level Epoxy Flooring Albuquerque'],
       image: 'https://www.nextlevelepoxynm.com/nextlevellogo.png',
       logo: 'https://www.nextlevelepoxynm.com/nextlevellogo.png',
       url: 'https://www.nextlevelepoxynm.com',
@@ -44,6 +46,29 @@ export const BUSINESS_GRAPH = {
         bestRating: '5',
         worstRating: '1',
       },
+      // Real Google reviews — the same three published on the home page
+      // (src/Testimonials.jsx). Standalone aggregateRating without review
+      // markup risks a rich-result flag; these support it.
+      review: [
+        {
+          '@type': 'Review',
+          author: { '@type': 'Person', name: 'Alexander Durham' },
+          reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+          reviewBody: 'Next Level is really next level! Bo was great to talk to and explain all the services he provided. The work itself is awesome. The job went quick (day and a half) and my garage looked better than I imagined.',
+        },
+        {
+          '@type': 'Review',
+          author: { '@type': 'Person', name: 'Ken Pepin' },
+          reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+          reviewBody: "I can't possibly express how great Next Level Epoxy Flooring is. The attention to detail, the quality of work, the integrity of the installers is all top notch. And best of all, the pricing is super competitive with the \"big\" flooring companies.",
+        },
+        {
+          '@type': 'Review',
+          author: { '@type': 'Person', name: 'Tina Ogle' },
+          reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+          reviewBody: 'We had an amazing experience working with Next Level Epoxy. They were extremely knowledgeable and passionate about providing a coating that would last a lifetime. Great communication every step of the way, and the pricing was very reasonable.',
+        },
+      ],
     },
     {
       '@type': 'Service',
