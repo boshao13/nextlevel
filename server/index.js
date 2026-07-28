@@ -26,7 +26,9 @@ const inventoryRoutes = require('./routes/inventory');
 const payrollRoutes = require('./routes/payroll');
 const documentRoutes = require('./routes/documents');
 const signRoutes = require('./routes/sign');
+const blogRoutes = require('./routes/blog');
 const { ensureStorageDir } = require('./util/documentStorage');
+const { ensureBlogTables } = require('./db/ensure-blog');
 
 const app = express();
 
@@ -71,6 +73,18 @@ const leadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Blog reads are public + cheap (indexed SELECTs, no writes, no email), but
+// still deserve a ceiling like the other public surface (leads). 60/IP/min
+// covers real readers and the Next ISR/sitemap loopback fetches (a handful
+// per hour) with huge margin while blunting scrape loops.
+const blogLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/api/login', loginLimiter);
 app.use('/api', authRoutes);
 
@@ -92,6 +106,7 @@ app.use('/api/inventory', authenticate, inventoryRoutes);
 app.use('/api/payroll', authenticate, payrollRoutes);
 app.use('/api/documents', authenticate, documentRoutes);
 app.use('/api/sign', signRoutes); // PUBLIC: no auth, rate-limited inside the router
+app.use('/api/blog', blogRoutes(blogLimiter)); // PUBLIC: read-only, rate-limited
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
@@ -110,4 +125,8 @@ const PORT = process.env.PORT || 4242;
 // Bind to loopback only — Nginx is the public face. Defense-in-depth:
 // even if the AWS security group ever opens this port, Express won't answer it.
 ensureStorageDir(); // Fail fast on boot if /var/lib/nextlevel is missing.
+// Blog tables self-create on boot (idempotent). Deliberately NOT awaited and
+// never fatal: a blog DDL hiccup must not take down lead intake — the blog
+// routes would just 500 until the next restart.
+ensureBlogTables().catch((err) => console.error('[blog] ensure tables failed:', err));
 app.listen(PORT, '127.0.0.1', () => console.log(`CRM API running on 127.0.0.1:${PORT}`));

@@ -25,8 +25,8 @@ describe('missingRoutes', () => {
 });
 
 describe('EXPECTED_STATIC', () => {
-  test('covers the 15 public pages plus sitemap.xml and robots.txt', () => {
-    expect(EXPECTED_STATIC).toHaveLength(17);
+  test('covers the 16 public pages plus sitemap.xml and robots.txt', () => {
+    expect(EXPECTED_STATIC).toHaveLength(18);
     expect(EXPECTED_STATIC).toEqual(
       expect.arrayContaining([
         '/',
@@ -44,6 +44,7 @@ describe('EXPECTED_STATIC', () => {
         '/epoxy-flooring-albuquerque',
         '/epoxy-flooring-santa-fe',
         '/epoxy-flooring-rio-rancho',
+        '/blog',
         '/sitemap.xml',
         '/robots.txt',
       ])
@@ -54,5 +55,7 @@ describe('EXPECTED_STATIC', () => {
     expect(EXPECTED_STATIC).not.toContain('/404');
     expect(EXPECTED_STATIC.some((r) => r.startsWith('/admin'))).toBe(false);
     expect(EXPECTED_STATIC.some((r) => r.startsWith('/sign'))).toBe(false);
+    // Blog posts are runtime-ISR (empty generateStaticParams) — never expected static.
+    expect(EXPECTED_STATIC.some((r) => r.startsWith('/blog/'))).toBe(false);
   });
 });

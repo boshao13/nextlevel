@@ -8,9 +8,9 @@
 // hand-maintained public/sitemap.xml this module replaced (2026-07 CRA→Next
 // migration). Bump a route's lastmod when its content meaningfully changes.
 //
-// PHASE-2 EXTENSION POINT: the automated weekly SEO blog appends its
-// /blog/<slug> entries here ({ path, sitemap: true, lastmod: publish date })
-// — app/sitemap.js picks them up with no further wiring.
+// PHASE-2 (2026-07-27): the SEO blog's /blog/<slug> entries are DYNAMIC —
+// blogSitemapEntries() below fetches them from the Express API at render
+// time and app/sitemap.js merges them after the static rows.
 
 const SITE = 'https://www.nextlevelepoxynm.com';
 
@@ -28,6 +28,7 @@ const routes = [
   { path: '/careers', sitemap: true, lastmod: '2026-05-13' },
   { path: '/privacy', sitemap: true, lastmod: '2026-06-11' },
   { path: '/terms', sitemap: true, lastmod: '2026-06-11' },
+  { path: '/blog', sitemap: true, lastmod: '2026-07-27' },
   // Public but deliberately NOT in the sitemap (matches the old static file):
   { path: '/snake', sitemap: false },      // easter egg, no meta of its own
   { path: '/thank-you', sitemap: false },  // noindex conversion page — keep out
@@ -43,4 +44,30 @@ function sitemapEntries() {
     .map((r) => ({ url: `${SITE}${r.path}`, lastModified: r.lastmod }));
 }
 
-module.exports = { SITE, routes, sitemapEntries };
+// PHASE-2 dynamic hook: blog posts live in MySQL behind the Express API, so
+// their sitemap rows are fetched at render time (app/sitemap.js is ISR,
+// revalidate 3600). MUST return [] on ANY failure — the build box has no DB
+// and no :4242 API, and a build must still pass with just the static rows.
+const BLOG_API = 'http://127.0.0.1:4242/api/blog';
+
+async function blogSitemapEntries() {
+  try {
+    const res = await fetch(BLOG_API, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return [];
+    const posts = await res.json();
+    if (!Array.isArray(posts)) return [];
+    return posts
+      .filter((p) => p && typeof p.slug === 'string' && p.slug)
+      .map((p) => ({
+        url: `${SITE}/blog/${p.slug}`,
+        // published_at (MySQL DATETIME → ISO string in JSON) trimmed to
+        // YYYY-MM-DD to match the plain-date <lastmod> style of the static rows.
+        lastModified: String(p.published_at || '').slice(0, 10) || undefined,
+      }));
+  } catch (err) {
+    // API down (local build, Express restart) — sitemap ships static rows only.
+    return [];
+  }
+}
+
+module.exports = { SITE, routes, sitemapEntries, blogSitemapEntries };

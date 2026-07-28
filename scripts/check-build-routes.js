@@ -35,6 +35,10 @@ const EXPECTED_STATIC = [
   '/epoxy-flooring-albuquerque',
   '/epoxy-flooring-santa-fe',
   '/epoxy-flooring-rio-rancho',
+  // /blog is ISR (revalidate 3600) — still present in prerender-manifest
+  // routes. /blog/[slug] is deliberately ABSENT: generateStaticParams() is []
+  // (build box has no DB), posts render on demand at runtime.
+  '/blog',
   '/sitemap.xml',
   '/robots.txt',
 ];
