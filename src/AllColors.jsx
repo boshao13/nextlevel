@@ -14,12 +14,17 @@ const SIGNATURE_FILENAMES = new Set([
 ]);
 
 /* ── Image resolution (committed manifest replaces require.context) ─
-   Keys look like 'flakes/gravel.jpg' / 'torginol/garage/bean.jpg'.
+   Keys look like 'flakes/gravel.webp' / 'torginol/garage/bean.webp'.
    Missing image → null → item dropped, exactly like the old try/catch.
-   Regenerate after adding swatches: npm run flakes:manifest */
+   Regenerate after adding swatches (convert-webp.mjs first): npm run flakes:manifest */
 const resolveImg = (file) => MANIFEST[file] || null;
 
-const slugOf = (file) => file.split('/').pop().replace('.jpg', '');
+/* Intrinsic square swatch size (CLS): flakes/ scans are 380×380, the
+   torginol collections 400×400. Rendered size is CSS-controlled (square);
+   these attributes just reserve the 1:1 box before the image loads. */
+const dimOf = (file) => (file.startsWith('flakes/') ? 380 : 400);
+
+const slugOf = (file) => file.split('/').pop().replace('.webp', '');
 const isInStock = (item) => SIGNATURE_FILENAMES.has(slugOf(item.file));
 
 /* Collections we don't present (catalog data is kept for SKU lookups) */
@@ -44,7 +49,7 @@ const inStockItems = [...SIGNATURE_FILENAMES].map((slug) => {
     if (slugOf(it.file) === slug && !sku) { sku = it.sku; collection = c.title; }
   }));
   const name = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  return { name, sku, collection: collection || 'In Stock', file: `flakes/${slug}.jpg`, img: resolveImg(`flakes/${slug}.jpg`), inStock: true };
+  return { name, sku, collection: collection || 'In Stock', file: `flakes/${slug}.webp`, img: resolveImg(`flakes/${slug}.webp`), inStock: true };
 }).filter((it) => it.img).sort((a, b) => a.name.localeCompare(b.name));
 
 const TOTAL_COUNT = CATALOG.reduce((n, c) => n + c.items.length, 0);
@@ -308,7 +313,7 @@ const AllColors = () => {
             <Grid>
               {inStockItems.map((it) => (
                 <Card key={`stock-${it.file}`} onClick={() => setSelected(it)} aria-label={`View ${it.name}`}>
-                  <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
+                  <SwatchImg src={it.img} alt={it.name} width={dimOf(it.file)} height={dimOf(it.file)} loading="lazy" decoding="async" />
                   <CardLabel><span aria-hidden="true" />{it.name}</CardLabel>
                 </Card>
               ))}
@@ -335,7 +340,7 @@ const AllColors = () => {
                   onClick={() => setSelected({ ...it, collection: c.title })}
                   aria-label={`View ${it.name}`}
                 >
-                  <SwatchImg src={it.img} alt={it.name} loading="lazy" decoding="async" />
+                  <SwatchImg src={it.img} alt={it.name} width={dimOf(it.file)} height={dimOf(it.file)} loading="lazy" decoding="async" />
                   <CardLabel>
                     {it.inStock && <span aria-hidden="true" />}
                     {it.name}

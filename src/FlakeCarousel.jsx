@@ -10,14 +10,14 @@ import useScrollReveal from './useScrollReveal';
    locally; deploy rsyncs public/). Task 13 builds the full /colors manifest
    from the same tree. */
 const flakes = [
-  { name: 'Coyote', img: '/images/flakes/coyote.jpg', popular: true },
-  { name: 'Creekbed', img: '/images/flakes/creekbed.jpg' },
-  { name: 'Gravel', img: '/images/flakes/gravel.jpg' },
-  { name: 'Loon', img: '/images/flakes/loon.jpg' },
-  { name: 'Nightfall', img: '/images/flakes/nightfall.jpg', popular: true },
-  { name: 'Tidal Wave', img: '/images/flakes/tidal-wave.jpg' },
-  { name: 'Thyme', img: '/images/flakes/thyme.jpg' },
-  { name: 'Wombat', img: '/images/flakes/wombat.jpg' },
+  { name: 'Coyote', img: '/images/flakes/coyote.webp', popular: true },
+  { name: 'Creekbed', img: '/images/flakes/creekbed.webp' },
+  { name: 'Gravel', img: '/images/flakes/gravel.webp' },
+  { name: 'Loon', img: '/images/flakes/loon.webp' },
+  { name: 'Nightfall', img: '/images/flakes/nightfall.webp', popular: true },
+  { name: 'Tidal Wave', img: '/images/flakes/tidal-wave.webp' },
+  { name: 'Thyme', img: '/images/flakes/thyme.webp' },
+  { name: 'Wombat', img: '/images/flakes/wombat.webp' },
 ];
 
 /* ── Styled Components ────────────────────────────────────────────── */

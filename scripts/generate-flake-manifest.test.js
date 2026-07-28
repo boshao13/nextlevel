@@ -10,9 +10,10 @@ describe('buildManifest', () => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'flake-manifest-'));
     fs.mkdirSync(path.join(root, 'flakes'));
     fs.mkdirSync(path.join(root, 'torginol', 'garage'), { recursive: true });
-    fs.writeFileSync(path.join(root, 'flakes', 'gravel.jpg'), '');
+    fs.writeFileSync(path.join(root, 'flakes', 'gravel.webp'), '');
     fs.writeFileSync(path.join(root, 'flakes', 'notes.txt'), '');
-    fs.writeFileSync(path.join(root, 'torginol', 'garage', 'bean.jpg'), '');
+    fs.writeFileSync(path.join(root, 'flakes', 'legacy.jpg'), '');
+    fs.writeFileSync(path.join(root, 'torginol', 'garage', 'bean.webp'), '');
   });
 
   afterEach(() => {
@@ -20,15 +21,15 @@ describe('buildManifest', () => {
   });
 
   test('maps flat flakes keys to public paths', () => {
-    expect(buildManifest(root)['flakes/gravel.jpg']).toBe('/images/flakes/gravel.jpg');
+    expect(buildManifest(root)['flakes/gravel.webp']).toBe('/images/flakes/gravel.webp');
   });
 
   test('maps nested torginol keys recursively', () => {
-    expect(buildManifest(root)['torginol/garage/bean.jpg']).toBe('/images/torginol/garage/bean.jpg');
+    expect(buildManifest(root)['torginol/garage/bean.webp']).toBe('/images/torginol/garage/bean.webp');
   });
 
-  test('ignores non-jpg files', () => {
-    expect(Object.keys(buildManifest(root))).toEqual(['flakes/gravel.jpg', 'torginol/garage/bean.jpg']);
+  test('ignores non-webp files (the source jpgs stay alongside)', () => {
+    expect(Object.keys(buildManifest(root))).toEqual(['flakes/gravel.webp', 'torginol/garage/bean.webp']);
   });
 
   test('missing folders yield an empty manifest', () => {

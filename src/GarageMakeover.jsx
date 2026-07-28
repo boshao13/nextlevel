@@ -556,8 +556,8 @@ const GarageMakeover = () => {
         <BeforeAfterWrapper>
           <BeforeColumn>
             <Label>Before</Label>
-            <img src="/img/garagebefore.jpg" alt="Cracked bare concrete garage floor before professional epoxy coating in Albuquerque NM" loading="lazy" width="1200" height="900" />
-            <img src="/img/garagebefore1.jpg" alt="Unfinished garage with stained concrete floor before polyaspartic floor coating in Santa Fe NM" loading="lazy" width="1200" height="900" />
+            <img src="/img/garagebefore.webp" alt="Cracked bare concrete garage floor before professional epoxy coating in Albuquerque NM" loading="lazy" width="1200" height="900" />
+            <img src="/img/garagebefore1.webp" alt="Unfinished garage with stained concrete floor before polyaspartic floor coating in Santa Fe NM" loading="lazy" width="1200" height="900" />
           </BeforeColumn>
           <ArrowIndicator aria-hidden="true">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

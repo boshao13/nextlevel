@@ -13,7 +13,8 @@ import UV_SKUS from './uvFlakeSkus';
 /* ── UV+ flake catalog (Torginol UV+ line) ─────────────────────────
    Images serve from /public/images/uv-flakes (copied from src/images/
    uv-flakes). The 36 jpg filenames there are exactly the keys of UV_SKUS
-   (verified 2026-07-20), so the list derives from UV_SKUS — no webpack
+   (verified 2026-07-20) and each has a .webp sibling (scripts/convert-webp.mjs)
+   that we actually serve, so the list derives from UV_SKUS — no webpack
    require.context, which does not exist under Next. */
 const STANDARD_NAMES = new Set([
   'veranda','courtyard','chalet','saltbox','rooftop','homestead','cottage',
@@ -30,7 +31,7 @@ const allUvFlakes = Object.keys(UV_SKUS).sort().map((filename) => {
   return {
     name,
     filename,
-    img: `/images/uv-flakes/${filename}.jpg`,
+    img: `/images/uv-flakes/${filename}.webp`,
     sku: UV_SKUS[filename] || '',
     kind: STANDARD_NAMES.has(filename) ? 'standard' : 'hybrid',
   };

@@ -239,7 +239,7 @@ const EpoxyInfo = () => {
         <ContentLayout ref={contentRef}>
           <DiagramSide className={`reveal-left ${contentVisible ? 'visible' : ''}`}>
             <img
-              src="/images/epoxydiagram.jpg"
+              src="/images/epoxydiagram.webp"
               alt="Epoxy flooring system layers — concrete, 100% solids cycloaliphatic epoxy base, flake broadcast, and polyaspartic topcoat"
               loading="lazy"
             />
