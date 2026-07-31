@@ -28,6 +28,7 @@ const routes = [
   { path: '/careers', sitemap: true, lastmod: '2026-05-13' },
   { path: '/privacy', sitemap: true, lastmod: '2026-06-11' },
   { path: '/terms', sitemap: true, lastmod: '2026-06-11' },
+  { path: '/accessibility', sitemap: true, lastmod: '2026-07-30' },
   { path: '/blog', sitemap: true, lastmod: '2026-07-27' },
   // Public but deliberately NOT in the sitemap (matches the old static file):
   { path: '/snake', sitemap: false },      // easter egg, no meta of its own

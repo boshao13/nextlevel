@@ -237,7 +237,7 @@ const Testimonials = () => {
         <Grid ref={gridRef}>
           {testimonials.map((t, i) => (
             <TestimonialCard key={i} $visible={gridVisible} $delay={`${i * 0.15}s`}>
-              <Stars aria-label={`${t.rating} out of 5 stars`}>
+              <Stars role="img" aria-label={`${t.rating} out of 5 stars`}>
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} aria-hidden="true">★</Star>
                 ))}

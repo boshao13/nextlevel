@@ -32,6 +32,7 @@ const EXPECTED_STATIC = [
   '/snake',
   '/privacy',
   '/terms',
+  '/accessibility',
   '/epoxy-flooring-albuquerque',
   '/epoxy-flooring-santa-fe',
   '/epoxy-flooring-rio-rancho',

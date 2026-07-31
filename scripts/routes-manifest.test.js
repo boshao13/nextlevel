@@ -20,6 +20,7 @@ const EXPECTED = [
   ['https://www.nextlevelepoxynm.com/careers', '2026-05-13'],
   ['https://www.nextlevelepoxynm.com/privacy', '2026-06-11'],
   ['https://www.nextlevelepoxynm.com/terms', '2026-06-11'],
+  ['https://www.nextlevelepoxynm.com/accessibility', '2026-07-30'],
   ['https://www.nextlevelepoxynm.com/blog', '2026-07-27'],
 ];
 

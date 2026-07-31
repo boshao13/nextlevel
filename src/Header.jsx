@@ -395,7 +395,7 @@ const TabAnchor = styled.a`
   -webkit-tap-highlight-color: transparent;
 `;
 
-const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/patios', '/radon', '/colors', '/polished-concrete', '/thank-you', '/privacy', '/terms'];
+const SUBPAGES = ['/commercial', '/careers', '/garagemakeover', '/patios', '/radon', '/colors', '/polished-concrete', '/thank-you', '/privacy', '/terms', '/accessibility'];
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);

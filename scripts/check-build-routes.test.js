@@ -25,8 +25,8 @@ describe('missingRoutes', () => {
 });
 
 describe('EXPECTED_STATIC', () => {
-  test('covers the 16 public pages plus sitemap.xml and robots.txt', () => {
-    expect(EXPECTED_STATIC).toHaveLength(18);
+  test('covers the 17 public pages plus sitemap.xml and robots.txt', () => {
+    expect(EXPECTED_STATIC).toHaveLength(19);
     expect(EXPECTED_STATIC).toEqual(
       expect.arrayContaining([
         '/',
@@ -41,6 +41,7 @@ describe('EXPECTED_STATIC', () => {
         '/snake',
         '/privacy',
         '/terms',
+        '/accessibility',
         '/epoxy-flooring-albuquerque',
         '/epoxy-flooring-santa-fe',
         '/epoxy-flooring-rio-rancho',

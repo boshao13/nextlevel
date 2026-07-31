@@ -73,9 +73,15 @@ const Content = styled.div`
 
   a {
     color: var(--resin-hot);
+    /* Underlined ALWAYS, not just on hover — WCAG 1.4.1 (Use of Color).
+       Amber link text (#ffc940) against the body copy colour (--text-body
+       #c5cdd6) is only ~1.04:1 apart, well under the 3:1 needed to tell a
+       link from its surrounding text by colour alone, so the underline is
+       what actually identifies it. (axe-core link-in-text-block, serious.) */
+    text-decoration: underline;
 
     &:hover {
-      text-decoration: underline;
+      color: var(--resin);
     }
   }
 

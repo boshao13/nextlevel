@@ -208,9 +208,14 @@ const BottomBar = styled.div`
   }
 `;
 
+/* BottomBar text sits on the tail of the footer gradient (~#08090c). The old
+   white alphas here were below WCAG AA for 12.8px/12px body text — 0.25 gave
+   2.12:1 and 0.3 gave 2.59:1 against a 4.5:1 requirement. Lifted to 0.5
+   (5.32:1) which clears AA while staying dimmer than --text-dim (#97a1ac,
+   7.59:1), so the bottom bar keeps its subordinate place in the hierarchy. */
 const Copyright = styled.p`
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.5);
 `;
 
 const LegalLinks = styled.div`
@@ -220,7 +225,7 @@ const LegalLinks = styled.div`
 
   a {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.5);
     transition: color var(--transition);
 
     &:hover {
@@ -234,12 +239,12 @@ const MadeBy = styled.a`
   align-items: center;
   gap: 8px;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.5);
   transition: color var(--transition);
   text-decoration: none;
 
   &:hover {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.75);
   }
 
   img {
@@ -331,6 +336,7 @@ const Footer = () => {
           <LegalLinks>
             <Link href="/privacy">Privacy Policy</Link>
             <Link href="/terms">Terms of Service</Link>
+            <Link href="/accessibility">Accessibility</Link>
           </LegalLinks>
           <MadeBy href="https://codelabs88.com" target="_blank" rel="noopener noreferrer">
             Engineered with caffeine & code by
